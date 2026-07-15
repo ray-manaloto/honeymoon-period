@@ -213,8 +213,8 @@ voting layer. Test it both standalone and as a composition with Tavola or Mapstr
   iMessage and requires iOS 15.5 or later.
   [U.S. App Store listing](https://apps.apple.com/us/app/mapstr-save-follow-places/id917288465)
 - Mapstr documentation says collaborative-map invitees accept an invitation and
-  can add addresses. Each participant owns their additions; other participants'
-  entries are not freely co-edited or deleted. [Mapstr FAQ](https://en.mapstr.com/faq)
+  can add addresses, but only the map owner can modify or delete participant
+  additions. [Mapstr FAQ](https://en.mapstr.com/faq)
 - The FAQ documents custom tags, notes, comments, photos, to-try/tried status,
   filtering by tags/status/open state/available tables, sorting by geography, and
   reservation handoff to partners including OpenTable. These are place and booking
