@@ -1,0 +1,38 @@
+# Project-scoped Codex defaults. Loaded only when this repository is trusted.
+model = "gpt-5.6-sol"
+model_reasoning_effort = "medium"
+personality = "pragmatic"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+# App capabilities, pricing, APIs, and availability are time-sensitive during
+# the existing-product bake-off. Revisit after the research baseline is stable.
+web_search = "live"
+
+[features]
+apps = true
+goals = true
+hooks = true
+multi_agent = true
+shell_snapshot = true
+unified_exec = true
+
+# Project-local replacement for the Build iOS Apps plugin's simulator MCP.
+# Its nine MIT-licensed workflow skills are vendored under .agents/skills so
+# this repository does not depend on a globally enabled plugin.
+[mcp_servers.xcodebuildmcp]
+command = "npx"
+args = ["-y", "xcodebuildmcp@2.6.2", "mcp"]
+enabled = true
+startup_timeout_sec = 30
+tool_timeout_sec = 120
+
+[mcp_servers.xcodebuildmcp.env]
+XCODEBUILDMCP_ENABLED_WORKFLOWS = "simulator,ui-automation,debugging,logging"
+
+[agents]
+# Root coordinator plus at most three concurrent workers.
+max_threads = 4
+# Direct children only; avoid uncontrolled recursive fan-out.
+max_depth = 1
+job_max_runtime_seconds = 1800
+interrupt_message = true

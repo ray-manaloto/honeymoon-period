@@ -1,0 +1,178 @@
+/*
+Save Date Idea
+
+Share-sheet capture for a shared Apple Reminders list. The shortcut intentionally
+does not use a backend or third-party API. Each person answers the import questions
+to select the shared list and personalize the "Added by" note.
+*/
+
+#define name Save Date Idea
+#define color red
+#define glyph heart
+#define inputs url, text, richtext, webpage
+#define from sharesheet
+#define noinput getclipboard
+#define version 26
+
+#include 'actions/text'
+#include 'actions/web'
+
+#question addedBy "What name should appear after 'Added by'?" "Your name"
+#question reminderList "Which Reminders list should receive date ideas? Create and share 'Date Ideas' first." "Date Ideas"
+
+action 'addnewreminder' addDateIdeaReminder(
+    text title: 'WFCalendarItemTitle',
+    text list: 'WFCalendarDescriptor',
+    text notes: 'WFCalendarItemNotes',
+    text url: 'WFURL'
+): variable {
+    "WFAlertEnabled": "No Alert",
+    "WFPriority": "None",
+    "WFFlag": false
+}
+
+// Accept a URL directly or extract the first URL from shared text. When the
+// Share Sheet provides no input, the workflow's no-input behavior uses Clipboard.
+@urls = getURLs(ShortcutInput)
+@urlCount = count(@urls)
+
+if @urlCount < 1 {
+    alert("Share a link or copy one to the clipboard, then try again.", "No link found")
+    stop()
+}
+
+@originalURL = getFirstItem(@urls)
+@originalURLText = "{@originalURL.text}"
+
+// Yelp's Share Sheet commonly supplies a yelp.to redirect. Resolve it before
+// naming, normalizing, and deduplicating so the saved item identifies the venue.
+@sharedHostValue = getURLDetail(@originalURLText, "Host")
+@sharedHost = "{@sharedHostValue.text}"
+
+// The Yelp app can wrap its destination in an Adjust tracking URL. Extract and
+// decode the embedded restaurant URL before applying the normal Yelp handling.
+if @sharedHost contains "app.adjust.com" {
+    @wrapperQueryValue = getURLDetail(@originalURLText, "Query")
+    @wrapperQuery = "{@wrapperQueryValue.text}"
+    if @wrapperQuery contains "deep_link=" {
+        @deepLinkEncoded = replaceText('^.*deep_link=([^?&]+).*$','$1', @wrapperQuery, true, true)
+        @deepLink = urlDecode(@deepLinkEncoded)
+        @originalURLText = "{@deepLink.text}"
+        @sharedHostValue = getURLDetail(@originalURLText, "Host")
+        @sharedHost = "{@sharedHostValue.text}"
+    }
+}
+
+if @sharedHost contains "yelp.to" {
+    @expandedURL = expandURL(@originalURLText)
+    @originalURLText = "{@expandedURL.text}"
+}
+
+// Keep source-specific identifiers while removing fragments and common tracking
+// parameters. The cleanup passes repair separators left by removed parameters.
+@normalizedURL = replaceText('#.*$', "", @originalURLText, true, true)
+@normalizedURL = replaceText('([?&])(utm_[^=&]+|fbclid|gclid|igshid|mc_cid|mc_eid|si|secondary_source|share_id|primary_source|uid|al_[^=&]+|shareReferrer|tock_source|tock_medium|tock_content)=[^&#]*&?', "$1", @normalizedURL, true, true)
+@normalizedURL = replaceText('([?&])(utm_[^=&]+|fbclid|gclid|igshid|mc_cid|mc_eid|si|secondary_source|share_id|primary_source|uid|al_[^=&]+|shareReferrer|tock_source|tock_medium|tock_content)=[^&#]*&?', "$1", @normalizedURL, true, true)
+@normalizedURL = replaceText('([?&])(utm_[^=&]+|fbclid|gclid|igshid|mc_cid|mc_eid|si|secondary_source|share_id|primary_source|uid|al_[^=&]+|shareReferrer|tock_source|tock_medium|tock_content)=[^&#]*&?', "$1", @normalizedURL, true, true)
+@normalizedURL = replaceText('\\?&', "?", @normalizedURL, true, true)
+@normalizedURL = replaceText('&{2,}', "&", @normalizedURL, true, true)
+@normalizedURL = replaceText('[?&]$', "", @normalizedURL, true, true)
+
+@hostValue = getURLDetail(@normalizedURL, "Host")
+@host = "{@hostValue.text}"
+@pathValue = getURLDetail(@normalizedURL, "Path")
+@path = "{@pathValue.text}"
+@path = replaceText('^/+|/+$', "", @path, true, true)
+@source = "Website"
+
+if @host contains "instagram.com" {
+    @source = "Instagram"
+}
+if @host contains "yelp." {
+    @source = "Yelp"
+}
+if @host contains "opentable." {
+    @source = "OpenTable"
+}
+if @host contains "exploretock.com" {
+    @source = "Tock"
+}
+if @host contains "resy.com" {
+    @source = "Resy"
+}
+
+// Yelp business-page query strings are share/attribution metadata. Removing the
+// entire query produces one stable URL across yelp.to and Adjust wrapper formats.
+if @source == "Yelp" {
+    if @path contains "biz/" {
+        @normalizedURL = replaceText('\\?.*$', "", @normalizedURL, true, true)
+    }
+}
+
+// Get Name attempts a human-friendly web title. Sites that block metadata fall
+// back to the host, so capture is never dependent on enrichment.
+@titleValue = getName(@normalizedURL)
+@title = "{@titleValue.text}"
+if !@title {
+    @title = @host
+}
+if @title == @normalizedURL {
+    @title = @host
+}
+
+// Instagram commonly blocks page metadata. Use a readable account/path instead
+// of showing an indistinguishable "www.instagram.com" title.
+if @source == "Instagram" {
+    if @title == @host {
+        if @path {
+            @title = "Instagram: {@path}"
+        } else {
+            @title = "Instagram date idea"
+        }
+    }
+}
+
+// Yelp URLs contain a useful venue slug even when page metadata is unavailable.
+if @source == "Yelp" {
+    if @path contains "biz/" {
+        @yelpName = replaceText('^biz/', "", @path, true, true)
+        @yelpName = replaceText('-[0-9]+$', "", @yelpName, true, true)
+        @yelpName = replaceText('-', " ", @yelpName, true, false)
+        @yelpName = capitalizeAll(@yelpName)
+        @title = "Yelp: {@yelpName}"
+    }
+}
+
+// Some apps and sites block link-preview metadata. Ask only in that fallback
+// case, using a useful editable suggestion instead of saving a bare domain.
+@suggestedTitle = "{@source} date idea"
+if @source == "Website" {
+    @suggestedTitle = replaceText('^www\\.', "", @host, true, true)
+    @suggestedTitle = replaceText('\\.[^.]+$', "", @suggestedTitle, true, true)
+    @suggestedTitle = replaceText('-', " ", @suggestedTitle, true, false)
+    @suggestedTitle = capitalizeAll(@suggestedTitle)
+}
+if @title == @host {
+    @enteredTitle = prompt("Name this date idea", "Text", @suggestedTitle)
+    @title = trimWhitespace(@enteredTitle)
+    if !@title {
+        @title = @suggestedTitle
+    }
+}
+
+// The marker is deliberately distinctive so Spotlight can locate an exact URL
+// already stored in Reminders without a backend or database.
+@duplicateQuery = "\"Date Idea URL: {@normalizedURL}\""
+@duplicates = search(@duplicateQuery, 10)
+@duplicateCount = count(@duplicates)
+
+if @duplicateCount > 0 {
+    showNotification("Already saved: {@title}", "Date idea exists", false)
+    stop()
+}
+
+@addedByValue = trimWhitespace(addedBy)
+@notes = "Date Idea URL: {@normalizedURL}\nSource: {@source} · Added by: {@addedByValue}\n\nNotes: Add what looks good, timing, happy hour, or a decline reason."
+
+@newReminder = addDateIdeaReminder(@title, reminderList, @notes, @normalizedURL)
+showNotification("Saved {@title} to the shared list.", "Date idea saved", false)
