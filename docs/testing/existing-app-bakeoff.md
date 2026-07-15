@@ -45,12 +45,18 @@ unknown unless actually exercised.
 
 These deterministic reserved-domain fixtures are ready for an approved human
 trial. They contain no real venue, address, relationship, or calendar data.
+At kickoff, record `D1` as the trial day 1 local calendar date (`YYYY-MM-DD`) and
+`Z` as the tester's IANA time-zone identifier (for example,
+`America/Chicago`). Derive fixture dates by adding calendar days in `Z`, not by
+adding elapsed hours to an instant. For each materialized timestamp, record the
+numeric UTC offset actually in effect in `Z` at that local date and wall time.
+This remains deterministic across daylight-saving transitions.
 
 | ID | Fixture |
 | --- | --- |
-| `HP-R1` | Restaurant Alpha; `https://example.com/hp/restaurant-alpha?utm_source=bakeoff`; cuisine `Fixture cuisine`; address `100 Example Way`; special `Weekday special`; expires `2026-07-24T17:00:00-05:00` |
-| `HP-E1` | Event Beta; `https://example.org/hp/event-beta`; type `Fixture event`; occurrence `2026-07-25T19:00:00-05:00`; note `Sanitized bake-off fixture` |
-| `HP-C1` | Calendar event `HP Calendar Alpha`; `2026-07-27T18:00:00-05:00` to `19:00:00-05:00`; location `100 Example Way`; URL `https://example.com/hp/restaurant-alpha` |
+| `HP-R1` | Restaurant Alpha; `https://example.com/hp/restaurant-alpha?utm_source=bakeoff`; cuisine `Fixture cuisine`; address `100 Example Way`; special `Weekday special`; expires on `D1 + 9 calendar days` in `Z` (trial day 10 at local 17:00) |
+| `HP-E1` | Event Beta; `https://example.org/hp/event-beta`; type `Fixture event`; occurs on `D1 + 10 calendar days` in `Z` (trial day 11 at local 19:00); note `Sanitized bake-off fixture` |
+| `HP-C1` | Calendar event `HP Calendar Alpha`; occurs on `D1 + 12 calendar days` in `Z` (trial day 13 at local 18:00–19:00); location `100 Example Way`; URL `https://example.com/hp/restaurant-alpha` |
 | `HP-P1` | Owner vote `interested` / score `5`; partner vote `maybe` / score `3`; expected consensus `4`; votes must remain separately attributable |
 
 For enrichment tests, a human tester may substitute a documented public fixture
@@ -74,35 +80,38 @@ a prohibited action; it is not a failure of the product.
 
 ## Rubric lower bounds
 
-Scores use the approved 0–3 scale. `0B` means the capability is blocked from
-hands-on validation under this run's constraints and therefore counts as zero;
-plain zero means the bounded evidence does not currently establish the category,
-not that this pass conclusively proved product failure. Nonzero scores cite the
-source-screening reports, whose entries link to first-party sources:
+Scores use the approved 0–3 scale. `0B` means the governing policy requires an
+actual hands-on interaction, but this run could not reach it within its
+constraints; it therefore counts as zero regardless of a published feature
+claim. Plain zero means the bounded evidence does not currently establish the
+category, not that this pass conclusively proved product failure. Nonzero scores
+are limited to categories the policy permits first-party documentation to
+establish and cite the source-screening reports, whose entries link to those
+sources:
 [restaurant/shared-list](../research/bakeoff-restaurant-shared-list.md),
 [Notion](../research/bakeoff-flexible-database-automation.md), and
 [calendar/scheduling](../research/bakeoff-calendar-scheduling.md).
 
 | Category | Tavola | Soonish | Mapstr | Notion | Howbout | Apple / iCloud | Google Calendar |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Arbitrary link capture | 1 | 0 | 0 | 1 | 0 | 1 | 1 |
-| iOS Share Sheet quality | 0B | 0B | 0B | 0B | 0B | 1 | 1 |
+| Arbitrary link capture | 0B | 0B | 0B | 0B | 0B | 0B | 0B |
+| iOS Share Sheet quality | 0B | 0B | 0B | 0B | 0B | 0B | 0B |
 | Restaurant and event support | 1 | 1 | 1 | 2 | 1 | 1 | 1 |
 | Two-person invitation | 0B | 0B | 0B | 0B | 0B | 0B | 0B |
 | Independent vote / score | 0B | 0B | 0B | 0B | 0B | 0 | 0 |
 | Sorting | 2 | 2 | 2 | 2 | 1 | 1 | 1 |
 | Notes | 2 | 1 | 2 | 2 | 2 | 2 | 2 |
-| Structured metadata | 1 | 0 | 1 | 3 | 1 | 1 | 1 |
-| Calendar availability and writes | 0 | 0 | 0 | 1 | 0B | 0B | 0B |
+| Structured metadata | 0B | 0B | 0B | 0B | 0B | 0B | 0B |
+| Calendar availability and writes | 0 | 0 | 0 | 0B | 0B | 0B | 0B |
 | Urgency | 0 | 0 | 1 | 2 | 1 | 1 | 1 |
-| Venue dedupe | 1 | 0 | 0 | 1 | 0 | 0 | 0 |
+| Venue dedupe | 1 | 0 | 0 | 0 | 0 | 0 | 0 |
 | Offline behavior | 0B | 0B | 0B | 0B | 0B | 0B | 0B |
 | Export / API | 1 | 1 | 2 | 3 | 1 | 2 | 3 |
 | Privacy | 2 | 2 | 1 | 2 | 1 | 3 | 2 |
-| Partner burden | 1 | 2 | 1 | 1 | 1 | 3 | 2 |
+| Partner burden | 0B | 0B | 0B | 0B | 0B | 0B | 0B |
 | Free cost | 3 | 3 | 2 | 2 | 2 | 3 | 3 |
 | Paid cost | 3 | 3 | 1 | 2 | 2 | 3 | 3 |
-| **Lower-bound total / 51** | **18** | **15** | **14** | **24** | **13** | **22** | **21** |
+| **Lower-bound total / 51** | **15** | **13** | **12** | **17** | **11** | **16** | **16** |
 
 None of these lower bounds reaches 34, and every candidate has at least one
 required score-2 or must-have interaction that remains blocked or unknown and
@@ -126,9 +135,10 @@ person are not sufficient evidence of the intended partner experience.
 1. Approve two human participants, installation on one eligible iPhone per
    participant running iOS 17.6 or later, and one disposable Apple test identity
    per participant for Sign in with Apple.
-2. Have each tester share `HP-R1` and `HP-E1` fixture classes from Safari and the
-   named source-app classes; record extension appearance, exact URL retention,
-   enrichment failure, duplicate behavior, and offline behavior.
+2. Have each tester share `HP-R1` and `HP-E1` fixture classes from Maps (Apple
+   and Google), Safari, Yelp, and Instagram; record whether the Tavola extension
+   appears, exact URL retention, enrichment failure, duplicate behavior, and
+   offline behavior without assuming any source succeeds.
 3. Send and accept one shared-list invitation; add/edit/delete the same record on
    both devices and measure convergence.
 4. Enter `HP-P1` to determine whether scores are actor-owned or overwrite one
@@ -165,8 +175,10 @@ person are not sufficient evidence of the intended partner experience.
    guest invitation.
 2. Build a disposable database for `HP-R1`, `HP-E1`, and separately attributed
    `HP-P1`; verify whether either editor can overwrite the other's field.
-3. Share from Safari, Messages, and named source-app fixture classes online and
-   offline; inspect source URL, title, destination choice, properties, and sync.
+3. Attempt sharing fixture classes from Safari, Messages, Instagram, Yelp,
+   OpenTable, Tock, Resy, and restaurant websites online and offline; inspect
+   whether Notion appears or accepts input, then inspect source URL, title,
+   destination choice, properties, and sync without assuming compatibility.
 4. Approve a dedicated synthetic Google or iCloud calendar connection, then test
    database-item-to-event create/edit/delete behavior. Export Markdown/CSV and
    compare the structured fields.
