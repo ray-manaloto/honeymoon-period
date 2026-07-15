@@ -11,5 +11,6 @@
 | [`docs/SETUP.md`](SETUP.md) | Baseline prototype installation |
 | [`docs/TWO_WEEK_TRIAL.md`](TWO_WEEK_TRIAL.md) | Baseline prototype validation and upgrade triggers |
 | [`docs/testing/`](testing/prototype-evidence.md) | Dated behavioral evidence without private production data |
+| [`docs/testing/existing-app-bakeoff.md`](testing/existing-app-bakeoff.md) | Existing-product public preflight, sanitized fixtures, and blocked hands-on gates |
 
 Specifications and implementation tickets live in GitHub Issues after the remote exists. Research reports support decisions; ADRs record decisions; neither should duplicate a full specification.
