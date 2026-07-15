@@ -1,13 +1,16 @@
 # Triage labels
 
-The installed engineering skills use these canonical GitHub labels.
+The engineering skills speak in terms of five canonical triage roles. This
+file maps those roles to the actual GitHub label strings used in this
+repository.
 
-| Skill role | GitHub label | Meaning |
+| Label in mattpocock/skills | Label in GitHub | Meaning |
 | --- | --- | --- |
-| `needs-triage` | `needs-triage` | Maintainer needs to evaluate the issue |
-| `needs-info` | `needs-info` | Waiting for information from the reporter |
-| `ready-for-agent` | `ready-for-agent` | Fully specified and safe for an agent to pick up |
+| `needs-triage` | `needs-triage` | Maintainer needs to evaluate this issue |
+| `needs-info` | `needs-info` | Waiting on the reporter for more information |
+| `ready-for-agent` | `ready-for-agent` | Fully specified and ready for an AFK agent |
 | `ready-for-human` | `ready-for-human` | Requires human implementation or judgment |
 | `wontfix` | `wontfix` | Will not be actioned |
 
-When a skill mentions a triage role, apply the corresponding label exactly. Add the labels to GitHub when the repository is created.
+When a skill mentions a role, apply the corresponding GitHub label from this
+table exactly.
