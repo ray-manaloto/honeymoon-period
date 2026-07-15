@@ -13,6 +13,22 @@ Notion survives to a focused free hands-on trial as a configurable shared databa
 
 No comparable was added. The ticket names Notion and permits at most one comparable only when primary evidence shows a material fit improvement. Nothing found in this bounded investigation established that need strongly enough to expand the lane.
 
+## Ticket reconciliation
+
+The answer to [Evaluate flexible database and automation
+candidates](https://github.com/ray-manaloto/honeymoon-period/issues/4) is:
+**documentation alone cannot establish that Notion satisfies the
+requirements**. Notion can supply
+the shared structured workspace, two editable per-person preference fields,
+ranking primitives, export, and a one-guest invitation on its Free plan, but
+current first-party documentation does not establish the required arbitrary
+iOS Share Sheet capture or enforced actor-owned scoring. It also leaves the
+intended iPhone calendar handoff and offline capture behavior unknown. Under
+the approved bake-off policy, those are hands-on questions, so Notion advances
+to the free synthetic-fixture trial and does not yet pass the product-path
+threshold. No comparable has stronger primary-source evidence that warrants
+adding it to this lane.
+
 ## Evidence labels and provisional scoring
 
 - **Verified** means a current first-party source directly documents the capability or limit.
@@ -20,7 +36,12 @@ No comparable was added. The ticket names Notion and permits at most one compara
 - **Unknown** means documentation cannot resolve the behavior; it requires a hands-on test.
 - Provisional score: **2** = verified native fit; **1** = partial fit, setup/custom composition, or material unknown; **0** = unsupported or conflicts with the workflow.
 
-This provisional matrix is descriptive, not a binding pass/fail decision. Weighting and the decision threshold remain deferred to the human-in-the-loop timebox and threshold ticket.
+This provisional matrix is descriptive, not a binding pass/fail decision. The
+governing bake-off now uses an approved 17-category, zero-to-three rubric with
+a 34/51 threshold and must-have gates. This earlier 18-row, zero-to-two source
+screen is not mechanically comparable with that final trial score; it only
+records which capabilities current documentation supports and which still
+require hands-on validation.
 
 ## Rubric matrix
 
