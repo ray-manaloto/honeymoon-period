@@ -1,6 +1,6 @@
 # Existing-app bake-off
 
-- Status: public-source screening complete; decision threshold and hands-on validation pending
+- Status: public-source screening and decision threshold complete; hands-on validation pending
 - Last verified: 2026-07-15
 - Governing decision: [ADR-0001](../adr/0001-existing-product-first.md)
 
@@ -30,9 +30,75 @@ Can one existing product—or a small, low-cost composition—deliver quick iOS 
 - [Calendar and scheduling candidates](bakeoff-calendar-scheduling.md)
 - [Requested outliers](bakeoff-requested-outliers.md)
 
-These dispositions are not the final bake-off decision. The scoring scale,
-must-have failures, timebox, and pass threshold remain a human decision in
-[Set the bake-off timebox and decision threshold](https://github.com/ray-manaloto/honeymoon-period/issues/2).
+These dispositions are not the final bake-off decision. Apply the approved
+policy below during hands-on validation and the final product-path decision.
+
+## Approved decision policy
+
+### Timebox
+
+- Run the bake-off for 14 calendar days total, not 14 days per candidate.
+- Use the first three days for sanitized capture, invitation, and setup checks.
+- Use the remaining eleven days for realistic planning scenarios with the
+  candidates that survive setup checks.
+- Eliminate a candidate immediately after confirming a must-have failure.
+
+### Evidence standard
+
+- Current first-party documentation is sufficient for pricing, published
+  feature availability, privacy policy, export/API support, and United States
+  availability.
+- Sanitized hands-on testing is required for Share Sheet capture,
+  invitation/onboarding, independent voting, synchronization, metadata editing,
+  calendar behavior, and offline behavior.
+- A capability passes only when it works in the intended two-person workflow.
+- Untested or ambiguous behavior remains unknown rather than passing.
+
+### Must-have gates
+
+A candidate or small composition must:
+
+- save an arbitrary restaurant or event link from the iOS Share Sheet while
+  preserving the original URL;
+- give both people a shared, editable record through at most one partner app
+  installation plus an invitation;
+- record each person's preference independently using categorical votes or
+  numeric scores;
+- retain notes and structured cuisine/type, location, and time-sensitive
+  special/date fields;
+- export the shared data in a usable form or provide a documented API;
+- operate within free access unless a paid trial is separately approved; and
+- avoid exposing private votes, relationship data, or unrelated calendar
+  content publicly or to unnecessary recipients.
+
+Calendar planning, automatic ranking, enrichment, deduplication, and offline
+support affect scoring but do not cause immediate elimination because a small
+composition may supply them.
+
+### Scoring and pass threshold
+
+Score each rubric category from zero to three:
+
+- `0` — absent, unusable, or still unknown after reasonable validation;
+- `1` — major friction, workaround, or important limitation;
+- `2` — workable for the intended two-person workflow; and
+- `3` — strong, low-friction fit.
+
+Each score requires a cited first-party fact or sanitized hands-on observation.
+Inference may explain a score but cannot establish an unknown capability.
+
+The rubric has 17 categories and a maximum score of 51. A candidate or small
+composition passes only when it:
+
+- passes every must-have gate;
+- scores at least 34 out of 51 overall;
+- scores at least `2` for Share Sheet capture, two-person collaboration,
+  independent preferences, structured metadata, privacy, export/API, and
+  partner burden; and
+- has no unresolved unknown in a must-have category at the end of the trial.
+
+If multiple options pass, prefer the highest score unless its additional
+complexity or partner burden outweighs a small score advantage.
 
 ## Required rubric
 
