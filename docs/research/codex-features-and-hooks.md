@@ -153,7 +153,7 @@ Verified useful and available now:
 Available but not needed now:
 
 - Fast mode as a persistent service tier; use it per task if latency is worth the additional credit usage.
-- Repo-local plugin marketplace; wait until a repeated Date Ideas workflow warrants packaging.
+- Repo-local plugin marketplace; wait until a repeated honeymoon-period workflow warrants packaging.
 - Scheduled worktree automations; consider later for a monthly competitor/changelog refresh after the first research baseline is approved.
 
 ## Undocumented or unavailable behavior

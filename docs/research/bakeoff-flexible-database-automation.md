@@ -16,7 +16,7 @@ No comparable was added. The ticket names Notion and permits at most one compara
 ## Evidence labels and provisional scoring
 
 - **Verified** means a current first-party source directly documents the capability or limit.
-- **Inference** means the conclusion follows from documented primitives but is not promised as a date-idea workflow.
+- **Inference** means the conclusion follows from documented primitives but is not promised as a honeymoon-period workflow.
 - **Unknown** means documentation cannot resolve the behavior; it requires a hands-on test.
 - Provisional score: **2** = verified native fit; **1** = partial fit, setup/custom composition, or material unknown; **0** = unsupported or conflicts with the workflow.
 

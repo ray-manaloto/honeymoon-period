@@ -6,7 +6,7 @@ Complete the Reminders setup before importing the Shortcut.
 
 On one iPhone:
 
-1. Open Reminders and create an iCloud list named **Date Ideas**.
+1. Open Reminders and create an iCloud list named **honeymoon-period**.
 2. Add these sections in order: **Inbox**, **Both Want**, **Maybe**, and **Declined**.
 3. Share the list with the other person and allow editing.
 4. On the other iPhone, accept the invitation and confirm that a test reminder syncs both ways.
@@ -17,12 +17,12 @@ Apple does not expose Reminders sections to Shortcuts. New captures include `Sta
 
 On each iPhone:
 
-1. Transfer and open `dist/Save Date Idea.shortcut`.
+1. Transfer and open `dist/Save honeymoon-period.shortcut`.
 2. Review its actions, then add the shortcut.
 3. Answer the import question with that person's display name.
-4. Choose the shared **Date Ideas** list when asked for the destination.
+4. Choose the shared **honeymoon-period** list when asked for the destination.
 5. Open the shortcut's details and confirm **Show in Share Sheet** is enabled for URLs, text, rich text, and Safari webpages.
-6. In any Share Sheet, edit favorites and move **Save Date Idea** near the top.
+6. In any Share Sheet, edit favorites and move **Save honeymoon-period** near the top.
 
 The first run asks for access to Reminders and may ask for permission to search Reminders. Allow both so duplicate detection works.
 
@@ -31,7 +31,7 @@ Run the first end-to-end capture on an iPhone. On macOS 26.5.2, Apple’s built-
 ## 3. Daily workflow
 
 1. In iMessage or a source app, long-press/open a link and tap **Share**.
-2. Choose **Save Date Idea**. A notification confirms whether it was saved or already existed.
+2. Choose **Save honeymoon-period**. A notification confirms whether it was saved or already existed.
 3. Discuss the idea in iMessage.
 4. Move the reminder to **Both Want**, **Maybe**, or **Declined** and add context to its note.
 5. For an expiring special or exact event, set the reminder's due date. For a recurring happy hour, write the days and times in the note without creating weekly alerts.
@@ -39,7 +39,7 @@ Run the first end-to-end capture on an iPhone. On macOS 26.5.2, Apple’s built-
 
 ## 4. Beli handoff
 
-- When a restaurant reaches **Both Want**, both people add it to Beli's want-to-try list and apply a `Date Ideas` label if available.
+- When a restaurant reaches **Both Want**, both people add it to Beli's want-to-try list and apply a `honeymoon-period` label if available.
 - Keep timing, source links, and planning notes in Reminders.
 - After visiting, each person records their own Beli ranking, dishes, and notes.
 - Complete the reminder after the Beli entries are finished.

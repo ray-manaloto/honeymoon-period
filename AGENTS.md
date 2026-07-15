@@ -17,7 +17,7 @@
 
 ## Source and artifact policy
 
-- `shortcut/Save Date Idea.cherri` is canonical source.
+- `shortcut/Save honeymoon-period.cherri` is canonical source.
 - `dist/*.shortcut` is a generated, signable deliverable.
 - `.build/`, generated plists, processed Cherri, and unsigned Shortcuts are disposable. Never hand-edit them.
 - Real URLs, calendars, addresses, private Notes contents, and relationship data do not belong in public fixtures or logs.

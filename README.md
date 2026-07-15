@@ -1,6 +1,6 @@
-# Date Ideas
+# honeymoon-period
 
-Date Ideas is a product investigation for a shared iPhone workflow that turns links into ranked, actionable plans. The target experience accepts links from the iOS Share Sheet, lets two people vote or score them, stores notes and structured metadata, prioritizes time-sensitive ideas, and helps schedule them.
+honeymoon-period is a product investigation for a shared iPhone workflow that turns links into ranked, actionable plans. The target experience accepts links from the iOS Share Sheet, lets two people vote or score them, stores notes and structured metadata, prioritizes time-sensitive ideas, and helps schedule them.
 
 The project is currently running an **existing-product-first bake-off**. A working Apple Reminders + Beli + Shortcut workflow is retained as the baseline prototype and evidence source, not assumed to be the final architecture.
 
@@ -18,9 +18,9 @@ The project is currently running an **existing-product-first bake-off**. A worki
 
 - Apple Reminders is the shared inbox and decision history.
 - Beli holds mutually wanted restaurants and post-visit rankings.
-- **Save Date Idea** captures shared URLs without a backend, analytics, paid API, or account token.
+- **Save honeymoon-period** captures shared URLs without a backend, analytics, paid API, or account token.
 
-Install and usage details remain in [docs/SETUP.md](docs/SETUP.md). The canonical Shortcut source is `shortcut/Save Date Idea.cherri`; `dist/Save Date Idea.shortcut` is the generated, signed deliverable.
+Install and usage details remain in [docs/SETUP.md](docs/SETUP.md). The canonical Shortcut source is `shortcut/Save honeymoon-period.cherri`; `dist/Save honeymoon-period.shortcut` is the generated, signed deliverable.
 
 ## Build and verify
 

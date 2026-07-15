@@ -1,4 +1,4 @@
-# Date Ideas context
+# honeymoon-period context
 
 ## Current phase
 
@@ -20,7 +20,7 @@ Run a time-boxed bake-off of existing apps, tools, and composable services befor
 
 ## Canonical terms
 
-- **Date Idea** — one restaurant, event, or activity candidate, independent of which URL discovered it.
+- **honeymoon-period** — one restaurant, event, or activity candidate, independent of which URL discovered it.
 - **Capture** — one Share Sheet ingestion attempt and its provenance.
 - **Source URL** — the exact shared link before normalization.
 - **Normalized URL** — a tracking-cleaned URL used for exact-link duplicate checks.
@@ -29,8 +29,8 @@ Run a time-boxed bake-off of existing apps, tools, and composable services befor
 - **Score** — a person's configurable numeric preference used for ranking.
 - **Special** — a time-constrained offer, menu, event, deadline, or reservation opportunity.
 - **Availability** — free time inferred or selected without exposing unrelated private calendar details.
-- **Plan** — a Date Idea assigned to a specific occurrence and optionally a calendar event.
-- **Baseline prototype** — the current shared Reminders, Beli handoff, and Save Date Idea Shortcut.
+- **Plan** — a honeymoon-period assigned to a specific occurrence and optionally a calendar event.
+- **Baseline prototype** — the current shared Reminders, Beli handoff, and Save honeymoon-period Shortcut.
 
 ## Invariants and boundaries
 
