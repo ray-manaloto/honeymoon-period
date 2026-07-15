@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo_root=${0:A:h:h}
-source_file="$repo_root/shortcut/Save Date Idea.cherri"
+source_file="$repo_root/shortcut/Save honeymoon-period.cherri"
 build_dir="$repo_root/.build"
 dist_dir="$repo_root/dist"
 cherri_dir="$build_dir/cherri"
@@ -21,26 +21,26 @@ if [[ ! -x "$cherri_bin" ]]; then
   )
 fi
 
-rm -f "$dist_dir/Save Date Idea.shortcut" "$build_dir/Save Date Idea.plist"
+rm -f "$dist_dir/Save honeymoon-period.shortcut" "$build_dir/Save honeymoon-period.plist"
 
 "$cherri_bin" "$source_file" \
   --debug \
   --share=anyone \
-  --output="$dist_dir/Save Date Idea.shortcut"
+  --output="$dist_dir/Save honeymoon-period.shortcut"
 
 # Cherri writes the debug plist beside the source. Preserve it only in .build so
 # verification can inspect the unsigned workflow without committing generated XML.
-unsigned_file="$repo_root/shortcut/Save Date Idea_unsigned.shortcut"
+unsigned_file="$repo_root/shortcut/Save honeymoon-period_unsigned.shortcut"
 "$repo_root/scripts/fix-import-questions.py" "$unsigned_file"
-cp "$unsigned_file" "$build_dir/Save Date Idea.plist"
+cp "$unsigned_file" "$build_dir/Save honeymoon-period.plist"
 /usr/bin/shortcuts sign \
   --mode anyone \
   --input "$unsigned_file" \
-  --output "$dist_dir/Save Date Idea.shortcut"
+  --output "$dist_dir/Save honeymoon-period.shortcut"
 
 rm -f \
-  "$repo_root/shortcut/Save Date Idea.plist" \
-  "$repo_root/shortcut/Save Date Idea_processed.cherri" \
-  "$repo_root/shortcut/Save Date Idea_unsigned.shortcut"
+  "$repo_root/shortcut/Save honeymoon-period.plist" \
+  "$repo_root/shortcut/Save honeymoon-period_processed.cherri" \
+  "$repo_root/shortcut/Save honeymoon-period_unsigned.shortcut"
 
-print "Built: $dist_dir/Save Date Idea.shortcut"
+print "Built: $dist_dir/Save honeymoon-period.shortcut"

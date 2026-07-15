@@ -5,7 +5,7 @@
 
 ## Current behavior
 
-Canonical implementation: [`shortcut/Save Date Idea.cherri`](../../shortcut/Save%20Date%20Idea.cherri).
+Canonical implementation: [`shortcut/Save honeymoon-period.cherri`](../../shortcut/Save%20honeymoon-period.cherri).
 
 - Extract the first URL from shared input.
 - Resolve known Yelp wrapper/redirect formats.

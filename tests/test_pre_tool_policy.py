@@ -42,7 +42,7 @@ class PreToolPolicyTests(unittest.TestCase):
         for command in (
             "git status --short",
             "git clean -ndx",
-            "xcodebuild test -scheme DateIdeas",
+            "xcodebuild test -scheme honeymoon-period",
             "xcrun simctl list devices",
             "./scripts/verify.sh",
         ):

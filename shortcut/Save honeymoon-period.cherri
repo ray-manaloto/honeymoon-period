@@ -1,12 +1,12 @@
 /*
-Save Date Idea
+Save honeymoon-period
 
 Share-sheet capture for a shared Apple Reminders list. The shortcut intentionally
 does not use a backend or third-party API. Each person answers the import questions
 to select the shared list and personalize the "Added by" note.
 */
 
-#define name Save Date Idea
+#define name Save honeymoon-period
 #define color red
 #define glyph heart
 #define inputs url, text, richtext, webpage
@@ -18,9 +18,9 @@ to select the shared list and personalize the "Added by" note.
 #include 'actions/web'
 
 #question addedBy "What name should appear after 'Added by'?" "Your name"
-#question reminderList "Which Reminders list should receive date ideas? Create and share 'Date Ideas' first." "Date Ideas"
+#question reminderList "Which Reminders list should receive honeymoon-period? Create and share 'honeymoon-period' first." "honeymoon-period"
 
-action 'addnewreminder' addDateIdeaReminder(
+action 'addnewreminder' addHoneymoonPeriodReminder(
     text title: 'WFCalendarItemTitle',
     text list: 'WFCalendarDescriptor',
     text notes: 'WFCalendarItemNotes',
@@ -127,7 +127,7 @@ if @source == "Instagram" {
         if @path {
             @title = "Instagram: {@path}"
         } else {
-            @title = "Instagram date idea"
+            @title = "Instagram honeymoon-period"
         }
     }
 }
@@ -145,7 +145,7 @@ if @source == "Yelp" {
 
 // Some apps and sites block link-preview metadata. Ask only in that fallback
 // case, using a useful editable suggestion instead of saving a bare domain.
-@suggestedTitle = "{@source} date idea"
+@suggestedTitle = "{@source} honeymoon-period"
 if @source == "Website" {
     @suggestedTitle = replaceText('^www\\.', "", @host, true, true)
     @suggestedTitle = replaceText('\\.[^.]+$', "", @suggestedTitle, true, true)
@@ -153,7 +153,7 @@ if @source == "Website" {
     @suggestedTitle = capitalizeAll(@suggestedTitle)
 }
 if @title == @host {
-    @enteredTitle = prompt("Name this date idea", "Text", @suggestedTitle)
+    @enteredTitle = prompt("Name this honeymoon-period", "Text", @suggestedTitle)
     @title = trimWhitespace(@enteredTitle)
     if !@title {
         @title = @suggestedTitle
@@ -162,17 +162,17 @@ if @title == @host {
 
 // The marker is deliberately distinctive so Spotlight can locate an exact URL
 // already stored in Reminders without a backend or database.
-@duplicateQuery = "\"Date Idea URL: {@normalizedURL}\""
+@duplicateQuery = "\"honeymoon-period URL: {@normalizedURL}\""
 @duplicates = search(@duplicateQuery, 10)
 @duplicateCount = count(@duplicates)
 
 if @duplicateCount > 0 {
-    showNotification("Already saved: {@title}", "Date idea exists", false)
+    showNotification("Already saved: {@title}", "honeymoon-period exists", false)
     stop()
 }
 
 @addedByValue = trimWhitespace(addedBy)
-@notes = "Date Idea URL: {@normalizedURL}\nSource: {@source} · Added by: {@addedByValue}\n\nNotes: Add what looks good, timing, happy hour, or a decline reason."
+@notes = "honeymoon-period URL: {@normalizedURL}\nSource: {@source} · Added by: {@addedByValue}\n\nNotes: Add what looks good, timing, happy hour, or a decline reason."
 
-@newReminder = addDateIdeaReminder(@title, reminderList, @notes, @normalizedURL)
-showNotification("Saved {@title} to the shared list.", "Date idea saved", false)
+@newReminder = addHoneymoonPeriodReminder(@title, reminderList, @notes, @normalizedURL)
+showNotification("Saved {@title} to the shared list.", "honeymoon-period saved", false)

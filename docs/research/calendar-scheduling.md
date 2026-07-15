@@ -12,7 +12,7 @@
 ## Questions
 
 - Read-only free/busy, suggested openings, or event creation and lifecycle management?
-- Personal calendars, one shared Date Ideas calendar, or both?
+- Personal calendars, one shared honeymoon-period calendar, or both?
 - How do both people approve creation, changes, cancellation, and reminders?
 - What private event information leaves the device or calendar provider?
 - Which OAuth scopes, app-review requirements, quotas, and ongoing costs apply?

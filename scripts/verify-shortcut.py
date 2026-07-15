@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Structural checks for the generated Save Date Idea shortcut plist."""
+"""Structural checks for the generated Save honeymoon-period shortcut plist."""
 
 from __future__ import annotations
 
@@ -108,7 +108,7 @@ def main(path: str) -> int:
             fail(f"import question {parameter_key} points at the wrong action")
 
     encoded = plist_path.read_bytes()
-    for marker in (b"Date Idea URL:", b"Source:", b"Added by:", b"Notes: Add what looks good"):
+    for marker in (b"honeymoon-period URL:", b"Source:", b"Added by:", b"Notes: Add what looks good"):
         if marker not in encoded:
             fail(f"missing reminder note marker: {marker.decode()}")
 

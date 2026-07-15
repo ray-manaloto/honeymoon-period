@@ -16,7 +16,7 @@
 
 - If custom development is justified, start with an iPhone-only SwiftUI app, CLI-first `xcodebuild`, and narrow simulator validation. Do not add Tuist, iPad scope, profiling, or distribution infrastructure before a demonstrated need.
 - A Share Extension remains the primary arbitrary-link capture surface. App Intents complement it for composed Shortcuts, scoring a known idea, and opening ranked ideas; they do not replace provider Share Sheet ingestion.
-- A focused App Intents V1 can expose save, score, and show-top actions around a privacy-safe Date Idea entity. Defer metadata editing, booking, location search, batch operations, widgets, Live Activities, and broad indexing.
+- A focused App Intents V1 can expose save, score, and show-top actions around a privacy-safe honeymoon-period entity. Defer metadata editing, booking, location search, batch operations, widgets, Live Activities, and broad indexing.
 - The simulator workflow should reproduce one failure at a time: establish the starting UI, drive by accessibility identifiers, capture screenshot/hierarchy/log/LLDB evidence, make the smallest fix, and repeat the same path.
 - Serialize simulator ownership. Parallel workers may review or run isolated unit tests, but should not drive the same simulator or Derived Data concurrently.
 

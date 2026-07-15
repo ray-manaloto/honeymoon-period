@@ -17,7 +17,7 @@
 
 ## Source and artifact policy
 
-- `shortcut/Save Date Idea.cherri` is canonical source.
+- `shortcut/Save honeymoon-period.cherri` is canonical source.
 - `dist/*.shortcut` is a generated, signable deliverable.
 - `.build/`, generated plists, processed Cherri, and unsigned Shortcuts are disposable. Never hand-edit them.
 - Real URLs, calendars, addresses, private Notes contents, and relationship data do not belong in public fixtures or logs.
@@ -46,11 +46,22 @@
 - Prefer `explorer`/`researcher` for read-heavy work, `prototype`/`worker` for isolated writes, `ios-specialist` for difficult Apple work, and `reviewer` after integration.
 - Require concise summaries with paths, commands, failures, evidence, and unresolved decisions.
 
-## Matt Pocock skill configuration
+## Agent skills
 
-- GitHub Issues stores issues and PRDs; see `docs/agents/issue-tracker.md`.
-- Use canonical triage labels; see `docs/agents/triage-labels.md`.
-- This is a single-context repository; see `docs/agents/domain.md`.
+### Issue tracker
+
+Issues and PRDs are tracked in GitHub Issues; external pull requests are not a
+triage request surface. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Use the five canonical Matt Pocock triage labels without aliases. See
+`docs/agents/triage-labels.md`.
+
+### Domain docs
+
+This is a single-context repository with `CONTEXT.md` at the root and ADRs
+under `docs/adr/`. See `docs/agents/domain.md`.
 
 ## Project-local Codex dependencies
 
