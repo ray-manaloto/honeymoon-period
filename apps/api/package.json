@@ -1,0 +1,24 @@
+{
+  "name": "@honeymoon-period/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "wrangler deploy --dry-run --outdir dist",
+    "dev": "wrangler dev --local --port 8788",
+    "dev:lan": "wrangler dev --local --ip 0.0.0.0 --port 8788",
+    "db:reset": "rm -rf .wrangler/state && wrangler d1 migrations apply honeymoon-period-local --local && wrangler d1 execute honeymoon-period-local --local --file fixtures/local-seed.sql",
+    "test": "vitest run --config vitest.config.ts --coverage"
+  },
+  "dependencies": {
+    "@honeymoon-period/domain": "*",
+    "@honeymoon-period/generated": "*",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "0.18.5",
+    "@cloudflare/workers-types": "5.20260715.1",
+    "wrangler": "4.111.0"
+  }
+}

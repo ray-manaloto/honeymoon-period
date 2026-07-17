@@ -1,0 +1,9 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/generated" },
+    { "path": "packages/domain" },
+    { "path": "apps/api" },
+    { "path": "apps/web" }
+  ]
+}

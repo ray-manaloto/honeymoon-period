@@ -1,0 +1,55 @@
+{
+  "name": "honeymoon-period",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@11.6.2",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "generate": "node scripts/generate.mjs",
+    "check:generated": "node scripts/generate.mjs --check",
+    "check:semantic": "node scripts/check-openapi-responses.mjs",
+    "format": "biome format --write .",
+    "lint": "biome check .",
+    "typecheck": "tsc -b --pretty false",
+    "test": "npm run test:unit && npm run test:integration && npm run test:tooling",
+    "test:unit": "vitest run packages apps/web --coverage",
+    "test:integration": "vitest run --config apps/api/vitest.config.ts --coverage",
+    "test:tooling": "node --test tests/tooling.test.mjs",
+    "build": "npm run build --workspaces --if-present",
+    "check:bundle": "node scripts/check-web-bundle-budget.mjs",
+    "e2e": "playwright test",
+    "check": "npm run check:generated && npm run check:semantic && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle && npm run e2e",
+    "check:shortcuts:readonly": "zsh scripts/verify-shortcuts-readonly.sh",
+    "dev:api": "npm run dev -w @honeymoon-period/api",
+    "dev:api:lan": "npm run dev:lan -w @honeymoon-period/api",
+    "dev:web": "npm run dev -w @honeymoon-period/web",
+    "db:reset": "npm run db:reset -w @honeymoon-period/api"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.4",
+    "@playwright/test": "1.61.1",
+    "@types/node": "26.1.1",
+    "@testing-library/jest-dom": "6.9.1",
+    "@testing-library/react": "16.3.0",
+    "@testing-library/user-event": "14.6.1",
+    "@vitest/coverage-v8": "4.1.10",
+    "@vitest/coverage-istanbul": "4.1.10",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "jsdom": "28.1.0",
+    "openapi-typescript": "7.13.0",
+    "typescript": "5.9.3",
+    "vitest": "4.1.10",
+    "yaml": "1.10.3"
+  },
+  "optionalDependencies": {
+    "lightningcss-darwin-arm64": "1.32.0"
+  }
+}

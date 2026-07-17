@@ -1,0 +1,77 @@
+/*
+Save Date Idea API
+
+Supported API-backed Share Sheet capture for POST /v1/captures. The installed
+Save Date Idea Reminders shortcut remains the accepted baseline until this
+candidate is explicitly accepted as its replacement.
+*/
+
+#define name Save Date Idea API
+#define color red
+#define glyph heart
+#define inputs url, text, richtext, webpage
+#define from sharesheet, quickactions, onscreen
+#define quickactions services
+#define noinput getclipboard
+
+#include 'actions/text'
+#include 'actions/web'
+#include 'actions/calendar'
+
+#question captureEndpoint "What is the full local capture endpoint URL?" "http://replace-with-mac-ip:8788/v1/captures"
+#question accessToken "What participant API token should Save Date Idea API use?" "replace-with-participant-token"
+
+@urls = getURLs(ShortcutInput)
+@urlCount = count(@urls)
+
+if @urlCount < 1 {
+    alert("Share a link or copy one to the clipboard, then try again.", "No link found")
+    stop()
+}
+
+@originalURL = getFirstItem(@urls)
+@originalURLText = "{@originalURL.text}"
+@endpoint = trimWhitespace(captureEndpoint)
+@token = trimWhitespace(accessToken)
+
+if !@endpoint {
+    alert("Set the local capture endpoint in the shortcut configuration, then try again.", "Capture service not configured")
+    stop()
+}
+
+if !@token {
+    alert("Set the participant API token in the shortcut configuration, then try again.", "Participant not configured")
+    stop()
+}
+
+@now = currentDate()
+@timestamp = formatDate(@now, "Custom", "yyyyMMddHHmmssSSS")
+@nonce = randomNumber(100000, 999999)
+@requestID = "shortcut-{@timestamp}-{@nonce}"
+
+@response = jsonRequest(@endpoint, "POST", {
+    "source_url": "{@originalURLText}",
+    "client_request_id": "{@requestID}"
+}, {
+    "Authorization": "Bearer {@token}"
+})
+
+@responseDictionary = getDictionary(@response)
+@status = "{@responseDictionary['status']}"
+
+if @status == "created" {
+    showNotification("Saved a new date idea.", "Save Date Idea API", false)
+    stop()
+}
+
+if @status == "existing" {
+    showNotification("Added this source to an existing date idea.", "Save Date Idea API", false)
+    stop()
+}
+
+if @status == "replayed" {
+    showNotification("This capture request was already processed.", "Save Date Idea API", false)
+    stop()
+}
+
+alert("The link could not be saved. Check the shortcut configuration and try again.", "Unexpected capture response")

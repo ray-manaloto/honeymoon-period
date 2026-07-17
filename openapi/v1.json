@@ -1,0 +1,443 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "honeymoon-period API", "version": "1.0.0" },
+  "servers": [{ "url": "/v1" }],
+  "security": [{ "bearerAuth": [] }],
+  "paths": {
+    "/captures": {
+      "post": {
+        "operationId": "createCapture",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/CaptureInput" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Idempotent replay",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/CaptureResult" } }
+            }
+          },
+          "201": {
+            "description": "Capture created",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/CaptureResult" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Error" },
+          "401": { "$ref": "#/components/responses/Error" },
+          "429": { "$ref": "#/components/responses/Error" },
+          "500": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/honeymoon-periods": {
+      "get": {
+        "operationId": "listHoneymoonPeriods",
+        "parameters": [
+          { "in": "query", "name": "status", "schema": { "$ref": "#/components/schemas/Status" } },
+          { "in": "query", "name": "kind", "schema": { "type": "string", "maxLength": 50 } },
+          { "in": "query", "name": "q", "schema": { "type": "string", "maxLength": 100 } },
+          {
+            "in": "query",
+            "name": "sort",
+            "schema": { "type": "string", "enum": ["rank", "newest", "title"], "default": "rank" }
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "schema": { "type": "string", "enum": ["asc", "desc"], "default": "desc" }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": { "type": "integer", "minimum": 1, "default": 1 }
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 25 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ranked page",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HoneymoonPeriodPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Error" },
+          "401": { "$ref": "#/components/responses/Error" },
+          "429": { "$ref": "#/components/responses/Error" },
+          "500": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/honeymoon-periods/{id}": {
+      "parameters": [{ "$ref": "#/components/parameters/Id" }],
+      "get": {
+        "operationId": "getHoneymoonPeriod",
+        "responses": {
+          "200": {
+            "description": "Detail",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HoneymoonPeriodDetail" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Error" },
+          "401": { "$ref": "#/components/responses/Error" },
+          "404": { "$ref": "#/components/responses/Error" },
+          "429": { "$ref": "#/components/responses/Error" },
+          "500": { "$ref": "#/components/responses/Error" }
+        }
+      },
+      "patch": {
+        "operationId": "updateHoneymoonPeriod",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/HoneymoonPeriodUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated detail",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HoneymoonPeriodDetail" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Error" },
+          "401": { "$ref": "#/components/responses/Error" },
+          "404": { "$ref": "#/components/responses/Error" },
+          "429": { "$ref": "#/components/responses/Error" },
+          "500": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/honeymoon-periods/{id}/preference": {
+      "parameters": [{ "$ref": "#/components/parameters/Id" }],
+      "put": {
+        "operationId": "putPreference",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/PreferenceInput" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Owned preference",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Preference" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Error" },
+          "401": { "$ref": "#/components/responses/Error" },
+          "404": { "$ref": "#/components/responses/Error" },
+          "429": { "$ref": "#/components/responses/Error" },
+          "500": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/honeymoon-periods/{id}/notes": {
+      "parameters": [{ "$ref": "#/components/parameters/Id" }],
+      "post": {
+        "operationId": "createNote",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/NoteInput" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Note created",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Note" } } }
+          },
+          "400": { "$ref": "#/components/responses/Error" },
+          "401": { "$ref": "#/components/responses/Error" },
+          "404": { "$ref": "#/components/responses/Error" },
+          "429": { "$ref": "#/components/responses/Error" },
+          "500": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/honeymoon-periods/{id}/notes/{noteId}": {
+      "parameters": [
+        { "$ref": "#/components/parameters/Id" },
+        {
+          "in": "path",
+          "name": "noteId",
+          "required": true,
+          "schema": { "type": "string", "format": "uuid" }
+        }
+      ],
+      "patch": {
+        "operationId": "updateNote",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/NoteInput" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Note updated",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Note" } } }
+          },
+          "400": { "$ref": "#/components/responses/Error" },
+          "401": { "$ref": "#/components/responses/Error" },
+          "404": { "$ref": "#/components/responses/Error" },
+          "429": { "$ref": "#/components/responses/Error" },
+          "500": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": { "bearerAuth": { "type": "http", "scheme": "bearer" } },
+    "parameters": {
+      "Id": {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "schema": { "type": "string", "format": "uuid" }
+      }
+    },
+    "responses": {
+      "Error": {
+        "description": "Stable error envelope",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } }
+        }
+      }
+    },
+    "schemas": {
+      "ErrorEnvelope": {
+        "type": "object",
+        "required": ["error"],
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": ["code", "message"],
+            "additionalProperties": false,
+            "properties": {
+              "code": { "type": "string" },
+              "message": { "type": "string" },
+              "fields": { "type": "object", "additionalProperties": { "type": "string" } }
+            }
+          }
+        }
+      },
+      "Status": { "type": "string", "enum": ["active", "planned", "completed", "declined"] },
+      "Vote": { "type": ["string", "null"], "enum": ["interested", "maybe", "decline", null] },
+      "Metadata": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "cuisine": { "type": "string" },
+          "address": { "type": "string" },
+          "timing": { "type": "string" },
+          "special": { "type": "string" },
+          "decline_reason": { "type": "string" },
+          "special_date": { "type": "string", "format": "date" }
+        }
+      },
+      "Rank": {
+        "type": "object",
+        "required": ["score", "votes", "boost", "total"],
+        "additionalProperties": false,
+        "properties": {
+          "score": { "type": "number" },
+          "votes": { "type": "number" },
+          "boost": { "type": "number" },
+          "total": { "type": "number" }
+        }
+      },
+      "HoneymoonPeriod": {
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "title",
+          "kind",
+          "normalized_url",
+          "metadata",
+          "metadata_updated_by_actor_id",
+          "rank_boost",
+          "rank",
+          "created_at",
+          "updated_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "status": { "$ref": "#/components/schemas/Status" },
+          "title": { "type": "string" },
+          "kind": { "type": "string" },
+          "normalized_url": { "type": "string", "format": "uri" },
+          "metadata": { "$ref": "#/components/schemas/Metadata" },
+          "metadata_updated_by_actor_id": { "type": ["string", "null"] },
+          "rank_boost": { "type": "number" },
+          "rank": { "$ref": "#/components/schemas/Rank" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Capture": {
+        "type": "object",
+        "required": [
+          "id",
+          "honeymoon_period_id",
+          "actor_id",
+          "source_url",
+          "client_request_id",
+          "enrichment_status",
+          "captured_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "honeymoon_period_id": { "type": "string", "format": "uuid" },
+          "actor_id": { "type": "string" },
+          "source_url": { "type": "string", "format": "uri" },
+          "client_request_id": { "type": "string" },
+          "enrichment_status": { "type": "string", "enum": ["pending", "complete", "failed"] },
+          "captured_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Preference": {
+        "type": "object",
+        "required": [
+          "honeymoon_period_id",
+          "actor_id",
+          "display_name",
+          "vote",
+          "score",
+          "updated_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "honeymoon_period_id": { "type": "string", "format": "uuid" },
+          "actor_id": { "type": "string" },
+          "display_name": { "type": "string" },
+          "vote": { "$ref": "#/components/schemas/Vote" },
+          "score": { "type": ["number", "null"], "minimum": 0, "maximum": 5 },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Note": {
+        "type": "object",
+        "required": ["id", "honeymoon_period_id", "actor_id", "display_name", "body", "created_at"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "honeymoon_period_id": { "type": "string", "format": "uuid" },
+          "actor_id": { "type": "string" },
+          "display_name": { "type": "string" },
+          "body": { "type": "string" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CaptureInput": {
+        "type": "object",
+        "required": ["source_url", "client_request_id"],
+        "additionalProperties": false,
+        "properties": {
+          "source_url": { "type": "string", "minLength": 1, "maxLength": 4096 },
+          "client_request_id": { "type": "string", "minLength": 1, "maxLength": 100 }
+        }
+      },
+      "CaptureResult": {
+        "type": "object",
+        "required": ["status", "capture", "honeymoon_period"],
+        "additionalProperties": false,
+        "properties": {
+          "status": { "type": "string", "enum": ["created", "existing", "replayed"] },
+          "capture": { "$ref": "#/components/schemas/Capture" },
+          "honeymoon_period": { "$ref": "#/components/schemas/HoneymoonPeriod" }
+        }
+      },
+      "HoneymoonPeriodPage": {
+        "type": "object",
+        "required": ["items", "page", "per_page", "total"],
+        "additionalProperties": false,
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/HoneymoonPeriod" } },
+          "page": { "type": "integer" },
+          "per_page": { "type": "integer" },
+          "total": { "type": "integer" }
+        }
+      },
+      "HoneymoonPeriodDetail": {
+        "type": "object",
+        "required": ["item", "preferences", "notes", "captures"],
+        "additionalProperties": false,
+        "properties": {
+          "item": { "$ref": "#/components/schemas/HoneymoonPeriod" },
+          "preferences": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Preference" }
+          },
+          "notes": { "type": "array", "items": { "$ref": "#/components/schemas/Note" } },
+          "captures": { "type": "array", "items": { "$ref": "#/components/schemas/Capture" } }
+        }
+      },
+      "HoneymoonPeriodUpdate": {
+        "type": "object",
+        "minProperties": 1,
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "pattern": ".*\\S.*"
+          },
+          "kind": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "pattern": ".*\\S.*"
+          },
+          "status": { "$ref": "#/components/schemas/Status" },
+          "metadata": { "$ref": "#/components/schemas/Metadata" },
+          "rank_boost": { "type": "number", "minimum": -100, "maximum": 100 }
+        }
+      },
+      "PreferenceInput": {
+        "type": "object",
+        "required": ["vote", "score"],
+        "additionalProperties": false,
+        "properties": {
+          "vote": { "$ref": "#/components/schemas/Vote" },
+          "score": { "type": ["number", "null"], "minimum": 0, "maximum": 5 }
+        }
+      },
+      "NoteInput": {
+        "type": "object",
+        "required": ["body"],
+        "additionalProperties": false,
+        "properties": {
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000,
+            "pattern": ".*\\S.*"
+          }
+        }
+      }
+    }
+  }
+}

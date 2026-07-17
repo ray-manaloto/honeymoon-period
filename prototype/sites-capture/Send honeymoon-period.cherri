@@ -1,0 +1,52 @@
+/*
+PROTOTYPE — Send honeymoon-period
+
+Share-sheet transport probe for POST /v1/captures. This is not the supported
+Reminders baseline and must not replace shortcut/Save honeymoon-period.cherri.
+*/
+
+#define name Send honeymoon-period (Prototype)
+#define color red
+#define glyph heart
+#define inputs url, text, richtext, webpage
+#define from sharesheet
+#define noinput getclipboard
+
+#include 'actions/text'
+#include 'actions/web'
+#include 'actions/calendar'
+
+#question captureEndpoint "What is the full capture endpoint URL?" "https://replace-with-worker.example/v1/captures"
+#question accessToken "What participant API token should this prototype use?" "prototype-participant-a"
+
+@urls = getURLs(ShortcutInput)
+@urlCount = count(@urls)
+
+if @urlCount < 1 {
+    alert("Share a link or copy one to the clipboard, then try again.", "No link found")
+    stop()
+}
+
+@originalURL = getFirstItem(@urls)
+@originalURLText = "{@originalURL.text}"
+@endpoint = trimWhitespace(captureEndpoint)
+@token = trimWhitespace(accessToken)
+@now = currentDate()
+@timestamp = formatDate(@now, "Custom", "yyyyMMddHHmmssSSS")
+@nonce = randomNumber(100000, 999999)
+@requestID = "shortcut-{@timestamp}-{@nonce}"
+
+@response = jsonRequest(@endpoint, "POST", {
+    "source_url": "{@originalURLText}",
+    "client_request_id": "{@requestID}"
+}, {
+    "Authorization": "Bearer {@token}"
+})
+
+@responseDictionary = getDictionary(@response)
+@status = "{@responseDictionary['status']}"
+if @status == "replayed" {
+    showNotification("That capture request was already processed.", "honeymoon-period replayed", false)
+} else {
+    showNotification("Sent the link to the capture service.", "honeymoon-period captured", false)
+}
