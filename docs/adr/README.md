@@ -15,4 +15,5 @@ Use a zero-padded sequence and short slug. Include Status, Date, Context, Decisi
 
 ## Records
 
-- [ADR-0001: Evaluate existing products before custom development](0001-existing-product-first.md) — Accepted
+- [ADR-0001: Evaluate existing products before custom development](0001-existing-product-first.md) — Superseded by ADR-0002
+- [ADR-0002: Build an API-first web MVP before native clients](0002-api-first-web-mvp.md) — Accepted

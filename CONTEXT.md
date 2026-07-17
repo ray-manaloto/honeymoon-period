@@ -1,13 +1,10 @@
 # honeymoon-period context
 
-## Current phase
-
-Run a time-boxed bake-off of existing apps, tools, and composable services before deciding whether to build a native iOS app. The Reminders + Beli Shortcut is the baseline prototype and must remain usable while alternatives are evaluated.
-
 ## Actors
 
 - **Owner** — develops and administers the project.
 - **Partner** — installs at most one app, accepts an invitation, and can add, edit, vote, and plan without developer setup.
+- **Participant** — one person in the shared honeymoon-period workspace who owns their own votes and scores.
 
 ## Core workflow
 
@@ -27,10 +24,13 @@ Run a time-boxed bake-off of existing apps, tools, and composable services befor
 - **Venue duplicate** — different URLs or captures that refer to the same real place or event.
 - **Vote** — a person's categorical decision, such as interested, maybe, or decline.
 - **Score** — a person's configurable numeric preference used for ranking.
+- **Preference** — one participant's vote and optional score for one honeymoon-period.
 - **Special** — a time-constrained offer, menu, event, deadline, or reservation opportunity.
 - **Availability** — free time inferred or selected without exposing unrelated private calendar details.
 - **Plan** — a honeymoon-period assigned to a specific occurrence and optionally a calendar event.
 - **Baseline prototype** — the current shared Reminders, Beli handoff, and Save honeymoon-period Shortcut.
+- **Lab identity suite** — two long-lived, non-production identity stacks, one independently owned by each human participant, with provider-specific accounts, empty synthetic calendars, and isolated authenticated test environments.
+- **Human-only ceremony** — an identity or security step that an agent must hand back to the account owner, including passwords, recovery, CAPTCHA, two-factor authentication, biometrics, terms acceptance, and system or OAuth consent.
 
 ## Invariants and boundaries
 
@@ -38,5 +38,6 @@ Run a time-boxed bake-off of existing apps, tools, and composable services befor
 - Preserve the original link and provenance.
 - Explain ranking signals; do not hide urgency or scoring behind unexplained AI output.
 - Private votes, calendars, locations, notes, and relationship data must not enter the public repository or logs.
-- No paid service, physical-device workflow, or external publication without explicit approval.
-- Later requirements for independent voting/scoring supersede the prototype's older shared-outcome assumption; exact semantics remain a spec question.
+- External-product tests use the approved lab identity suite and synthetic fixtures; agents never receive account-root credentials or impersonate a second participant.
+- No paid service, physical-device workflow, or external publication without explicit approval; the bounded lab-device approval is recorded in `docs/conventions/lab-identities.md`.
+- Independent participant-owned preferences supersede the prototype's older shared-outcome assumption; reversible MVP semantics are recorded outside this glossary.

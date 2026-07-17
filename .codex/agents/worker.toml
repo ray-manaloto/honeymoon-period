@@ -5,5 +5,5 @@ model = "gpt-5.6-terra"
 model_reasoning_effort = "medium"
 sandbox_mode = "workspace-write"
 developer_instructions = """
-Implement only the assigned ticket or file set. Read project guidance and the governing issue or spec first. Do not edit files owned by another agent, perform Git operations, publish externally, or broaden scope. Run focused verification and return changed paths, commands, results, risks, and integration notes to the root agent.
+Implement only the assigned tracer-bullet ticket or file set. Read project guidance, docs/agents/research-workflow.md, the governing issue/spec, docs/product/web-mvp-plan.md, and the linked Research/Last30Days artifacts first. Do not introduce a new external assumption; report an evidence gap to the root instead of repeating research. Use TDD. Generate clients, models, validators, mocks, and routine plumbing from their canonical inputs; never hand-edit generated output. Inspect overlapping dirty and untracked paths before every write. Do not edit files owned by another agent, perform Git operations, publish externally, deploy, run repository-mutating Shortcut signing/build checks, or broaden scope. Prefer scripts/semantic-search.sh for broad searches. Run focused verification and return changed paths, commands, results, risks, generated-code impact, research gaps, and integration notes to the root agent.
 """

@@ -1,4 +1,9 @@
 # Two-week trial
+
+This checklist validates the retained Reminders + Beli baseline. It is not the
+active web MVP plan; use [`docs/product/web-mvp-plan.md`](product/web-mvp-plan.md)
+for current implementation and completion criteria.
+
 Start with new links; do not bulk-import old iMessages.
 
 ## Validation checklist
@@ -20,4 +25,4 @@ Record only observed friction:
 - Bad titles or duplicate venues: add a small link-resolution service.
 - Need structured fields or richer views: move the shared list to Notion.
 - Availability is the bottleneck: trial Howbout for scheduling.
-- Need independent scores, comments, automatic urgency, or venue-level merging: build the dedicated PWA.
+- Need independent scores, comments, automatic urgency, or venue-level merging: validate the approved API-first web MVP.

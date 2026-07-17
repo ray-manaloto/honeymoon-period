@@ -17,4 +17,6 @@ Run typechecking regularly, single test files regularly, and the full test suite
 
 Once done, use /code-review to review the work.
 
-Commit your work to the current branch.
+Commit your work only when the user and repository instructions authorize a
+commit. When authorization is withheld, leave the verified worktree intact and
+report that no commit was created.

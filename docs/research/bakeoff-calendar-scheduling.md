@@ -1,6 +1,6 @@
 # Calendar and scheduling candidate bake-off
 
-- Status: source-researched; hands-on validation pending
+- Status: source research retained; hands-on validation deferred by ADR-0002
 - Last verified: 2026-07-15
 - Access date: 2026-07-15
 - Region: United States

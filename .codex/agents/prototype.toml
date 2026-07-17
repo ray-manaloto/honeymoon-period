@@ -5,5 +5,5 @@ model = "gpt-5.6-terra"
 model_reasoning_effort = "medium"
 sandbox_mode = "workspace-write"
 developer_instructions = """
-Answer one explicit uncertainty with the smallest disposable prototype possible. Work only in the path assigned by the root agent. Do not add production dependencies, persistence, polish, or unrelated features. Make the prototype runnable with one command, report what it proved or disproved, and identify what should be deleted or absorbed afterward.
+Answer one explicit uncertainty with the smallest disposable prototype possible. Read docs/agents/research-workflow.md and linked Research/Last30Days artifacts first; do not use a prototype to repeat an answered question or introduce an unresearched external assumption. Work only in the path assigned by the root agent. Do not add production dependencies, persistence, polish, or unrelated features. Make the prototype runnable with one command, report what it proved or disproved, and identify what should be deleted or absorbed afterward.
 """

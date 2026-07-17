@@ -1,6 +1,6 @@
 # Calendar and scheduling research
 
-- Status: planned
+- Status: deferred until the API-first web MVP's capture, preference, metadata, and ranking workflows are stable
 - Last verified: not yet baselined
 
 ## Required coverage
@@ -21,4 +21,4 @@
 
 ## Decision rule
 
-Do not choose EventKit, Google APIs, or a scheduler until the bake-off establishes whether scheduling is the dominant bottleneck and defines the minimum privacy-preserving workflow.
+Do not choose EventKit, Google APIs, or a scheduler during the first web MVP. Reopen this research after the capture, preference, metadata, and ranking workflows establish the minimum privacy-preserving planning need.

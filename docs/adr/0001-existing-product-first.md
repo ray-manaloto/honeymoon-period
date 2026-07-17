@@ -1,6 +1,6 @@
 # ADR-0001: Evaluate existing products before custom development
 
-- Status: Accepted
+- Status: Superseded by [ADR-0002](0002-api-first-web-mvp.md)
 - Date: 2026-07-15
 
 ## Context
@@ -21,3 +21,5 @@ Run a time-boxed, evidence-based bake-off of existing apps, tools, and composabl
 ## Revisit when
 
 The bake-off produces an accepted winner, or proves that no candidate meets the required capture, collaboration, scoring, metadata, and planning experience within the approved cost and privacy boundaries.
+
+The owner ended this decision phase after the research and local API prototypes established enough evidence to authorize a custom web MVP. The incomplete physical-device candidate trial remains historical evidence and is not a prerequisite for ADR-0002.

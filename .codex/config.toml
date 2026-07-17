@@ -4,8 +4,8 @@ model_reasoning_effort = "medium"
 personality = "pragmatic"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
-# App capabilities, pricing, APIs, and availability are time-sensitive during
-# the existing-product bake-off. Revisit after the research baseline is stable.
+# Framework, provider, API, and deployment behavior remain time-sensitive while
+# productizing the API-first web MVP.
 web_search = "live"
 
 [features]
@@ -30,7 +30,9 @@ tool_timeout_sec = 120
 XCODEBUILDMCP_ENABLED_WORKFLOWS = "simulator,ui-automation,debugging,logging"
 
 [agents]
-# Root coordinator plus at most three concurrent workers.
+# GPT-5.6 Sol root coordinator plus at most three concurrent support agents.
+# Bounded web/API implementation, verification, and validation roles pin Terra;
+# reserve Sol roles for hard Apple work and material final risk review.
 max_threads = 4
 # Direct children only; avoid uncontrolled recursive fan-out.
 max_depth = 1
