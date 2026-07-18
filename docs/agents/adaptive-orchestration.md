@@ -1,0 +1,121 @@
+# Adaptive orchestration
+
+Use the repository-local `adaptive-orchestration` skill for long, multi-phase goals
+whose plan or tracker projection may change as evidence arrives. This document owns
+the durable policy; the skill routes agents through it.
+
+## Goal record
+
+At bootstrap, record the objective, authority sources, prohibited actions, completion
+contract, branch/HEAD, dirty-tree ownership, and both research-lane statuses. Keep one
+append-only change log in the governing durable artifact. Number entries monotonically
+and include:
+
+1. observed event and evidence;
+2. assumption or prior state invalidated, or issue completed;
+3. replacement decision;
+4. effect on objective, scope, plan, tickets, tracker, or acceptance; and
+5. any new authority boundary or residual risk.
+
+Append before adapting downstream state. Correct an erroneous entry with a later entry;
+never rewrite history. Product decisions still belong in the product specification or
+ADR, and tracker mutations still require their own before/after evidence.
+
+## Evidence and dependency gate
+
+Run the two-lane preflight in `research-workflow.md`. Local diagnosis precedes new
+research; current primary-source artifacts precede reruns. Use a bounded prototype only
+for one unresolved uncertainty and retain the decision, not disposable code.
+
+Prefer a maintained compatible dependency only when a deletion test proves that it
+removes meaningful repository ownership while preserving canonical contracts,
+provider neutrality, privacy, licensing, offline determinism, tests, and rollback.
+Generic validation does not replace product-owned semantics. Reject or remove a pilot
+whose custom policy recreates the deleted logic or whose coupling exceeds its deletion.
+
+## Context and task selection
+
+`docs/research/codex-context-lifecycle.md` owns the Smart, Watch, Transition, and unsafe
+zones plus their non-numeric overrides. Record percentages only from one runtime event's
+active usage and window. Stable Codex 0.144.6 hooks do not expose this percentage, so
+zones are an operating policy, not a blocking hook.
+
+Resume for the same objective and assumptions. Use direct children for bounded
+independent questions. Fork only genuinely competing approaches whose writes are
+isolated. Use a durable handoff plus a fresh task when the phase, objective, assumptions,
+authority, acceptance contract, or context quality changes materially.
+
+## Agent allocation
+
+The root owns shared files, integration, Git, tracker mutation, and publication. Use at
+most three direct children under `.codex/config.toml`'s four-thread/depth-one ceiling;
+children do not delegate. Assign disjoint writing paths and concise evidence contracts.
+After material integration, use fresh independent direct children for semantic
+`ACCEPT`/`REJECT` and mechanical `PASS`/`FAIL` gates.
+
+Configured capacity is not proof of live availability. Inspect the actual agent roster
+before allocating, and adapt optional fan-out to preserve the final gates.
+
+## Tracker ceremony
+
+For an authorized reconciliation:
+
+1. capture a fresh complete issue, relationship, label, Project-field, option, and item
+   snapshot;
+2. identify targets by stable logical marker plus current remote identifiers;
+3. serialize writes through the root and re-read each precondition immediately before it;
+4. capture every returned issue, database, node, relationship, and Project item ID;
+5. perform a postcondition read after every write; and
+6. re-read before retrying a timeout or ambiguous response.
+
+Mutate only the authorized delta. Preserve historical items and unrelated issues.
+
+## Completion contract
+
+Completion requires reconciled local and external state, focused and aggregate checks,
+fresh independent verdicts, a protected-artifact audit, logical commits, and only the
+authorized publication. A green command does not substitute for semantic acceptance.
+
+## Goal change log
+
+This initial rollout log is append-only.
+
+| Seq. | Date | Event and evidence | Goal or plan effect |
+| ---: | --- | --- | --- |
+| 1 | 2026-07-18 | Adopted `/tmp/honeymoon-period-next-goal-2026-07-18.md` as authority. | Objective, prohibitions, tracker authority, final gates, push, and ready-PR completion contract accepted unchanged. |
+| 2 | 2026-07-18 | The copied checkout was detached at `5789642`, not the stated `b684776`; the source worktree at `b684776` proved that only the research index and context-lifecycle report were intentional, with the handoff hashes. | Backed up the copied tree, based the branch on `origin/main` `e7c5543`, recovered only the two verified research changes, and preserved the original backup at `/tmp/honeymoon-reconcile.TMm3Xf`. Scope unchanged. |
+| 3 | 2026-07-18 | Codex 0.144.6 local help/features and official docs show unified exec is covered by the `Bash` hook matcher, while stable hooks still expose no live context percentage or slot reservation. | Refresh capability evidence; keep current stable feature flags, depth/thread limits, hook matcher, and unset compaction/tool-output limits. |
+| 4 | 2026-07-18 | No Redocly executable was initially installed. An authorized pinned 2.39.0 local pilot parsed deterministically and rejected duplicate operation IDs, but accepted missing operation IDs and required `404`/`500` responses; recommended rules rejected the canonical contract for unrelated policy. | Reject Redocly: it would move the Worker-specific matrix into custom policy and add 367 packages. Removed the dependency and retained the existing semantic checker. |
+| 5 | 2026-07-18 | Fresh GitHub reads show #16–#18 already closed and Project `Done`, superseding the 2026-07-17 drift report; only #19–#21 remain open `Todo`. | Remove obsolete #16–#18 reconciliation from the plan. Limit tracker writes to the approved #19 specification/tickets and leave #20/#21 unchanged. |
+| 6 | 2026-07-18 | #19 was published as the approved specification, then closed `Completed` and set Project `Done`. Native child tickets #23, #24, and #25 were created `ready-for-agent`/`Todo` with dependency chain #23 → #24 → #25; map #1 was refreshed. | Mark specification/ticketing and tracker reconciliation complete without implementing the product slice. #23 becomes the implementation frontier; #20/#21 remain unchanged questions. |
+| 7 | 2026-07-18 | Independent integrated review found missing legacy-write retry semantics, no deterministic same-time replay boundary, the obsolete `codex_fanout` key, and overclaims in the Redocly and tracker evidence. | Specify legacy no-op/event behavior and inclusive sequence snapshots in #19/#23/#24; enforce the actual `enable_fanout` key; correct research metadata and retain an explicit tracker-audit limitation. Final independent gates must evaluate the corrected state. |
+
+## Initial tracker reconciliation evidence
+
+Before the first write, #19 was open with `question` and `needs-triage`, Project
+`Todo`, issue node `I_kwDOTZFLac8AAAABJIYmGg`, and Project item
+`PVTI_lADODYqwA84Bdc84zgzIl5Y`. Searches for all four logical keys returned no
+matches. #16–#18 were already closed/`Done`; #20 and #21 were open `Todo` questions.
+
+The serialized writes returned:
+
+| Issue | Database / node ID | Project item | Relationship |
+| --- | --- | --- | --- |
+| #23 | `4920311758` / `I_kwDOTZFLac8AAAABJUX_zg` | `PVTI_lADODYqwA84Bdc84zgzTaxE` | Native child of #19; no blocker |
+| #24 | `4920313575` / `I_kwDOTZFLac8AAAABJUYG5w` | `PVTI_lADODYqwA84Bdc84zgzTa38` | Native child of #19; blocked by #23 |
+| #25 | `4920315942` / `I_kwDOTZFLac8AAAABJUYQJg` | `PVTI_lADODYqwA84Bdc84zgzTa-c` | Native child of #19; blocked by #24 |
+
+Postcondition reads showed #19 closed `Completed` and Project `Done`; #23–#25
+open with only `ready-for-agent` and Project `Todo`; all three native child and
+dependency edges present; and #20/#21 unchanged. Closed map #1 now records #19
+as approved and lists #23–#25 as the implementation frontier.
+
+The ordered ceremony was executed through root-serialized GitHub reads and writes:
+precondition reads and logical-key searches; #19 body/title/label update and reread;
+one-at-a-time issue creation with returned IDs; one-at-a-time Project insertion/status
+update and reread; native child and dependency writes with relationship rereads; #19
+closure/Done transition; map #1 update; and final #19–#25/#20/#21/Project reads. The
+individual raw command responses were not retained as a tracked transcript, so this
+summary and the identifiers above do not prove every intermediate postcondition after
+the fact. The final remote state is re-readable, but historical preconditions cannot be
+reconstructed from current GitHub state alone.

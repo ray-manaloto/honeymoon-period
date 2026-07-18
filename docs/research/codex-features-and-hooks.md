@@ -1,6 +1,7 @@
 # Codex features and hooks review
 
-Status: original setup retained; web-MVP-specific orchestration is now defined in `docs/product/web-mvp-plan.md`.
+Status: refreshed for Codex CLI 0.144.6; stable setup retained and adaptive orchestration linked through project policy.
+Last verified: 2026-07-18
 
 ## Executive recommendation
 
@@ -21,14 +22,23 @@ Local commands run:
 
 ```text
 codex --version
-# codex-cli 0.144.4
+# codex-cli 0.144.6
 
 codex features list
 ```
 
-The installed version matches the latest changelog entry reviewed on 2026-07-15. OpenAI describes 0.144.4 as a patch with no user-facing changes. ([Codex changelog](https://learn.chatgpt.com/docs/changelog))
+The installed runtime and strict project configuration were rechecked on
+2026-07-18. The local feature catalog is the authority for this binary; official
+configuration, hooks, subagent, and developer-command documentation owns the
+supported behavior described below.
 
-The local feature catalog reports these relevant capabilities as stable and enabled: Apps, browser/computer use, fast mode availability, goals, hooks, multi-agent, plugins, remote plugins, shell snapshot, unified exec, request compression, skill MCP dependency installation, tool suggestions, and workspace dependencies. This local catalog is the authoritative statement of what this installed binary exposes; it does not imply that every feature needs a project-local override.
+The local feature catalog reports these relevant capabilities as stable and enabled:
+Apps, browser/computer use, fast mode availability, goals, hooks, multi-agent,
+plugins, remote plugins, shell snapshot, unified exec, request compression, remote
+compaction v2, skill MCP dependency installation, tool suggestions, and workspace
+dependencies. `runtime_metrics`, `token_budget`, `multi_agent_v2`, fanout, and code
+mode remain under development and disabled. This catalog does not imply that every
+feature needs a project-local override.
 
 ### Project configuration already correct
 
@@ -86,7 +96,12 @@ Add a `PreToolUse` hook matching Bash commands. Its script should parse the JSON
 
 The script should otherwise exit successfully with no output. A denial should return the documented `PreToolUse` JSON shape with `permissionDecision: "deny"` and a concise reason. Do not log complete prompts, command inputs, tokens, URLs, calendar details, or restaurant notes.
 
-This is defense in depth only. OpenAI states that `PreToolUse` currently intercepts Bash, `apply_patch`, and MCP calls only on supported paths; interception is incomplete with the newer unified execution mechanism, and web search is not intercepted. The project must retain its written policies and normal approval controls. ([Hooks: PreToolUse](https://learn.chatgpt.com/docs/hooks#pretooluse))
+This is defense in depth only. OpenAI documents unified exec's `exec_command` as
+matching `Bash`, so the current `^Bash$` matcher covers both shell paths.
+Subsequent `write_stdin` calls do not trigger another `PreToolUse`, hosted web
+search is outside hook coverage, and specialized tools may opt out. The project
+must retain its written policies and normal approval controls.
+([Hooks: PreToolUse](https://learn.chatgpt.com/docs/hooks#pretooluse))
 
 ### Defer until an Xcode project exists: verification-at-stop
 
@@ -164,7 +179,9 @@ The following were not verified in current official documentation and must not b
 - a project-local allowlist that prevents all globally installed skills from entering discovery;
 - prompt or agent hook handlers executing today;
 - asynchronous hook commands executing today;
-- complete shell interception by `PreToolUse`/`PostToolUse` while unified execution is enabled;
+- a stable hook or command API exposing live active-context percentage;
+- a live cross-thread occupancy or reservation API that can prove final slots are free;
+- a second `PreToolUse` event for later `write_stdin` calls in one unified exec session;
 - hooks intercepting native web search;
 - a simulator instance being safely shared across concurrent writing/build agents;
 - Beli or restaurant-service integrations being provided automatically by an OpenAI plugin.
