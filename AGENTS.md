@@ -15,7 +15,7 @@ authority.
 
 ## Product priorities
 
-- Build the approved API-first web MVP in `docs/product/web-mvp-plan.md`; the existing-product bake-off is retained evidence, not the active implementation gate.
+- Preserve and extend the accepted local API-first web MVP in `docs/product/web-mvp-plan.md`; the existing-product bake-off is retained evidence, not the active implementation gate, and deployment remains separately authorized.
 - Target: iOS Share Sheet capture, shared storage, independent votes/scores, ranking, notes, structured metadata, and calendar planning.
 - Keep `/v1` OpenAPI contracts stable and provider-neutral. Generate clients, models, validators, mocks, and routine adapters; never hand-edit generated output.
 - Human-authored code is limited to product behavior and the thinnest framework adapter that no maintained generator can emit. Codex/Sites-generated React and SwiftUI presentation code is approved and must pass the same review and test gates as other source.

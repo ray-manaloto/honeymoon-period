@@ -140,11 +140,12 @@ The web MVP is complete only when:
 
 Provider deployment, a public URL, production identities, and native iOS distribution are separate completion gates requiring their own authorization.
 
-## Post-MVP maintenance backlog
+## Completed post-MVP maintenance
 
-The local MVP is accepted and mechanically green. These low-risk follow-ups are
-tracked as open work in the repository issue tracker and should not reopen the
-MVP completion gate unless their risk or scope materially changes:
+The local MVP is accepted and mechanically green. These low-risk follow-ups were
+completed and independently accepted on 2026-07-17. Their closed issues remain
+delivery evidence and should not reopen the MVP completion gate unless their
+risk or scope materially changes:
 
 - [#16 Enforce a production web bundle budget and split oversized chunks](https://github.com/ray-manaloto/honeymoon-period/issues/16)
   — measure the current bundle, introduce useful code splitting, and enforce an
@@ -160,8 +161,8 @@ The canonical planning board is the
 
 ## Deferred product questions
 
-These questions are intentionally deferred and do not block maintenance issues
-#16, #17, or #18:
+These questions are intentionally deferred and did not block completed
+maintenance issues #16, #17, or #18:
 
 - [#19 Decide preference visibility, scoring, veto, missing-value, and ranking configuration](https://github.com/ray-manaloto/honeymoon-period/issues/19);
 - [#20 Define calendar lifecycle, privacy, recurring offers, and deadline behavior](https://github.com/ray-manaloto/honeymoon-period/issues/20); and
@@ -174,5 +175,6 @@ approved. None is ready for agent implementation.
 
 GitHub issues #1, #7, and #8 are retained as closed historical evidence for the
 superseded existing-product bake-off. ADR-0002 records the API-first decision;
-the accepted local MVP and maintenance issues above are the active delivery
-surface. The deferred product questions remain non-blocking backlog.
+the accepted local MVP and completed maintenance issues #16--#18 are retained
+delivery evidence. Deferred questions #19--#21 are the only open tracker surface
+and remain non-blocking, non-implementation-ready backlog.

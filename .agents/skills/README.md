@@ -29,8 +29,9 @@ Preview the exact source first, retain the injected `github-*` metadata, inspect
 | --- | --- | --- |
 | `research` | Own one primary-source, cited report for material external uncertainty | `mattpocock/skills@v1.1.0` (tree `06c848c1a1f3ae7afd88f040f73a8f3efee3494d`) |
 | `last30days` | Supplement primary-source research with recent community, social, news, and repository signals | `mvanhorn/last30days-skill@249c7a4c040558a903d6838dee31012980d4946d` |
+| `research-workflow-architecture` | Orchestrate independent workflow-architecture reports, evidence-proportional synthesis, and fresh semantic/mechanical gates | Project-authored |
 
-Use both skills through the mandatory routing and reuse contract in
+Use `research` and `last30days` through the mandatory routing and reuse contract in
 [`docs/agents/research-workflow.md`](../../docs/agents/research-workflow.md).
 The root runs each required lane once; implementers consume the resulting
 artifacts instead of repeating searches. `last30days` is a discovery aid, not

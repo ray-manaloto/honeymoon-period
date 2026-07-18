@@ -20,4 +20,4 @@
 | [`docs/deployment/web-mvp-readiness.md`](deployment/web-mvp-readiness.md) | Local deployment-readiness, migration, rollback, and human checkpoint |
 | [`docs/testing/existing-app-bakeoff.md`](testing/existing-app-bakeoff.md) | Existing-product public preflight, sanitized fixtures, and blocked hands-on gates |
 
-Specifications and implementation tickets live in GitHub Issues after publication is authorized. The repository plan is the durable source while the current tracker remains stale. Research reports support decisions; ADRs record decisions; neither should duplicate the implementation plan.
+Specifications and implementation tickets live in GitHub Issues after publication is authorized. Repository plans retain durable product intent; GitHub Issues and Projects are its operational projection, and any drift between them must be reconciled explicitly. Research reports support decisions; ADRs record decisions; neither should duplicate the implementation plan.
