@@ -159,22 +159,30 @@ risk or scope materially changes:
 The canonical planning board is the
 [honeymoon-period GitHub Project](https://github.com/orgs/ray-manaloto/projects/1).
 
-## Deferred product questions
+## Approved next specification and deferred product questions
 
-These questions are intentionally deferred and did not block completed
-maintenance issues #16, #17, or #18:
+Preference/history semantics are approved in
+[#19](https://github.com/ray-manaloto/honeymoon-period/issues/19), which is
+closed as the decision record. Product implementation is not part of the current
+documentation/orchestration goal. Work the ready-for-agent tracer bullets in order:
 
-- [#19 Decide preference visibility, scoring, veto, missing-value, and ranking configuration](https://github.com/ray-manaloto/honeymoon-period/issues/19);
+1. [#23 Record and show immutable preference changes](https://github.com/ray-manaloto/honeymoon-period/issues/23);
+2. [#24 Apply and replay the versioned preference policy](https://github.com/ray-manaloto/honeymoon-period/issues/24), blocked by #23; and
+3. [#25 Redact preference history to shared tombstones](https://github.com/ray-manaloto/honeymoon-period/issues/25), blocked by #24.
+
+The remaining intentionally deferred questions are:
+
 - [#20 Define calendar lifecycle, privacy, recurring offers, and deadline behavior](https://github.com/ray-manaloto/honeymoon-period/issues/20); and
 - [#21 Define venue and source merging semantics before public deployment](https://github.com/ray-manaloto/honeymoon-period/issues/21).
 
-Each remains a `question`/`needs-triage` item until its product decision is
-approved. None is ready for agent implementation.
+#20 and #21 remain `question`/`needs-triage` items and are not ready for agent
+implementation.
 
 ## Tracker reconciliation
 
 GitHub issues #1, #7, and #8 are retained as closed historical evidence for the
 superseded existing-product bake-off. ADR-0002 records the API-first decision;
 the accepted local MVP and completed maintenance issues #16--#18 are retained
-delivery evidence. Deferred questions #19--#21 are the only open tracker surface
-and remain non-blocking, non-implementation-ready backlog.
+delivery evidence. #19 is closed and Project `Done`; its open child tickets #23--#25
+are Project `Todo` with native sub-issue and dependency edges. #20 and #21 remain
+non-blocking, non-implementation-ready questions.
