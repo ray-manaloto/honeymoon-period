@@ -7,7 +7,8 @@ configuration remains reproducible without user-global installations.
 
 - Source: <https://github.com/mattpocock/skills>
 - Version: `v1.1.0`
-- Vendored paths: the non-iOS skill directories under `.agents/skills`
+- Vendored paths: Matt Pocock skill directories identified by `github-repo:
+  https://github.com/mattpocock/skills` in their `SKILL.md` frontmatter
 - Per-skill source tree hashes: recorded in each `SKILL.md` metadata block
 - License: MIT
 
@@ -71,3 +72,30 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+## Web MVP agent skills
+
+The following project-scoped skills were installed with `gh skill` at pinned
+commits. Exact source paths and tree hashes are recorded in each `SKILL.md`
+frontmatter.
+
+| Vendored skill | Source | Pin | License |
+| --- | --- | --- | --- |
+| `react-admin` | <https://github.com/marmelab/react-admin> | `e1beaa2520de46e109236483876df50537c18294` | MIT |
+| `cloudflare` | <https://github.com/cloudflare/skills> | `70215303d44a81a0db3219428f4825b604fc6061` | Apache-2.0 |
+| `playwright-cli` | <https://github.com/microsoft/playwright-cli> | `eee5a185c98e6b04d88f580d45a854e9692ab50b` | Apache-2.0 |
+| `frontend-testing-debugging`, `react-best-practices` | <https://github.com/openai/plugins/tree/main/plugins/build-web-apps> | `11c74d6ba24d3a6d48f54a194cd00ef3beea18f9` | MIT, as declared by the plugin manifest |
+
+Upstream license files and notices control these dependencies. The repository
+retains this inventory so updates can recheck attribution before accepting a
+new pin.
+
+## Research discovery skill
+
+| Vendored skill | Source | Pin | License |
+| --- | --- | --- | --- |
+| `last30days` | <https://github.com/mvanhorn/last30days-skill> | `249c7a4c040558a903d6838dee31012980d4946d` (`3.16.0`) | MIT |
+
+The installed skill includes a vendored MIT-licensed X-search client. Upstream
+license files and notices remain authoritative; the exact source commit and
+skill tree hash are recorded in the installed `SKILL.md` frontmatter.

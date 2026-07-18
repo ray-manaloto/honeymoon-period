@@ -1,5 +1,14 @@
 .build/
 __pycache__/
+*.tsbuildinfo
+node_modules/
+**/dist/
+.wrangler/
+coverage/
+playwright-report/
+test-results/
+.playwright-cli/
+.artifacts/
 *.plist
 *_processed.cherri
 *_unsigned.shortcut
@@ -7,5 +16,5 @@ __pycache__/
 
 # The repository publishes signed Shortcut deliverables deliberately. Override
 # any user-global `dist/` ignore rule so a fresh clone sees the same artifact.
-!dist/
-!dist/*.shortcut
+!/dist/
+!/dist/*.shortcut

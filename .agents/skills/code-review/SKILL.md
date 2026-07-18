@@ -15,6 +15,26 @@ Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
 
 Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
 
+## Repository overlay: dirty and untracked worktrees
+
+This repository may intentionally keep a complete implementation uncommitted,
+including untracked source. In that state, do not treat `git diff` as the whole
+review surface and do not require a non-empty committed three-dot diff.
+
+- Pin the bootstrap commit, then capture `git status --short`, tracked diffs,
+  and the complete untracked-file inventory. Use
+  `node scripts/worktree-manifest.mjs <important paths...>` when artifact hashes
+  matter.
+- Review every in-scope untracked source file against the spec. Exclude
+  generated validator bodies and disposable build output from broad semantic
+  searches unless directly relevant; prefer `scripts/semantic-search.sh`.
+- Preserve two fresh child-agent slots for the repository's final verifier and
+  validator. If the three-child limit prevents two review sub-agents, assign one
+  independent reviewer both axes while the root performs a separate evidence
+  check. Report this constrained mode explicitly.
+- User and repository authorization override this skill's normal Git or commit
+  assumptions.
+
 The issue tracker should have been provided to you — run `/setup-matt-pocock-skills` if `docs/agents/issue-tracker.md` is missing.
 
 ## Process
@@ -26,6 +46,10 @@ Whatever the user said is the fixed point — a commit SHA, branch name, tag, `m
 Capture the diff command once: `git diff <fixed-point>...HEAD` (three-dot, so the comparison is against the merge-base). Also note the list of commits via `git log <fixed-point>..HEAD --oneline`.
 
 Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here — not inside two parallel sub-agents.
+
+In the dirty-worktree overlay above, the combined tracked diff plus untracked
+inventory may satisfy the non-empty requirement even when `HEAD` itself has no
+new commits.
 
 ### 2. Identify the spec source
 

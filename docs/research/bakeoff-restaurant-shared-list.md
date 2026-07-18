@@ -1,6 +1,6 @@
 # Restaurant-first and shared-list candidate bake-off
 
-- Status: researched from public first-party evidence; hands-on verification pending
+- Status: public research retained; hands-on verification deferred by ADR-0002
 - Last verified: 2026-07-15
 - Region: United States
 - Candidates: Beli, Tavola, Soonish, and Mapstr

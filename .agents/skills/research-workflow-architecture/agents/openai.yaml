@@ -1,0 +1,7 @@
+---
+interface:
+  display_name: "Research Workflow Architecture"
+  short_description: "Research and rank project workflow improvements"
+  default_prompt: "Use $research-workflow-architecture to orchestrate
+    multi-candidate research and a durable roadmap for this project’s agent and
+    verification workflow."

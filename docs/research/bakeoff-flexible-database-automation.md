@@ -1,6 +1,6 @@
 # Flexible database and automation bake-off: Notion
 
-- Status: documentation-qualified survivor; hands-on validation required
+- Status: documentation-qualified historical survivor; hands-on validation deferred by ADR-0002
 - Accessed: 2026-07-15
 - Region: United States
 - Candidate evaluated: Notion, including the first-party Notion Calendar companion where the rubric requires calendar evidence

@@ -1,6 +1,6 @@
 # Codex features and hooks review
 
-Status: researched 2026-07-15 against current official OpenAI documentation and the locally installed `codex-cli 0.144.4`.
+Status: original setup retained; web-MVP-specific orchestration is now defined in `docs/product/web-mvp-plan.md`.
 
 ## Executive recommendation
 
@@ -8,7 +8,7 @@ The project already has the important multi-agent foundation: a high-capability 
 
 Make only two immediate configuration changes:
 
-1. Change top-level `web_search = "cached"` to `web_search = "live"` while the existing-app bake-off is active. Product capabilities, pricing, App Store listings, and APIs are time-sensitive, and the configuration reference explicitly supports `live` as a top-level mode. Do not use the deprecated feature-level web-search toggles. ([Configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference))
+1. Keep top-level `web_search = "live"` while provider and framework APIs remain time-sensitive. Do not use deprecated feature-level web-search toggles. ([Configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference))
 2. Add one small project-local `PreToolUse` command hook as a defense-in-depth warning/blocker for destructive Git/file commands and physical-device or distribution commands. Keep the policy narrow and auditable; hooks do not intercept every execution path and are not a security boundary. ([Hooks](https://learn.chatgpt.com/docs/hooks))
 
 Do not enable every visible feature flag. Stable defaults already activate many capabilities, while beta/experimental flags have higher churn and can increase token use, latency, or failure surface. The correct goal is a small explicit project policy, not a snapshot of every flag in `codex features list`.
@@ -92,7 +92,7 @@ This is defense in depth only. OpenAI states that `PreToolUse` currently interce
 
 After a native app has a stable, fast simulator test command, consider a guarded `Stop` hook that checks whether Swift/project files changed and whether the focused verification evidence is present. It may request one continuation to run the missing check. It must inspect `stop_hook_active` to prevent continuation loops and must skip research-only or docs-only turns.
 
-Do not add this hook during the app bake-off. A `Stop` hook can automatically create a continuation prompt, so premature or slow validation logic would waste tokens and block non-code tasks. ([Hooks: Stop](https://learn.chatgpt.com/docs/hooks#stop))
+Do not add this hook during initial web productization. A `Stop` hook can automatically create a continuation prompt, so premature or slow validation logic would waste tokens and block non-code tasks. ([Hooks: Stop](https://learn.chatgpt.com/docs/hooks#stop))
 
 ### Hooks not recommended
 
@@ -119,7 +119,7 @@ There is no verified project-local configuration setting in the reviewed officia
 
 ## Plugins, tools, and simulator workflow
 
-Keep the installed `build-ios-apps` plugin and use its simulator, debugger, App Intents, SwiftUI, and performance skills only when their task matches. Keep the Matt Pocock skills as repo-scoped source-controlled workflows. Build a project-specific plugin only after repeated project behavior cannot be expressed cleanly through `AGENTS.md`, scripts, or one focused skill. Official plugin guidance supports a repo-local marketplace, but a plugin adds packaging/versioning overhead and is not required to begin the bake-off. ([Build plugins](https://learn.chatgpt.com/docs/build-plugins))
+Keep the vendored `build-ios-apps` skills and use their simulator, debugger, App Intents, SwiftUI, and performance workflows only when native work begins. Keep all engineering and framework skills repo-scoped and source-controlled. Build a project-specific plugin only after repeated behavior cannot be expressed cleanly through `AGENTS.md`, scripts, or one focused skill. ([Build plugins](https://learn.chatgpt.com/docs/build-plugins))
 
 Use Apps/connectors only when they remove real integration work. The July 2026 changelog notes richer app approval modes, including a `writes` mode that permits declared reads while prompting for writes; prefer that posture for calendar or issue-tracker integrations where available. ([Codex changelog](https://learn.chatgpt.com/docs/changelog))
 
@@ -171,10 +171,10 @@ The following were not verified in current official documentation and must not b
 
 ## Concrete setup sequence
 
-1. Switch project `web_search` to `live` for the bake-off.
+1. Keep project `web_search` live for current provider/framework verification.
 2. Finish `/init`-style tracked project docs: concise root instructions, `CONTEXT.md`, conventions, research index, ADR index, and verification commands.
 3. Add the narrow project `PreToolUse` hook and test allow/deny cases after accepting the trust review.
 4. Run the existing-app research and save each lane as a cited report.
-5. Use Wayfinder to map the decision, To Spec only after the bake-off decision, and To Tickets only after the spec is approved.
+5. Use the approved web MVP plan as the current destination; publish To Spec/To Tickets artifacts only after tracker publication is authorized.
 6. When a native Xcode project exists, establish one fast simulator verification command before adding a guarded Stop hook or running concurrent simulator work.
 7. Revisit the official changelog/config reference at major project milestones rather than pinning experimental flags preemptively.

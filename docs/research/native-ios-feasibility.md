@@ -1,6 +1,6 @@
 # Native iOS feasibility
 
-- Status: primary-source findings retained; architecture undecided
+- Status: primary-source findings retained; native SwiftUI destination accepted and implementation deferred until the web/API contract stabilizes
 - Last verified: 2026-07-15
 
 ## Sources reviewed
@@ -14,7 +14,7 @@
 
 ## Retained findings
 
-- If custom development is justified, start with an iPhone-only SwiftUI app, CLI-first `xcodebuild`, and narrow simulator validation. Do not add Tuist, iPad scope, profiling, or distribution infrastructure before a demonstrated need.
+- When native development begins, start with an iPhone-only SwiftUI app, a generated Swift 6 client, CLI-first `xcodebuild`, and narrow simulator validation. Do not add Tuist, iPad scope, profiling, or distribution infrastructure before a demonstrated need.
 - A Share Extension remains the primary arbitrary-link capture surface. App Intents complement it for composed Shortcuts, scoring a known idea, and opening ranked ideas; they do not replace provider Share Sheet ingestion.
 - A focused App Intents V1 can expose save, score, and show-top actions around a privacy-safe honeymoon-period entity. Defer metadata editing, booking, location search, batch operations, widgets, Live Activities, and broad indexing.
 - The simulator workflow should reproduce one failure at a time: establish the starting UI, drive by accessibility identifiers, capture screenshot/hierarchy/log/LLDB evidence, make the smallest fix, and repeat the same path.
@@ -28,6 +28,6 @@ Earlier inspection found only Command Line Tools selected; full Xcode and an iOS
 
 Simulator-first work can cover SwiftUI flows, deterministic URL fixtures, metadata forms, ranking logic, many Share Extension paths from Safari, local calendar fakes, accessibility, and logs. It cannot be final proof for real provider-app share sheets, production CloudKit sharing, GPS context, notifications/background behavior, real-device performance, or TestFlight onboarding.
 
-## Architecture still undecided
+## Deferred Apple service decisions
 
-Do not infer CloudKit, App Groups, EventKit, Google OAuth, or a backend choice from feasibility alone. Those decisions follow the bake-off and approved specification.
+Do not infer CloudKit, App Groups, EventKit, or Google OAuth from feasibility alone. Backend and client boundaries are recorded in [ADR-0002](../adr/0002-api-first-web-mvp.md); Apple service choices remain later decisions.

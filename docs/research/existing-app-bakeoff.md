@@ -1,8 +1,9 @@
 # Existing-app bake-off
 
-- Status: public-source screening and decision threshold complete; hands-on validation pending
+- Status: source research retained; hands-on trial deferred by the accepted web MVP decision
 - Last verified: 2026-07-15
 - Governing decision: [ADR-0001](../adr/0001-existing-product-first.md)
+- Superseding implementation decision: [ADR-0002](../adr/0002-api-first-web-mvp.md)
 
 ## Question
 

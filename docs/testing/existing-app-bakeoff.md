@@ -1,6 +1,6 @@
 # Existing-app bake-off hands-on evidence
 
-- Status: public/no-account interaction complete; material hands-on gates blocked
+- Status: deferred historical evidence; not an active prerequisite for the web MVP
 - Test date: 2026-07-15
 - Region: United States
 - Governing policy: [existing-app bake-off](../research/existing-app-bakeoff.md)
@@ -8,12 +8,14 @@
 
 ## Result
 
-Issue 7 cannot be completed within the approved execution boundaries. Every
-surviving product requires an app installation, account or calendar identity
-before at least one interaction that the governing policy requires to be tested
-hands-on. The no-account browser pass reached those gates without creating an
-account, submitting a form, installing software, connecting a calendar, or
-creating external state.
+Issue 7 cannot yet be completed because the approved lab identity suite has not
+been bootstrapped and two isolated physical iPhone environments and independently
+acting human participants have not been confirmed. Every surviving product
+requires an app installation, account, or calendar identity before at least one
+interaction that the governing policy requires to be tested hands-on. The
+earlier no-account browser pass reached those gates without creating an account,
+submitting a form, installing software, connecting a calendar, or creating
+external state.
 
 No candidate or composition can yet be marked passing or assessed conclusively.
 This is not a product-elimination decision: the scores below are constrained
@@ -24,6 +26,12 @@ Reclaim remains conditionally deferred. The public-source screen says to test it
 only if Howbout and the native calendar controls demonstrate that availability
 selection is the dominant friction. Those prerequisite trials are blocked, so
 the condition is not established.
+
+The owner subsequently approved [ADR-0002](../adr/0002-api-first-web-mvp.md).
+Do not start this physical-device trial or its 14-day clock during web MVP work
+unless the owner explicitly reactivates it. Preserve this evidence and its
+sanitized fixtures without converting the environment blocker into a product
+failure.
 
 ## Method and boundaries
 
@@ -120,21 +128,20 @@ assessed conclusively. These lower bounds must not be used to rank products;
 products with more documented features naturally receive a higher lower bound
 even though none completed the trial.
 
-## Blocked gates and exact human action
+## Authorized gates and remaining human action
 
-The actions below require explicit approval because they introduce app installs,
-test identities, external state, calendar data, physical devices, or outbound
-email. Use only the synthetic fixtures above and a dedicated empty calendar.
-Where invitation, onboarding, synchronization, privacy defaults, or partner
-burden are judged, two human participants must perform the flow, each controlling
-their own test identity and environment; two accounts or devices operated by one
-person are not sufficient evidence of the intended partner experience.
+The app installs, lab identities, synthetic external state, dedicated calendars,
+isolated physical devices, invitations, narrowly scoped OAuth, and fixture-only
+vendor email below are covered by the standing bounded authorization in
+[`lab-identities.md`](../conventions/lab-identities.md). Human-only ceremonies
+and subjective partner-experience judgments remain with the two independent
+participants. Two accounts or devices operated by one person are not sufficient
+evidence of the intended partner experience.
 
 ### Tavola
 
-1. Approve two human participants, installation on one eligible iPhone per
-   participant running iOS 17.6 or later, and one disposable Apple test identity
-   per participant for Sign in with Apple.
+1. Bootstrap the two human-controlled lab identity stacks and install on one
+   isolated eligible iPhone per participant running iOS 17.6 or later.
 2. Have each tester share `HP-R1` and `HP-E1` fixture classes from Maps (Apple
    and Google), Safari, Yelp, and Instagram; record whether the Tavola extension
    appears, exact URL retention, enrichment failure, duplicate behavior, and
@@ -142,25 +149,24 @@ person are not sufficient evidence of the intended partner experience.
 3. Send and accept one shared-list invitation; add/edit/delete the same record on
    both devices and measure convergence.
 4. Enter `HP-P1` to determine whether scores are actor-owned or overwrite one
-   shared rating. Request the machine-readable export by email only with approval.
+   shared rating. Request the fixture-only machine-readable export by email.
 
 ### Soonish
 
-1. Approve two human participants, each installing Soonish on an isolated mobile
-   test environment; no account is expected, but installation and external list
+1. Have both human participants install Soonish in their isolated mobile lab
+   environments; no account is expected, but installation and external list
    creation are stateful.
-2. Create one disposable list, join it with the eight-character code, and run
+2. Create one synthetic list, join it with the eight-character code, and run
    `HP-R1`, `HP-E1`, and `HP-P1` through URL retention, independent voting,
    changed votes, ties, ranking, sync, and conflict cases.
 3. Disconnect each environment in turn to test reads, edits, and reconciliation.
-   Approve an outbound export email before testing export contents.
+   Send the preauthorized fixture-only export email and test its contents.
 
 ### Mapstr
 
-1. Approve two human participants, app installation on one isolated environment
-   per participant, and one disposable account per participant using a
-   non-production identity method; do not use Facebook, existing Apple IDs, or
-   existing email.
+1. Install the app in both isolated environments and use one provider-specific
+   account from each approved lab identity stack; do not use Facebook or any
+   production identity.
 2. Before adding data, record fresh-account defaults for map, pin, tag, note,
    rating, photo, and custom-place visibility.
 3. Create one collaborative map and exercise Share Sheet capture, URL provenance,
@@ -170,65 +176,63 @@ person are not sufficient evidence of the intended partner experience.
 
 ### Notion
 
-1. Approve two human participants, one disposable Free-plan identity and one
-   isolated iOS environment per participant, and one owner workspace with one
-   guest invitation.
-2. Build a disposable database for `HP-R1`, `HP-E1`, and separately attributed
+1. Use one Free-plan identity and isolated iOS environment from each lab stack,
+   then create one synthetic owner workspace with one guest invitation.
+2. Build a synthetic database for `HP-R1`, `HP-E1`, and separately attributed
    `HP-P1`; verify whether either editor can overwrite the other's field.
 3. Attempt sharing fixture classes from Safari, Messages, Instagram, Yelp,
    OpenTable, Tock, Resy, and restaurant websites online and offline; inspect
    whether Notion appears or accepts input, then inspect source URL, title,
    destination choice, properties, and sync without assuming compatibility.
-4. Approve a dedicated synthetic Google or iCloud calendar connection, then test
+4. Connect only the dedicated synthetic Google or iCloud calendar, then test
    database-item-to-event create/edit/delete behavior. Export Markdown/CSV and
    compare the structured fields.
 
 ### Howbout
 
-1. Approve two human participants, one disposable Howbout account and one
-   isolated app installation per participant, then have them send and accept one
+1. Use one lab Howbout account and isolated app installation per participant,
+   then have them send and accept one
    invitation without syncing real contacts.
 2. Before adding data, record event-title/detail visibility defaults and restrict
    the fixture calendar to the minimum intended audience.
 3. Exercise `HP-R1`, `HP-E1`, one general poll, one time poll, and `HP-P1` on two
    devices; inspect source URL retention, actor attribution, metadata, sync, and
    offline behavior.
-4. Approve Full Calendar access only to a dedicated empty synthetic iCloud or
+4. Grant Full Calendar access only to a dedicated empty synthetic iCloud or
    Google calendar. Create `HP-C1`, edit time/location/notes, delete it from each
    side, and check for one-way updates or duplicates. Test calendar/data export.
 
 ### Apple / iCloud control
 
-1. Approve two human participants, one non-production Apple Account and one
-   isolated Apple test device per participant, and one empty shared iCloud
-   calendar; explicitly approve physical-device use if physical devices are
-   required.
+1. Use the two human-controlled lab Apple Accounts, one isolated Apple test
+   device per participant, and one empty shared iCloud calendar.
 2. Invite the second account with edit access. Create `HP-C1`, observe both
    devices, edit it from the invitee, delete it from the owner, and repeat with
    each device offline before reconnection.
-3. Separately approve a synthetic Shortcut/EventKit fixture if Share Sheet
-   handoff is in scope; verify user-confirmed create and the chosen permission
+3. Use a synthetic Shortcut/EventKit fixture if Share Sheet handoff is in scope;
+   verify user-confirmed create and the chosen permission
    level without exposing unrelated calendars.
 
 ### Google Calendar control
 
-1. Approve two human participants, one disposable Google test account and one
-   isolated iOS client per participant, and a dedicated empty secondary calendar.
+1. Use one lab Google Account and isolated iOS client per participant, plus a
+   dedicated empty secondary calendar.
    Grant the partner event-editing access and expose only synthetic free/busy
    data.
 2. On two isolated iOS clients, create `HP-C1`, edit it from the partner, delete
    it from the owner, and repeat offline before reconnection. Record ownership,
    attendee, notification, conflict, and duplicate behavior.
-3. If API behavior is in scope, separately approve a test Cloud project and the
-   narrowest synthetic OAuth scopes; do not reuse production credentials.
+3. If API behavior becomes necessary, use a separate test Cloud project and the
+   narrowest synthetic OAuth scopes; do not reuse production credentials. Cloud
+   project creation and terms acceptance remain human-only ceremonies.
 
 ### Reclaim conditional checkpoint
 
 Do not start a Reclaim trial yet. First complete the Howbout, Apple/iCloud, and
 Google controls and record that availability selection is the dominant remaining
 friction after capture, collaboration, preferences, and metadata work. Only then
-seek approval for one disposable Reclaim identity, a dedicated synthetic Google
-or Outlook calendar, OAuth, and a free Scheduling Link lifecycle test. If that
+use one lab Reclaim identity, a dedicated synthetic Google or Outlook calendar,
+OAuth, and a free Scheduling Link lifecycle test. If that
 condition is never met, close Reclaim as deferred without account creation.
 
 ## Residual risks
@@ -243,8 +247,8 @@ condition is never met, close Reclaim as deferred without account creation.
 - No two-person synchronization latency, conflict resolution, data deletion, or
   actual privacy default was observed in this pass.
 
-This blocked preflight does not count toward the 14-day trial. The clock starts
-once approvals, test identities and devices, and the ability to install the apps
-and connect a dedicated empty calendar are available. Installation, account
-setup, invitations, and the initial capture checks must still occur within trial
-days 1–3, as required by the governing policy.
+This preflight does not count toward the 14-day trial. The clock starts once the
+lab identities and isolated devices are ready, both participants can act, and the
+apps and dedicated empty calendars are available. Installation, account setup,
+invitations, and the initial capture checks must still occur within trial days
+1–3, as required by the governing policy.

@@ -1,0 +1,2 @@
+# Preserve pinned project-local skill packages byte-for-byte from upstream.
+.agents/skills/** -whitespace

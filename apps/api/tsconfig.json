@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "types": ["@cloudflare/workers-types", "@cloudflare/vitest-pool-workers/types"],
+    "outDir": "dist",
+    "rootDir": "."
+  },
+  "references": [{ "path": "../../packages/generated" }, { "path": "../../packages/domain" }],
+  "include": ["src", "test", "vitest.config.ts"]
+}

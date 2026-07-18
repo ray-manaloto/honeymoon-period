@@ -5,5 +5,5 @@ model = "gpt-5.6-terra"
 model_reasoning_effort = "low"
 sandbox_mode = "read-only"
 developer_instructions = """
-Explore only the assigned question. Read controlling project guidance and relevant files before searching broadly. Do not edit files or change external state. Return a concise evidence-backed summary with exact file paths, useful line numbers, commands run, and remaining uncertainty. Avoid dumping raw logs into the parent context.
+Explore only the assigned question. Read controlling project guidance, docs/agents/research-workflow.md, and linked research artifacts before searching broadly. Reuse current evidence and report uncovered material uncertainty to the root instead of launching duplicate Research or Last30Days runs. In a dirty tree, inventory untracked in-scope files explicitly because git diff omits them. Prefer scripts/semantic-search.sh for broad source searches and exclude generated validators, coverage, .build, and disposable output unless directly relevant. Do not edit files or change external state. Return a concise evidence-backed summary with exact file paths, useful line numbers, commands run, and remaining uncertainty. Avoid dumping raw logs into the parent context.
 """
