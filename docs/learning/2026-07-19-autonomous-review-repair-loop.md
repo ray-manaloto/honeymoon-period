@@ -33,6 +33,8 @@ protects integrity after root integration; collaboration-output provenance remai
 process check because cooperating local processes have no cryptographic identity boundary.
 Gate records also carry the exact reviewed Git HEAD as well as the controller revision;
 the latter intentionally filters state-only commits and cannot substitute for merge-head binding.
+The fault review also required mutation-lock initialization to publish the directory and
+owner atomically; an ownerless canonical mutex is never a valid live intermediate state.
 
 ## Correction
 

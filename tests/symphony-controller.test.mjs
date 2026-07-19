@@ -5,6 +5,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   renameSync,
   rmSync,
@@ -168,9 +169,16 @@ function evidenceRecords(root, completedAt) {
 }
 
 function runAsync(root, action, options = {}) {
+  const { testMutationInitPauseMs, ...commandOptions } = options;
   return new Promise((resolveResult) => {
-    const child = spawn("node", [controller, action, "--root", root, ...argsFor(options)], {
-      env: { ...process.env, SYMPHONY_CONTROLLER_TEST_MODE: "1" },
+    const child = spawn("node", [controller, action, "--root", root, ...argsFor(commandOptions)], {
+      env: {
+        ...process.env,
+        SYMPHONY_CONTROLLER_TEST_MODE: "1",
+        ...(testMutationInitPauseMs
+          ? { SYMPHONY_CONTROLLER_TEST_MUTATION_INIT_PAUSE_MS: String(testMutationInitPauseMs) }
+          : {}),
+      },
       stdio: ["ignore", "pipe", "pipe"],
     });
     let stderr = "";
@@ -193,6 +201,18 @@ async function waitForPath(path) {
     await new Promise((resolvePromise) => setTimeout(resolvePromise, 25));
   }
   assert.fail(`timed out waiting for ${path}`);
+}
+
+async function waitForMutationCandidate(root) {
+  const directory = join(root, ".codex/goals");
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const candidate = readdirSync(directory).find((name) =>
+      name.startsWith(".mutation.candidate-"),
+    );
+    if (candidate && existsSync(join(directory, candidate, "owner.json"))) return candidate;
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 25));
+  }
+  assert.fail("timed out waiting for prepared mutation candidate");
 }
 
 test("atomic lease contention admits exactly one concurrent writer", async () => {
@@ -518,6 +538,18 @@ test("startup recovers an ownerless crashed mutation lock by bounded age", () =>
   const result = run(root, "reconcile", { now: "2026-07-19T10:00:00.000Z" });
   assert.equal(result.state, "ready");
   assert.equal(existsSync(mutation), false);
+});
+
+test("mutation initialization atomically publishes an owned canonical lock", async () => {
+  const root = createFixture();
+  const initializing = runAsync(root, "reconcile", { testMutationInitPauseMs: 500 });
+  await waitForMutationCandidate(root);
+  assert.equal(existsSync(join(root, ".codex/goals/.mutation")), false);
+  const contender = run(root, "reconcile", { now: "2026-07-19T10:00:00.000Z" });
+  assert.equal(contender.state, "ready");
+  const initialized = await initializing;
+  assert.equal(initialized.status, 0, initialized.stderr);
+  assert.equal(initialized.result.state, "ready");
 });
 
 test("startup replays a checkpoint journal committed to active state", () => {

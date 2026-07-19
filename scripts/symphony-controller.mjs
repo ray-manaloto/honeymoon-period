@@ -289,16 +289,24 @@ function withMutationLock(root, callback) {
   if (!selfIdentity) fail("process-identity-unavailable");
   let token;
   const acquire = () => {
+    token = randomUUID();
+    const candidate = `${lock}.candidate-${token}`;
     try {
-      mkdirSync(lock, { mode: 0o700 });
-      token = randomUUID();
-      atomicJson(join(lock, "owner.json"), {
+      mkdirSync(candidate, { mode: 0o700 });
+      atomicJson(join(candidate, "owner.json"), {
         pid: process.pid,
         processIdentity: selfIdentity,
         token,
       });
+      if (process.env.SYMPHONY_CONTROLLER_TEST_MODE === "1") {
+        const pause = Number(process.env.SYMPHONY_CONTROLLER_TEST_MUTATION_INIT_PAUSE_MS ?? 0);
+        if (pause > 0) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, pause);
+      }
+      renameSync(candidate, lock);
+      fsyncParent(lock);
       return true;
     } catch {
+      rmSync(candidate, { recursive: true, force: true });
       try {
         const owner = JSON.parse(readFileSync(join(lock, "owner.json"), "utf8"));
         if (!owner.processIdentity || processIdentity(owner.pid) !== owner.processIdentity) {
