@@ -66,9 +66,7 @@ approved specification. Its settled semantics are:
   shared candidate status;
 - every accepted state-changing write becomes one immutable `PreferenceChanged` event
   while the last accepted event per actor owns the current projection;
-- the compatible legacy preference write follows the same atomic event/projection path;
-  an identical current-value retry is a successful no-op with no event, while the new
-  client-request-ID mutation supplies exact replay and conflict guarantees;
+- one canonical client-request-ID mutation supplies exact replay and conflict guarantees;
 - a server-assigned monotonic sequence, rather than timestamp alone, totally orders
   accepted events, and historical snapshots replay inclusively through a requested sequence;
 - exact idempotent replay creates no duplicate event, and differing-payload key reuse
@@ -78,10 +76,11 @@ approved specification. Its settled semantics are:
 - historical rank replays events with their applicable policy version; and
 - history is retained indefinitely by default through additive `/v1` evolution.
 
-Implementation is intentionally deferred to the ready-for-agent tracer bullets
-[#23](https://github.com/ray-manaloto/honeymoon-period/issues/23),
-[#24](https://github.com/ray-manaloto/honeymoon-period/issues/24), and
-[#25](https://github.com/ray-manaloto/honeymoon-period/issues/25).
+Immutable preference changes and participant-visible history are implemented by
+[#23](https://github.com/ray-manaloto/honeymoon-period/issues/23). Versioned policy
+replay and tombstone redaction remain intentionally deferred to the dependent
+[#24](https://github.com/ray-manaloto/honeymoon-period/issues/24) and
+[#25](https://github.com/ray-manaloto/honeymoon-period/issues/25) tracer bullets.
 
 ## Remaining semantics to refine
 

@@ -11,7 +11,8 @@ const expectedErrors = new Map([
   ["listHoneymoonPeriods", ["400", "401", "429", "500"]],
   ["getHoneymoonPeriod", ["400", "401", "404", "429", "500"]],
   ["updateHoneymoonPeriod", ["400", "401", "404", "429", "500"]],
-  ["putPreference", ["400", "401", "404", "429", "500"]],
+  ["createPreferenceChange", ["400", "401", "404", "409", "429", "500"]],
+  ["getHoneymoonPeriodHistory", ["400", "401", "404", "429", "500"]],
   ["createNote", ["400", "401", "404", "429", "500"]],
   ["updateNote", ["400", "401", "404", "429", "500"]],
 ]);

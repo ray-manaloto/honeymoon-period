@@ -28,7 +28,7 @@
 - **Special** — a time-constrained offer, menu, event, deadline, or reservation opportunity.
 - **Availability** — free time inferred or selected without exposing unrelated private calendar details.
 - **Plan** — a honeymoon-period assigned to a specific occurrence and optionally a calendar event.
-- **Baseline prototype** — the current shared Reminders, Beli handoff, and Save honeymoon-period Shortcut.
+- **Protected baseline** — the current shared Reminders, Beli handoff, and Save honeymoon-period Shortcut retained only until replacement acceptance.
 - **Lab identity suite** — two long-lived, non-production identity stacks, one independently owned by each human participant, with provider-specific accounts, empty synthetic calendars, and isolated authenticated test environments.
 - **Human-only ceremony** — an identity or security step that an agent must hand back to the account owner, including passwords, recovery, CAPTCHA, two-factor authentication, biometrics, terms acceptance, and system or OAuth consent.
 

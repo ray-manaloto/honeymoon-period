@@ -39,7 +39,7 @@ describe("honeymoon-period data provider", () => {
     expect(String(url)).toContain(
       "page=2&per_page=10&sort=title&order=asc&status=planned&q=bistro&kind=restaurant",
     );
-    expect(new Headers(init?.headers).get("authorization")).toBe("Bearer prototype-participant-b");
+    expect(new Headers(init?.headers).get("authorization")).toBe("Bearer local-participant-b");
 
     await provider.getList("honeymoon-periods", {
       sort: { field: "updated_at", order: "DESC" },
@@ -55,7 +55,7 @@ describe("honeymoon-period data provider", () => {
   });
 
   it("maps capture, detail update, preference, and note mutations through provider methods", async () => {
-    const detail = { item, captures: [], preferences: [], notes: [] };
+    const detail = { item, captures: [], preferences: [], notes: [], history: { items: [] } };
     const fetch = vi
       .fn<typeof globalThis.fetch>()
       .mockResolvedValueOnce(
@@ -69,17 +69,14 @@ describe("honeymoon-period data provider", () => {
         ),
       )
       .mockResolvedValueOnce(new Response(JSON.stringify(detail), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ items: [] }), { status: 200 }))
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
-            actor_id: "actor-a",
-            honeymoon_period_id: item.id,
-            display_name: "Participant A",
-            vote: "interested",
-            score: 5,
-            updated_at: item.updated_at,
+            status: "changed",
+            event: null,
           }),
-          { status: 200 },
+          { status: 201 },
         ),
       )
       .mockResolvedValueOnce(
@@ -127,8 +124,14 @@ describe("honeymoon-period data provider", () => {
       ).data.title,
     ).toBe(item.title);
     expect(
-      (await provider.setPreference(item.id, { vote: "interested", score: 5 })).data.score,
-    ).toBe(5);
+      (
+        await provider.createPreferenceChange(item.id, {
+          vote: "interested",
+          score: 5,
+          client_request_id: "preference-1",
+        })
+      ).data.status,
+    ).toBe("changed");
     expect((await provider.addNote(item.id, { body: "Try the patio" })).data.body).toBe(
       "Try the patio",
     );
@@ -138,22 +141,28 @@ describe("honeymoon-period data provider", () => {
     expect(fetch.mock.calls.map(([, init]) => init?.method)).toEqual([
       "POST",
       "PATCH",
-      "PUT",
+      undefined,
+      "POST",
       "POST",
       "PATCH",
     ]);
   });
 
   it("maps detail reads and explicitly rejects unsupported collection mutations", async () => {
-    const detail = { item, captures: [], preferences: [], notes: [] };
-    const fetch = vi
-      .fn<typeof globalThis.fetch>()
-      .mockImplementation(async () => new Response(JSON.stringify(detail), { status: 200 }));
+    const apiDetail = { item, captures: [], preferences: [], notes: [] };
+    const history = { items: [] };
+    const fetch = vi.fn<typeof globalThis.fetch>().mockImplementation(
+      async (input) =>
+        new Response(JSON.stringify(String(input).endsWith("/history") ? history : apiDetail), {
+          status: 200,
+        }),
+    );
     const provider = createHoneymoonDataProvider({ baseUrl: "/v1", fetch });
 
-    expect((await provider.getOne("honeymoon-periods", { id: item.id })).data.detail).toEqual(
-      detail,
-    );
+    expect((await provider.getOne("honeymoon-periods", { id: item.id })).data.detail).toEqual({
+      ...apiDetail,
+      history,
+    });
     expect(
       (
         await provider.getMany("honeymoon-periods", {
@@ -182,13 +191,14 @@ describe("honeymoon-period data provider", () => {
   });
 
   it("preserves the stable API error for authorization and retry UI", async () => {
-    const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          error: { code: "unauthorized", message: "valid bearer token required" },
-        }),
-        { status: 401 },
-      ),
+    const fetch = vi.fn<typeof globalThis.fetch>().mockImplementation(
+      async () =>
+        new Response(
+          JSON.stringify({
+            error: { code: "unauthorized", message: "valid bearer token required" },
+          }),
+          { status: 401 },
+        ),
     );
     const provider = createHoneymoonDataProvider({ baseUrl: "/v1", fetch });
     await expect(provider.getOne("honeymoon-periods", { id: item.id })).rejects.toMatchObject({

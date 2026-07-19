@@ -77,7 +77,7 @@ Testing follows red-green-refactor at each vertical slice.
 
 - Validate every request and response against OpenAPI, including a stable error envelope.
 - Run migrations from zero against disposable local D1 and verify foreign keys, uniqueness, actor isolation, pagination, sorting, and deterministic seed/reset behavior.
-- Retain the existing Shortcut-shaped smoke flow as a compatibility test.
+- Retain a read-only smoke test for the protected Shortcut contract boundary until the web MVP replacement is explicitly accepted.
 
 ### Playwright E2E tests
 
@@ -96,8 +96,8 @@ Tests use role/label locators, deterministic synthetic data, isolated workers, n
 
 ## Tracer-bullet sequence
 
-1. **Workspace and gates:** promote the Worker prototype into the production workspace; add TypeScript strictness, Biome, aggregate scripts, OpenAPI skeleton, deterministic generation, and CI-equivalent local checks.
-2. **Capture contract:** move capture/idempotency/auth/normalization behind generated types and preserve the Shortcut compatibility smoke test.
+1. **Workspace and gates:** maintain the production Worker workspace with TypeScript strictness, Biome, aggregate scripts, canonical OpenAPI, deterministic generation, and CI-equivalent local checks.
+2. **Capture contract:** keep capture, idempotency, authorization, and normalization behind generated types and preserve read-only verification of the protected Shortcut boundary.
 3. **Query and ranking:** implement list/detail/filter/sort contracts and fully tested explainable ranking.
 4. **Web shell:** generate the React-admin provider/resources and render seeded list/detail loading, empty, and error states.
 5. **Preferences and metadata:** complete participant preference, notes, metadata, mutation, and authorization workflows from UI through D1.
@@ -131,7 +131,7 @@ Each tracer bullet must leave a runnable end-to-end behavior, focused tests, and
 The web MVP is complete only when:
 
 - every in-scope API and screen behavior works against a newly migrated local D1 database;
-- the Shortcut compatibility flow and all unit, component, contract, integration, and Playwright tests pass;
+- the protected Shortcut boundary remains unchanged and all unit, component, contract, integration, and Playwright tests pass;
 - coverage thresholds, strict type checking, Biome, deterministic generation, and the production build pass from a clean checkout;
 - responsive and keyboard workflows are verified, material Browser/CDP findings have regression coverage, and no private data or secrets appear in artifacts;
 - generated code is reproducible and no public contract leaks React-admin or Cloudflare-specific conventions;
@@ -163,12 +163,11 @@ The canonical planning board is the
 
 Preference/history semantics are approved in
 [#19](https://github.com/ray-manaloto/honeymoon-period/issues/19), which is
-closed as the decision record. Product implementation is not part of the current
-documentation/orchestration goal. Work the ready-for-agent tracer bullets in order:
+closed as the decision record. The immutable preference-change and shared-history
+slice is implemented by #23. Continue the remaining dependent tracer bullets in order:
 
-1. [#23 Record and show immutable preference changes](https://github.com/ray-manaloto/honeymoon-period/issues/23);
-2. [#24 Apply and replay the versioned preference policy](https://github.com/ray-manaloto/honeymoon-period/issues/24), blocked by #23; and
-3. [#25 Redact preference history to shared tombstones](https://github.com/ray-manaloto/honeymoon-period/issues/25), blocked by #24.
+1. [#24 Apply and replay the versioned preference policy](https://github.com/ray-manaloto/honeymoon-period/issues/24), after #23; and
+2. [#25 Redact preference history to shared tombstones](https://github.com/ray-manaloto/honeymoon-period/issues/25), blocked by #24.
 
 The remaining intentionally deferred questions are:
 

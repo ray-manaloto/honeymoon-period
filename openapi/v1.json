@@ -124,21 +124,53 @@
         }
       }
     },
-    "/honeymoon-periods/{id}/preference": {
+    "/honeymoon-periods/{id}/preference-changes": {
       "parameters": [{ "$ref": "#/components/parameters/Id" }],
-      "put": {
-        "operationId": "putPreference",
+      "post": {
+        "operationId": "createPreferenceChange",
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/PreferenceInput" } }
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PreferenceChangeInput" }
+            }
           }
         },
         "responses": {
-          "200": {
-            "description": "Owned preference",
+          "201": {
+            "description": "Preference change accepted",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/Preference" } }
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PreferenceChangeResult" }
+              }
+            }
+          },
+          "200": {
+            "description": "Original preference change result replayed",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PreferenceChangeResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Error" },
+          "401": { "$ref": "#/components/responses/Error" },
+          "404": { "$ref": "#/components/responses/Error" },
+          "409": { "$ref": "#/components/responses/Error" },
+          "429": { "$ref": "#/components/responses/Error" },
+          "500": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/honeymoon-periods/{id}/history": {
+      "parameters": [{ "$ref": "#/components/parameters/Id" }],
+      "get": {
+        "operationId": "getHoneymoonPeriodHistory",
+        "responses": {
+          "200": {
+            "description": "Shared chronological history",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/HistoryPage" } }
             }
           },
           "400": { "$ref": "#/components/responses/Error" },
@@ -416,13 +448,94 @@
           "rank_boost": { "type": "number", "minimum": -100, "maximum": 100 }
         }
       },
-      "PreferenceInput": {
+      "PreferenceChangeInput": {
+        "type": "object",
+        "required": ["vote", "score", "client_request_id"],
+        "additionalProperties": false,
+        "properties": {
+          "vote": { "$ref": "#/components/schemas/Vote" },
+          "score": { "type": ["number", "null"], "minimum": 0, "maximum": 5 },
+          "client_request_id": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "reason": { "type": "string", "minLength": 1, "maxLength": 1000, "pattern": ".*\\S.*" }
+        }
+      },
+      "PreferenceChangedData": {
         "type": "object",
         "required": ["vote", "score"],
         "additionalProperties": false,
         "properties": {
-          "vote": { "$ref": "#/components/schemas/Vote" },
-          "score": { "type": ["number", "null"], "minimum": 0, "maximum": 5 }
+          "vote": {
+            "type": "object",
+            "required": ["before", "after"],
+            "additionalProperties": false,
+            "properties": {
+              "before": { "$ref": "#/components/schemas/Vote" },
+              "after": { "$ref": "#/components/schemas/Vote" }
+            }
+          },
+          "score": {
+            "type": "object",
+            "required": ["before", "after"],
+            "additionalProperties": false,
+            "properties": {
+              "before": { "type": ["number", "null"], "minimum": 0, "maximum": 5 },
+              "after": { "type": ["number", "null"], "minimum": 0, "maximum": 5 }
+            }
+          }
+        }
+      },
+      "PreferenceChangedPayload": {
+        "type": "object",
+        "required": ["reason", "changes"],
+        "additionalProperties": false,
+        "properties": {
+          "reason": { "type": ["string", "null"] },
+          "changes": { "$ref": "#/components/schemas/PreferenceChangedData" }
+        }
+      },
+      "HistoryEvent": {
+        "type": "object",
+        "required": [
+          "sequence",
+          "id",
+          "type",
+          "honeymoon_period_id",
+          "actor_id",
+          "display_name",
+          "accepted_at",
+          "payload"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "sequence": { "type": "integer", "minimum": 1 },
+          "id": { "type": "string", "format": "uuid" },
+          "type": { "type": "string", "enum": ["PreferenceChanged"] },
+          "honeymoon_period_id": { "type": "string", "format": "uuid" },
+          "actor_id": { "type": "string" },
+          "display_name": { "type": "string" },
+          "accepted_at": { "type": "string", "format": "date-time" },
+          "payload": {
+            "oneOf": [{ "$ref": "#/components/schemas/PreferenceChangedPayload" }]
+          }
+        }
+      },
+      "HistoryPage": {
+        "type": "object",
+        "required": ["items"],
+        "additionalProperties": false,
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/HistoryEvent" } }
+        }
+      },
+      "PreferenceChangeResult": {
+        "type": "object",
+        "required": ["status", "event"],
+        "additionalProperties": false,
+        "properties": {
+          "status": { "type": "string", "enum": ["changed", "unchanged"] },
+          "event": {
+            "oneOf": [{ "$ref": "#/components/schemas/HistoryEvent" }, { "type": "null" }]
+          }
         }
       },
       "NoteInput": {

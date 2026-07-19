@@ -70,7 +70,9 @@ Suggested first endpoints:
 - `POST /v1/captures` with `{ "source_url": "…", "client_request_id": "…" }`
 - `GET /v1/honeymoon-periods?status=active&sort=rank`
 - `GET /v1/honeymoon-periods/{id}`
-- `PUT /v1/honeymoon-periods/{id}/preference` for the authenticated actor only
+- `POST /v1/honeymoon-periods/{id}/preference-changes` with a client request ID
+  for the authenticated actor only (this supersedes the exploratory non-idempotent
+  preference route; no compatibility endpoint is retained)
 - `POST /v1/honeymoon-periods/{id}/notes`
 - `PATCH /v1/honeymoon-periods/{id}` for allowed shared metadata
 

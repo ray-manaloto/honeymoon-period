@@ -51,6 +51,16 @@ authority.
 
 ## Source and artifact policy
 
+- Treat this as a new project: keep one canonical implementation path. Do not add
+  compatibility shims, deprecated aliases, duplicate transports, or transitional
+  code unless an explicitly approved external compatibility contract requires it.
+- A product change is incomplete while source-controlled tests, generators,
+  documentation, skills, agent guidance, examples, or prototypes still prescribe
+  the superseded path. Update or clearly mark historical research in the same slice.
+- "Zero technical debt" means no known avoidable debt is accepted at handoff. Fix it,
+  enforce it with an automated guard where practical, or stop and obtain an explicit
+  product decision; do not hide debt in a follow-up note.
+
 - `shortcut/Save honeymoon-period.cherri` is the canonical Reminders baseline.
 - `shortcut/Save Date Idea API.cherri` is the canonical API-backed candidate source;
   it does not replace the Reminders baseline until explicitly accepted.

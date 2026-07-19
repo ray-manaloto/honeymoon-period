@@ -2,26 +2,31 @@ import {
   type ApiClientOptions,
   createApiClient,
   createReactAdminTransport,
+  type HistoryPage,
   type HoneymoonPeriod,
   type HoneymoonPeriodDetail,
   type Note,
   type NoteInput,
-  type Preference,
-  type PreferenceInput,
+  type PreferenceChangeInput,
+  type PreferenceChangeResult,
 } from "@honeymoon-period/generated";
 import type { DataProvider, Identifier } from "react-admin";
 
 export const ACTOR_STORAGE_KEY = "honeymoon-period.fixture-actor-token";
 export const ACTOR_CHANGED_EVENT = "honeymoon-period:actor-changed";
 export const ACTORS = [
-  { id: "actor-a", name: "Participant A", token: "prototype-participant-a" },
-  { id: "actor-b", name: "Participant B", token: "prototype-participant-b" },
+  { id: "actor-a", name: "Participant A", token: "local-participant-a" },
+  { id: "actor-b", name: "Participant B", token: "local-participant-b" },
 ] as const;
 
-export type HoneymoonRecord = HoneymoonPeriod & { detail?: HoneymoonPeriodDetail };
+export type HoneymoonPeriodView = HoneymoonPeriodDetail & { history: HistoryPage };
+export type HoneymoonRecord = HoneymoonPeriod & { detail?: HoneymoonPeriodView };
 
 export interface HoneymoonDataProvider extends DataProvider {
-  setPreference: (id: Identifier, input: PreferenceInput) => Promise<{ data: Preference }>;
+  createPreferenceChange: (
+    id: Identifier,
+    input: PreferenceChangeInput,
+  ) => Promise<{ data: PreferenceChangeResult }>;
   addNote: (id: Identifier, input: NoteInput) => Promise<{ data: Note }>;
   updateNote: (id: Identifier, noteId: Identifier, input: NoteInput) => Promise<{ data: Note }>;
 }

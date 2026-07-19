@@ -1,7 +1,7 @@
 import { type APIRequestContext, expect, type Page, test } from "@playwright/test";
 
 const apiBase = "http://127.0.0.1:8788/v1";
-const actorA = { authorization: "Bearer prototype-participant-a" };
+const actorA = { authorization: "Bearer local-participant-a" };
 
 async function capture(request: APIRequestContext, host: string, requestId: string) {
   const response = await request.post(`${apiBase}/captures`, {
@@ -39,7 +39,7 @@ test("2. replays one client request without duplicating its honeymoon-period", a
       fetch("/v1/captures", {
         method: "POST",
         headers: {
-          authorization: "Bearer prototype-participant-a",
+          authorization: "Bearer local-participant-a",
           "content-type": "application/json",
         },
         body: JSON.stringify(input),
@@ -63,14 +63,19 @@ test("3. records each participant preference without overwriting ownership", asy
   await openDetail(page, item.id);
   await page.getByLabel("Vote").selectOption("interested");
   await page.getByLabel("Score (0–5, optional)").fill("5");
+  await page.getByLabel("Reason (optional)").fill("Great first choice");
   await page.getByRole("button", { name: "Save preference" }).click();
   await expect(page.getByText("interested · 5/5", { exact: false })).toBeVisible();
-  await page.getByLabel("Acting as participant").selectOption("prototype-participant-b");
+  const history = page.getByRole("list", { name: "Chronological preference history" });
+  await expect(history).toContainText("Great first choice");
+  await expect(history.getByRole("listitem")).toHaveCount(1);
+  await page.getByLabel("Acting as participant").selectOption("local-participant-b");
   await page.getByLabel("Vote").selectOption("maybe");
   await page.getByLabel("Score (0–5, optional)").fill("3");
   await page.getByRole("button", { name: "Save preference" }).click();
   await expect(page.getByText("interested · 5/5", { exact: false })).toBeVisible();
   await expect(page.getByText("maybe · 3/5", { exact: false })).toBeVisible();
+  await expect(history.getByRole("listitem")).toHaveCount(2);
 });
 
 test("4. edits notes and structured metadata", async ({ page, request }) => {
@@ -123,7 +128,7 @@ test("6. renders empty, invalid-link, unauthorized, and network-retry states", a
   await page.goto("/#/honeymoon-periods");
   await expect(page.getByRole("alert")).toContainText("not authorized");
   await page.evaluate(() =>
-    localStorage.setItem("honeymoon-period.fixture-actor-token", "prototype-participant-a"),
+    localStorage.setItem("honeymoon-period.fixture-actor-token", "local-participant-a"),
   );
   await page.route("**/v1/honeymoon-periods*", (route) => route.abort("internetdisconnected"));
   await page.reload();
@@ -160,9 +165,17 @@ test("7. supports the primary phone viewport and keyboard-only capture", async (
   await expect(page.getByRole("heading", { name: "Fixture Bistro" })).toBeVisible();
   const preferenceForm = page.getByRole("form", { name: "Your preference" });
   await expect(preferenceForm).toBeVisible();
-  await preferenceForm.getByLabel("Vote").selectOption("interested");
-  await preferenceForm.getByLabel("Score (0–5, optional)").fill("4");
-  await preferenceForm.getByRole("button", { name: "Save preference" }).click();
+  const vote = preferenceForm.getByLabel("Vote");
+  await vote.focus();
+  await page.keyboard.type("Interested");
+  await expect(vote).toHaveValue("interested");
+  await page.keyboard.press("Tab");
+  await page.keyboard.type("4");
+  await page.keyboard.press("Tab");
+  await page.keyboard.type("Keyboard submission");
+  await page.keyboard.press("Tab");
+  await expect(preferenceForm.getByRole("button", { name: "Save preference" })).toBeFocused();
+  await page.keyboard.press("Enter");
   await expect(page.getByText("interested · 4/5", { exact: false })).toBeVisible();
   await expect
     .poll(() =>

@@ -27,11 +27,11 @@ const compiledValidators = Object.fromEntries(
 const validatorNames = Object.keys(compiledValidators);
 const validators = `${header}// @ts-nocheck -- Ajv standalone output is generated JavaScript.\n${standaloneCode(ajv, compiledValidators)}\nexport const contractValidators = { ${validatorNames.join(", ")} };\n`;
 const metadata = `${header}export const uiMetadata = ${JSON.stringify(ui, null, 2)} as const;\n`;
-const fixtures = `${header}import type { CaptureInput, ErrorEnvelope, HoneymoonPeriodUpdate, NoteInput, PreferenceInput } from "./client";
+const fixtures = `${header}import type { CaptureInput, ErrorEnvelope, HoneymoonPeriodUpdate, NoteInput, PreferenceChangeInput } from "./client";
 export const contractFixtures = {
   CaptureInput: { source_url: "https://example.com/fixture", client_request_id: "fixture-request" } satisfies CaptureInput,
   HoneymoonPeriodUpdate: { title: "Fixture update", metadata: { cuisine: "Fixture cuisine" } } satisfies HoneymoonPeriodUpdate,
-  PreferenceInput: { vote: "interested", score: 4 } satisfies PreferenceInput,
+  PreferenceChangeInput: { vote: "interested", score: 4, client_request_id: "preference-fixture", reason: "Fixture reason" } satisfies PreferenceChangeInput,
   NoteInput: { body: "Fixture note" } satisfies NoteInput,
   ErrorEnvelope: { error: { code: "fixture_error", message: "Fixture error" } } satisfies ErrorEnvelope,
 } as const;
@@ -60,11 +60,11 @@ export function buildReactAdminListQuery(params: ReactAdminListParams): string {
 export function createReactAdminTransport(client: ApiClient) {
   return {
     async getList(_resource: string, params: ReactAdminListParams) { const page = await client.list(buildReactAdminListQuery(params)); return { data: page.items, total: page.total }; },
-    async getOne(_resource: string, params: { id: string | number }) { const detail = await client.detail(String(params.id)); return { data: { ...detail.item, detail } }; },
+    async getOne(_resource: string, params: { id: string | number }) { const id = String(params.id); const [detail, history] = await Promise.all([client.detail(id), client.history(id)]); return { data: { ...detail.item, detail: { ...detail, history } } }; },
     async getMany(_resource: string, params: { ids: Array<string | number> }) { return { data: await Promise.all(params.ids.map(async (id) => (await client.detail(String(id))).item)) }; },
     async create(_resource: string, params: { data: { source_url: string; client_request_id: string } }) { const result = await client.createCapture(params.data); return { data: result.honeymoon_period }; },
-    async update(_resource: string, params: { id: string | number; data: HoneymoonPeriodUpdate }) { const detail = await client.update(String(params.id), params.data); return { data: { ...detail.item, detail } }; },
-    async setPreference(id: string | number, input: Parameters<ApiClient["preference"]>[1]) { return { data: await client.preference(String(id), input) }; },
+    async update(_resource: string, params: { id: string | number; data: HoneymoonPeriodUpdate }) { const id = String(params.id); const [detail, history] = await Promise.all([client.update(id, params.data), client.history(id)]); return { data: { ...detail.item, detail: { ...detail, history } } }; },
+    async createPreferenceChange(id: string | number, input: Parameters<ApiClient["preferenceChange"]>[1]) { return { data: await client.preferenceChange(String(id), input) }; },
     async addNote(id: string | number, input: Parameters<ApiClient["note"]>[1]) { return { data: await client.note(String(id), input) }; },
     async updateNote(id: string | number, noteId: string | number, input: Parameters<ApiClient["updateNote"]>[2]) { return { data: await client.updateNote(String(id), String(noteId), input) }; },
   };
@@ -79,8 +79,11 @@ export type CaptureInput = components["schemas"]["CaptureInput"];
 export type CaptureResult = components["schemas"]["CaptureResult"];
 export type Capture = components["schemas"]["Capture"];
 export type HoneymoonPeriodUpdate = components["schemas"]["HoneymoonPeriodUpdate"];
-export type PreferenceInput = components["schemas"]["PreferenceInput"];
 export type Preference = components["schemas"]["Preference"];
+export type PreferenceChangeInput = components["schemas"]["PreferenceChangeInput"];
+export type PreferenceChangeResult = components["schemas"]["PreferenceChangeResult"];
+export type HistoryEvent = components["schemas"]["HistoryEvent"];
+export type HistoryPage = components["schemas"]["HistoryPage"];
 export type NoteInput = components["schemas"]["NoteInput"];
 export type Note = components["schemas"]["Note"];
 export type ErrorEnvelope = components["schemas"]["ErrorEnvelope"];
@@ -108,7 +111,8 @@ export function createApiClient(options: ApiClientOptions) {
     list: (query = "") => request<HoneymoonPeriodPage>(\`/honeymoon-periods\${query ? \`?\${query}\` : ""}\`),
     detail: (id: string) => request<HoneymoonPeriodDetail>(\`/honeymoon-periods/\${encodeURIComponent(id)}\`),
     update: (id: string, input: HoneymoonPeriodUpdate) => request<HoneymoonPeriodDetail>(\`/honeymoon-periods/\${encodeURIComponent(id)}\`, { method: "PATCH", body: JSON.stringify(input) }),
-    preference: (id: string, input: PreferenceInput) => request<Preference>(\`/honeymoon-periods/\${encodeURIComponent(id)}/preference\`, { method: "PUT", body: JSON.stringify(input) }),
+    preferenceChange: (id: string, input: PreferenceChangeInput) => request<PreferenceChangeResult>(\`/honeymoon-periods/\${encodeURIComponent(id)}/preference-changes\`, { method: "POST", body: JSON.stringify(input) }),
+    history: (id: string) => request<HistoryPage>(\`/honeymoon-periods/\${encodeURIComponent(id)}/history\`),
     note: (id: string, input: NoteInput) => request<Note>(\`/honeymoon-periods/\${encodeURIComponent(id)}/notes\`, { method: "POST", body: JSON.stringify(input) }),
     updateNote: (id: string, noteId: string, input: NoteInput) => request<Note>(\`/honeymoon-periods/\${encodeURIComponent(id)}/notes/\${encodeURIComponent(noteId)}\`, { method: "PATCH", body: JSON.stringify(input) }),
   };

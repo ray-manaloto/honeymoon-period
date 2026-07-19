@@ -50,6 +50,24 @@ export interface paths {
         patch: operations["updateHoneymoonPeriod"];
         trace?: never;
     };
+    "/honeymoon-periods/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get: operations["getHoneymoonPeriodHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/honeymoon-periods/{id}/notes": {
         parameters: {
             query?: never;
@@ -87,7 +105,7 @@ export interface paths {
         patch: operations["updateNote"];
         trace?: never;
     };
-    "/honeymoon-periods/{id}/preference": {
+    "/honeymoon-periods/{id}/preference-changes": {
         parameters: {
             query?: never;
             header?: never;
@@ -97,8 +115,8 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put: operations["putPreference"];
-        post?: never;
+        put?: never;
+        post: operations["createPreferenceChange"];
         delete?: never;
         options?: never;
         head?: never;
@@ -141,6 +159,23 @@ export interface components {
                 };
                 message: string;
             };
+        };
+        HistoryEvent: {
+            /** Format: date-time */
+            accepted_at: string;
+            actor_id: string;
+            display_name: string;
+            /** Format: uuid */
+            honeymoon_period_id: string;
+            /** Format: uuid */
+            id: string;
+            payload: components["schemas"]["PreferenceChangedPayload"];
+            sequence: number;
+            /** @enum {string} */
+            type: "PreferenceChanged";
+        };
+        HistoryPage: {
+            items: components["schemas"]["HistoryEvent"][];
         };
         HoneymoonPeriod: {
             /** Format: date-time */
@@ -213,9 +248,30 @@ export interface components {
             updated_at: string;
             vote: components["schemas"]["Vote"];
         };
-        PreferenceInput: {
+        PreferenceChangedData: {
+            score: {
+                after: number | null;
+                before: number | null;
+            };
+            vote: {
+                after: components["schemas"]["Vote"];
+                before: components["schemas"]["Vote"];
+            };
+        };
+        PreferenceChangedPayload: {
+            changes: components["schemas"]["PreferenceChangedData"];
+            reason: string | null;
+        };
+        PreferenceChangeInput: {
+            client_request_id: string;
+            reason?: string;
             score: number | null;
             vote: components["schemas"]["Vote"];
+        };
+        PreferenceChangeResult: {
+            event: components["schemas"]["HistoryEvent"] | null;
+            /** @enum {string} */
+            status: "changed" | "unchanged";
         };
         Rank: {
             boost: number;
@@ -375,6 +431,33 @@ export interface operations {
             500: components["responses"]["Error"];
         };
     };
+    getHoneymoonPeriodHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Shared chronological history */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoryPage"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            429: components["responses"]["Error"];
+            500: components["responses"]["Error"];
+        };
+    };
     createNote: {
         parameters: {
             query?: never;
@@ -438,7 +521,7 @@ export interface operations {
             500: components["responses"]["Error"];
         };
     };
-    putPreference: {
+    createPreferenceChange: {
         parameters: {
             query?: never;
             header?: never;
@@ -449,22 +532,32 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PreferenceInput"];
+                "application/json": components["schemas"]["PreferenceChangeInput"];
             };
         };
         responses: {
-            /** @description Owned preference */
+            /** @description Original preference change result replayed */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Preference"];
+                    "application/json": components["schemas"]["PreferenceChangeResult"];
+                };
+            };
+            /** @description Preference change accepted */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreferenceChangeResult"];
                 };
             };
             400: components["responses"]["Error"];
             401: components["responses"]["Error"];
             404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
             429: components["responses"]["Error"];
             500: components["responses"]["Error"];
         };

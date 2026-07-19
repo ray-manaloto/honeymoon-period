@@ -4,11 +4,11 @@ import worker from "../src/worker";
 
 const base = "http://example.test";
 const headersA = {
-  authorization: "Bearer prototype-participant-a",
+  authorization: "Bearer local-participant-a",
   "content-type": "application/json",
 };
 const headersB = {
-  authorization: "Bearer prototype-participant-b",
+  authorization: "Bearer local-participant-b",
   "content-type": "application/json",
 };
 
@@ -23,6 +23,8 @@ beforeEach(async () => {
   await env.DB.batch([
     env.DB.prepare("DELETE FROM rate_limits"),
     env.DB.prepare("DELETE FROM notes"),
+    env.DB.prepare("DELETE FROM preference_events"),
+    env.DB.prepare("DELETE FROM preference_change_requests"),
     env.DB.prepare("DELETE FROM preferences"),
     env.DB.prepare("DELETE FROM captures"),
     env.DB.prepare("DELETE FROM honeymoon_periods"),
@@ -32,12 +34,12 @@ beforeEach(async () => {
     env.DB.prepare("INSERT INTO actors (id, display_name, token_digest) VALUES (?, ?, ?)").bind(
       "actor-a",
       "Participant A",
-      "26d76b2b0027aca73507f6904bbd1e1736016612a3cba49ef7b36edbfa75e448",
+      "3c22d41a0f3a0de6ce4b4a41351bdcf7dedba531b80f0aa994c6a224c2a2d0c9",
     ),
     env.DB.prepare("INSERT INTO actors (id, display_name, token_digest) VALUES (?, ?, ?)").bind(
       "actor-b",
       "Participant B",
-      "0783c205225b2e9b8be6bbded0dcbd3a83ff60aa0e52a680386765d6a4a474b1",
+      "56b7725c3accbd63b596380e3e46d0ec345b1b5d3cdfb2e8294db1e4c6a22cd1",
     ),
   ]);
 });
@@ -292,15 +294,15 @@ describe("query, preference, notes, and metadata contract", () => {
 
   it("preserves participant-owned preferences and exposes deterministic rank components", async () => {
     const id = await capturedId();
-    await api(`/v1/honeymoon-periods/${id}/preference`, {
-      method: "PUT",
+    await api(`/v1/honeymoon-periods/${id}/preference-changes`, {
+      method: "POST",
       headers: headersA,
-      body: JSON.stringify({ vote: "interested", score: 5 }),
+      body: JSON.stringify({ vote: "interested", score: 5, client_request_id: "rank-a" }),
     });
-    await api(`/v1/honeymoon-periods/${id}/preference`, {
-      method: "PUT",
+    await api(`/v1/honeymoon-periods/${id}/preference-changes`, {
+      method: "POST",
       headers: headersB,
-      body: JSON.stringify({ vote: "maybe", score: 3 }),
+      body: JSON.stringify({ vote: "maybe", score: 3, client_request_id: "rank-b" }),
     });
     const detail = await (await api(`/v1/honeymoon-periods/${id}`, { headers: headersA })).json<{
       item: { rank: unknown };
@@ -311,10 +313,10 @@ describe("query, preference, notes, and metadata contract", () => {
       expect.objectContaining({ actor_id: "actor-b", vote: "maybe" }),
     ]);
     expect(detail.item.rank).toEqual({ score: 4, votes: 3, boost: 0, total: 7 });
-    await api(`/v1/honeymoon-periods/${id}/preference`, {
-      method: "PUT",
+    await api(`/v1/honeymoon-periods/${id}/preference-changes`, {
+      method: "POST",
       headers: headersB,
-      body: JSON.stringify({ vote: null, score: null }),
+      body: JSON.stringify({ vote: null, score: null, client_request_id: "rank-b-clear" }),
     });
     expect(
       (
@@ -325,17 +327,248 @@ describe("query, preference, notes, and metadata contract", () => {
     ).toBe(5);
   });
 
+  it("records immutable field-level preference history and replays identical requests", async () => {
+    const id = await capturedId();
+    const changed = await api(`/v1/honeymoon-periods/${id}/preference-changes`, {
+      method: "POST",
+      headers: headersA,
+      body: JSON.stringify({
+        vote: "interested",
+        score: 4,
+        client_request_id: "history-replay",
+      }),
+    });
+    expect(changed.status).toBe(201);
+    const replay = await api(`/v1/honeymoon-periods/${id}/preference-changes`, {
+      method: "POST",
+      headers: headersA,
+      body: JSON.stringify({
+        vote: "interested",
+        score: 4,
+        client_request_id: "history-replay",
+      }),
+    });
+    expect(replay.status).toBe(200);
+
+    const history = await (
+      await api(`/v1/honeymoon-periods/${id}/history`, { headers: headersB })
+    ).json<{ items: Array<Record<string, unknown>> }>();
+    expect(history.items).toEqual([
+      expect.objectContaining({
+        sequence: expect.any(Number),
+        type: "PreferenceChanged",
+        honeymoon_period_id: id,
+        actor_id: "actor-a",
+        display_name: "Participant A",
+        payload: {
+          reason: null,
+          changes: {
+            vote: { before: null, after: "interested" },
+            score: { before: null, after: 4 },
+          },
+        },
+      }),
+    ]);
+    const detail = await (await api(`/v1/honeymoon-periods/${id}`, { headers: headersA })).json<{
+      preferences: Array<{ actor_id: string; vote: string }>;
+    }>();
+    expect(detail.preferences).toEqual([
+      expect.objectContaining({ actor_id: "actor-a", vote: "interested" }),
+    ]);
+  });
+
+  it("replays exact preference changes and rejects conflicting key reuse without changing state", async () => {
+    const id = await capturedId();
+    const request = {
+      vote: "maybe",
+      score: 3,
+      reason: "Good rainy-day option",
+      client_request_id: "preference-a-1",
+    };
+    const first = await api(`/v1/honeymoon-periods/${id}/preference-changes`, {
+      method: "POST",
+      headers: headersA,
+      body: JSON.stringify(request),
+    });
+    expect(first.status).toBe(201);
+    const original = await first.json();
+    const replay = await api(`/v1/honeymoon-periods/${id}/preference-changes`, {
+      method: "POST",
+      headers: headersA,
+      body: JSON.stringify(request),
+    });
+    expect(replay.status).toBe(200);
+    expect(await replay.json()).toEqual(original);
+
+    const conflict = await api(`/v1/honeymoon-periods/${id}/preference-changes`, {
+      method: "POST",
+      headers: headersA,
+      body: JSON.stringify({ ...request, score: 5 }),
+    });
+    expect(conflict.status).toBe(409);
+    expect(await conflict.json()).toMatchObject({ error: { code: "idempotency_conflict" } });
+    expect(
+      (
+        await env.DB.prepare(
+          "SELECT COUNT(*) AS count FROM preference_events WHERE honeymoon_period_id = ?",
+        )
+          .bind(id)
+          .first<{ count: number }>()
+      )?.count,
+    ).toBe(1);
+    expect(
+      await env.DB.prepare(
+        "SELECT vote, score FROM preferences WHERE honeymoon_period_id = ? AND actor_id = ?",
+      )
+        .bind(id, "actor-a")
+        .first(),
+    ).toMatchObject({ vote: "maybe", score: 3 });
+  });
+
+  it("records and replays idempotent no-op results and rejects blank reasons", async () => {
+    const id = await capturedId();
+    const send = (clientRequestId: string, reason?: string) =>
+      api(`/v1/honeymoon-periods/${id}/preference-changes`, {
+        method: "POST",
+        headers: headersA,
+        body: JSON.stringify({
+          vote: "maybe",
+          score: 2,
+          client_request_id: clientRequestId,
+          ...(reason === undefined ? {} : { reason }),
+        }),
+      });
+    expect((await send("initial-change")).status).toBe(201);
+    const unchanged = await send("same-current-values");
+    expect(unchanged.status).toBe(201);
+    expect(await unchanged.clone().json()).toEqual({ status: "unchanged", event: null });
+    const replay = await send("same-current-values");
+    expect(replay.status).toBe(200);
+    expect(await replay.json()).toEqual(await unchanged.json());
+    expect((await send("blank-reason", "   ")).status).toBe(400);
+    expect(
+      (
+        await env.DB.prepare(
+          "SELECT COUNT(*) AS count FROM preference_events WHERE honeymoon_period_id = ?",
+        )
+          .bind(id)
+          .first<{ count: number }>()
+      )?.count,
+    ).toBe(1);
+  });
+
+  it("serializes concurrent participant changes without orphaning history or projections", async () => {
+    const id = await capturedId();
+    const responses = await Promise.all([
+      api(`/v1/honeymoon-periods/${id}/preference-changes`, {
+        method: "POST",
+        headers: headersA,
+        body: JSON.stringify({
+          vote: "interested",
+          score: 5,
+          client_request_id: "parallel-a",
+        }),
+      }),
+      api(`/v1/honeymoon-periods/${id}/preference-changes`, {
+        method: "POST",
+        headers: headersB,
+        body: JSON.stringify({ vote: "decline", score: 1, client_request_id: "parallel-b" }),
+      }),
+    ]);
+    expect(responses.map(({ status }) => status)).toEqual([201, 201]);
+    const history = await (
+      await api(`/v1/honeymoon-periods/${id}/history`, { headers: headersA })
+    ).json<{ items: Array<{ sequence: number; actor_id: string }> }>();
+    expect(history.items).toHaveLength(2);
+    expect(history.items[1]?.sequence).toBe((history.items[0]?.sequence ?? 0) + 1);
+    expect(new Set(history.items.map(({ actor_id }) => actor_id))).toEqual(
+      new Set(["actor-a", "actor-b"]),
+    );
+    expect(
+      (
+        await env.DB.prepare(
+          "SELECT COUNT(*) AS count FROM preferences WHERE honeymoon_period_id = ?",
+        )
+          .bind(id)
+          .first<{ count: number }>()
+      )?.count,
+    ).toBe(2);
+  });
+
+  it("resolves concurrent idempotency races without an orphan event or projection", async () => {
+    const id = await capturedId();
+    const sameRequest = (vote: "interested" | "decline", score: number) =>
+      api(`/v1/honeymoon-periods/${id}/preference-changes`, {
+        method: "POST",
+        headers: headersA,
+        body: JSON.stringify({
+          vote,
+          score,
+          client_request_id: "concurrent-key",
+        }),
+      });
+    const responses = await Promise.all([sameRequest("interested", 5), sameRequest("decline", 1)]);
+    expect(responses.map(({ status }) => status).sort()).toEqual([201, 409]);
+    const history = await (
+      await api(`/v1/honeymoon-periods/${id}/history`, { headers: headersB })
+    ).json<{
+      items: Array<{
+        payload: { changes: { vote: { after: string }; score: { after: number } } };
+      }>;
+    }>();
+    expect(history.items).toHaveLength(1);
+    const projection = await env.DB.prepare(
+      "SELECT vote, score FROM preferences WHERE honeymoon_period_id = ? AND actor_id = ?",
+    )
+      .bind(id, "actor-a")
+      .first<{ vote: string; score: number }>();
+    expect(projection).toEqual({
+      vote: history.items[0]?.payload.changes.vote.after,
+      score: history.items[0]?.payload.changes.score.after,
+    });
+    expect(
+      (
+        await env.DB.prepare(
+          "SELECT COUNT(*) AS count FROM preference_change_requests WHERE actor_id = ? AND client_request_id = ?",
+        )
+          .bind("actor-a", "concurrent-key")
+          .first<{ count: number }>()
+      )?.count,
+    ).toBe(1);
+  });
+
+  it("retains immutable history when deletion of its parent is attempted", async () => {
+    const id = await capturedId();
+    const changed = await api(`/v1/honeymoon-periods/${id}/preference-changes`, {
+      method: "POST",
+      headers: headersA,
+      body: JSON.stringify({
+        vote: "interested",
+        score: 4,
+        client_request_id: "retained-history",
+      }),
+    });
+    expect(changed.status).toBe(201);
+    await expect(
+      env.DB.prepare("DELETE FROM honeymoon_periods WHERE id = ?").bind(id).run(),
+    ).rejects.toThrow();
+    const history = await (
+      await api(`/v1/honeymoon-periods/${id}/history`, { headers: headersB })
+    ).json<{ items: unknown[] }>();
+    expect(history.items).toHaveLength(1);
+  });
+
   it("can rank from one configured participant without changing the two-participant default", async () => {
     const id = await capturedId();
-    await api(`/v1/honeymoon-periods/${id}/preference`, {
-      method: "PUT",
+    await api(`/v1/honeymoon-periods/${id}/preference-changes`, {
+      method: "POST",
       headers: headersA,
-      body: JSON.stringify({ vote: "interested", score: 5 }),
+      body: JSON.stringify({ vote: "interested", score: 5, client_request_id: "single-a" }),
     });
-    await api(`/v1/honeymoon-periods/${id}/preference`, {
-      method: "PUT",
+    await api(`/v1/honeymoon-periods/${id}/preference-changes`, {
+      method: "POST",
       headers: headersB,
-      body: JSON.stringify({ vote: "decline", score: 1 }),
+      body: JSON.stringify({ vote: "decline", score: 1, client_request_id: "single-b" }),
     });
     const defaultDetail = await (
       await api(`/v1/honeymoon-periods/${id}`, { headers: headersA })
@@ -506,12 +739,15 @@ describe("query, preference, notes, and metadata contract", () => {
     ).toBe(404);
     expect(
       (
-        await api(`/v1/honeymoon-periods/${missing}/preference`, {
-          method: "PUT",
+        await api(`/v1/honeymoon-periods/${missing}/preference-changes`, {
+          method: "POST",
           headers: headersA,
-          body: JSON.stringify({ vote: null, score: null }),
+          body: JSON.stringify({ vote: null, score: null, client_request_id: "missing" }),
         })
       ).status,
+    ).toBe(404);
+    expect(
+      (await api(`/v1/honeymoon-periods/${missing}/history`, { headers: headersA })).status,
     ).toBe(404);
     expect(
       (
@@ -585,10 +821,10 @@ describe("query, preference, notes, and metadata contract", () => {
     }
     expect(
       (
-        await api(`/v1/honeymoon-periods/${id}/preference`, {
-          method: "PUT",
+        await api(`/v1/honeymoon-periods/${id}/preference-changes`, {
+          method: "POST",
           headers: headersA,
-          body: JSON.stringify({ vote: "yes", score: 9 }),
+          body: JSON.stringify({ vote: "yes", score: 9, client_request_id: "invalid" }),
         })
       ).status,
     ).toBe(400);
@@ -643,7 +879,7 @@ describe("Worker adapter states", () => {
     expect(await (await api("/health")).json()).toEqual({ status: "ok" });
     const options = await api("/v1/captures", { method: "OPTIONS" });
     expect(options.status).toBe(204);
-    expect(options.headers.get("access-control-allow-methods")).toContain("PATCH");
+    expect(options.headers.get("access-control-allow-methods")).toBe("GET, POST, PATCH, OPTIONS");
   });
 
   it("rejects disabled actors and enforces the bounded request rate", async () => {
@@ -654,6 +890,68 @@ describe("Worker adapter states", () => {
     for (let index = 0; index < 121; index += 1)
       last = await api("/v1/honeymoon-periods", { headers: headersA });
     expect(last?.status).toBe(429);
+  });
+
+  it("exercises the observable error matrix for preference mutation and history", async () => {
+    const id = "00000000-0000-4000-8000-000000000301";
+    await env.DB.prepare(
+      "INSERT INTO honeymoon_periods (id, title, normalized_url) VALUES (?, ?, ?)",
+    )
+      .bind(id, "Error fixture", "https://example.com/error-fixture")
+      .run();
+    expect(
+      (
+        await api(`/v1/honeymoon-periods/${id}/preference-changes`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ vote: null, score: null, client_request_id: "unauthorized" }),
+        })
+      ).status,
+    ).toBe(401);
+    expect((await api(`/v1/honeymoon-periods/${id}/history`)).status).toBe(401);
+    expect(
+      (await api("/v1/honeymoon-periods/not-a-uuid/history", { headers: headersA })).status,
+    ).toBe(400);
+
+    const windowStart = Math.floor(Date.now() / 60_000);
+    const primeLimit = () =>
+      env.DB.prepare(
+        `INSERT INTO rate_limits (actor_id, window_start, request_count) VALUES (?, ?, 120)
+        ON CONFLICT (actor_id) DO UPDATE SET window_start = excluded.window_start, request_count = 120`,
+      )
+        .bind("actor-a", windowStart)
+        .run();
+    await primeLimit();
+    expect(
+      (
+        await api(`/v1/honeymoon-periods/${id}/preference-changes`, {
+          method: "POST",
+          headers: headersA,
+          body: JSON.stringify({ vote: null, score: null, client_request_id: "limited" }),
+        })
+      ).status,
+    ).toBe(429);
+    await primeLimit();
+    expect((await api(`/v1/honeymoon-periods/${id}/history`, { headers: headersA })).status).toBe(
+      429,
+    );
+
+    const broken = {
+      prepare: () => {
+        throw new Error("private adapter detail");
+      },
+    } as unknown as D1Database;
+    for (const request of [
+      new Request(`${base}/v1/honeymoon-periods/${id}/preference-changes`, {
+        method: "POST",
+        headers: headersA,
+        body: JSON.stringify({ vote: null, score: null, client_request_id: "broken" }),
+      }),
+      new Request(`${base}/v1/honeymoon-periods/${id}/history`, { headers: headersA }),
+    ]) {
+      const result = await worker.fetch(request, { DB: broken, TEST_MODE: "true" });
+      expect(result.status).toBe(500);
+    }
   });
 
   it("converts unexpected adapter failures into privacy-safe errors", async () => {

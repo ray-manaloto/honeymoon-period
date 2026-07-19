@@ -113,7 +113,10 @@ function deterministicBytes(length) {
 }
 
 test("OpenAPI response audit accepts the canonical contract", () => {
-  assert.match(run("node", ["scripts/check-openapi-responses.mjs"]), /7 operations/);
+  assert.match(
+    run("node", ["scripts/check-openapi-responses.mjs"]),
+    /OpenAPI error response audit passed for \d+ operations/,
+  );
 });
 
 test("adaptive orchestration policy accepts the canonical repository", () => {

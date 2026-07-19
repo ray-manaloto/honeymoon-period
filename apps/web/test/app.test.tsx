@@ -1,4 +1,4 @@
-import type { HoneymoonPeriodDetail } from "@honeymoon-period/generated";
+import type { HistoryPage, HoneymoonPeriodDetail } from "@honeymoon-period/generated";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { memoryStore } from "react-admin";
@@ -19,7 +19,7 @@ const item = {
   created_at: "2026-01-01T00:00:00.000Z",
   updated_at: "2026-01-02T00:00:00.000Z",
 };
-const detail: HoneymoonPeriodDetail = {
+const detail: HoneymoonPeriodDetail & { history: HistoryPage } = {
   item,
   captures: [
     {
@@ -52,6 +52,26 @@ const detail: HoneymoonPeriodDetail = {
       created_at: item.created_at,
     },
   ],
+  history: {
+    items: [
+      {
+        sequence: 1,
+        id: "00000000-0000-4000-8000-000000000301",
+        type: "PreferenceChanged",
+        honeymoon_period_id: item.id,
+        actor_id: "actor-a",
+        display_name: "Participant A",
+        accepted_at: item.updated_at,
+        payload: {
+          reason: "Great patio",
+          changes: {
+            vote: { before: null, after: "interested" },
+            score: { before: null, after: 5 },
+          },
+        },
+      },
+    ],
+  },
 };
 
 function provider(overrides: Partial<HoneymoonDataProvider> = {}): HoneymoonDataProvider {
@@ -65,7 +85,9 @@ function provider(overrides: Partial<HoneymoonDataProvider> = {}): HoneymoonData
     updateMany: vi.fn().mockResolvedValue({ data: [] }),
     delete: vi.fn().mockResolvedValue({ data: item }),
     deleteMany: vi.fn().mockResolvedValue({ data: [] }),
-    setPreference: vi.fn().mockResolvedValue({ data: detail.preferences[0] }),
+    createPreferenceChange: vi.fn().mockResolvedValue({
+      data: { status: "changed", event: detail.history.items[0] },
+    }),
     addNote: vi.fn().mockResolvedValue({ data: detail.notes[0] }),
     updateNote: vi.fn().mockResolvedValue({ data: detail.notes[0] }),
     ...overrides,
@@ -93,7 +115,7 @@ describe("web MVP", () => {
     await user.click(screen.getByRole("button", { name: "Sort ascending" }));
     await user.selectOptions(
       screen.getByRole("combobox", { name: "Acting as participant" }),
-      "prototype-participant-b",
+      "local-participant-b",
     );
     await user.click(screen.getByRole("link", { name: /Fixture Bistro/ }));
     expect(await screen.findByRole("heading", { name: "Fixture Bistro" })).toBeVisible();
@@ -196,11 +218,13 @@ describe("web MVP", () => {
 
   it("writes an actor-owned preference and note through custom provider methods", async () => {
     const user = userEvent.setup();
-    const setPreference = vi.fn().mockResolvedValue({ data: detail.preferences[0] });
+    const createPreferenceChange = vi.fn().mockResolvedValue({
+      data: { status: "changed", event: detail.history.items[0] },
+    });
     const addNote = vi.fn().mockResolvedValue({ data: detail.notes[0] });
     render(
       <App
-        dataProvider={provider({ setPreference, addNote })}
+        dataProvider={provider({ createPreferenceChange, addNote })}
         store={memoryStore()}
         initialPath="/honeymoon-periods/period-1/show"
       />,
@@ -210,23 +234,65 @@ describe("web MVP", () => {
     await user.selectOptions(within(form).getByRole("combobox", { name: "Vote" }), "maybe");
     await user.clear(within(form).getByRole("spinbutton", { name: "Score (0–5, optional)" }));
     await user.type(within(form).getByRole("spinbutton", { name: "Score (0–5, optional)" }), "4");
+    await user.type(within(form).getByRole("textbox", { name: "Reason (optional)" }), "Worth it");
     fireEvent.submit(form);
     await waitFor(() =>
-      expect(setPreference).toHaveBeenCalledWith(item.id, { vote: "maybe", score: 4 }),
+      expect(createPreferenceChange).toHaveBeenCalledWith(item.id, {
+        vote: "maybe",
+        score: 4,
+        reason: "Worth it",
+        client_request_id: expect.any(String),
+      }),
     );
+    expect(
+      screen.getByRole("list", { name: "Chronological preference history" }),
+    ).toHaveTextContent("Great patio");
     await user.type(screen.getByRole("textbox", { name: "Add a note" }), "Reserve outside");
     await user.click(screen.getByRole("button", { name: "Post note" }));
     await waitFor(() => expect(addNote).toHaveBeenCalledWith(item.id, { body: "Reserve outside" }));
+  });
+
+  it("submits a preference without an optional reason and explains empty history", async () => {
+    const user = userEvent.setup();
+    const emptyDetail = { ...detail, history: { items: [] } };
+    const createPreferenceChange = vi.fn().mockResolvedValue({
+      data: { status: "unchanged", event: null },
+    });
+    render(
+      <App
+        dataProvider={provider({
+          getOne: vi.fn().mockResolvedValue({ data: { ...item, detail: emptyDetail } }),
+          createPreferenceChange,
+        })}
+        store={memoryStore()}
+        initialPath="/honeymoon-periods/period-1/show"
+      />,
+    );
+    expect(await screen.findByText("No preference changes yet.")).toBeVisible();
+    const form = screen.getByRole("form", { name: "Your preference" });
+    await user.selectOptions(within(form).getByRole("combobox", { name: "Vote" }), "maybe");
+    await user.click(within(form).getByRole("button", { name: "Save preference" }));
+    await waitFor(() =>
+      expect(createPreferenceChange).toHaveBeenCalledWith(item.id, {
+        vote: "maybe",
+        score: 5,
+        client_request_id: expect.any(String),
+      }),
+    );
   });
 
   it("validates preference score and reports preference and note mutation failures", async () => {
     const user = userEvent.setup();
     const failure = new Error("Synthetic mutation failure");
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const createPreferenceChange = vi
+      .fn()
+      .mockRejectedValueOnce(failure)
+      .mockResolvedValue({ data: { status: "unchanged", event: null } });
     render(
       <App
         dataProvider={provider({
-          setPreference: vi.fn().mockRejectedValue(failure),
+          createPreferenceChange,
           addNote: vi.fn().mockRejectedValue(failure),
         })}
         store={memoryStore()}
@@ -244,6 +310,11 @@ describe("web MVP", () => {
     await user.type(score, "2");
     await user.click(within(form).getByRole("button", { name: "Save preference" }));
     expect(await within(form).findByRole("alert")).toHaveTextContent("Synthetic mutation failure");
+    await user.click(within(form).getByRole("button", { name: "Save preference" }));
+    await waitFor(() => expect(createPreferenceChange).toHaveBeenCalledTimes(2));
+    expect(createPreferenceChange.mock.calls[1]?.[1].client_request_id).toBe(
+      createPreferenceChange.mock.calls[0]?.[1].client_request_id,
+    );
     await user.type(screen.getByRole("textbox", { name: "Add a note" }), "A failing note");
     await user.click(screen.getByRole("button", { name: "Post note" }));
     const noteForm = screen.getByRole("form", { name: "Add note" });

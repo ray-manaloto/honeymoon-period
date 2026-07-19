@@ -9,6 +9,8 @@ import type {
   Capture,
   CaptureInput,
   CaptureResult,
+  HistoryEvent,
+  HistoryPage,
   HoneymoonPeriod,
   HoneymoonPeriodDetail,
   HoneymoonPeriodPage,
@@ -16,7 +18,8 @@ import type {
   Note,
   NoteInput,
   Preference,
-  PreferenceInput,
+  PreferenceChangeInput,
+  PreferenceChangeResult,
 } from "@honeymoon-period/generated";
 import { assertContract, ContractError } from "./contract";
 
@@ -144,6 +147,50 @@ async function preferencesFor(db: D1Database, id: string): Promise<Preference[]>
     score: row.score === null ? null : Number(row.score),
     updated_at: String(row.updated_at),
   }));
+}
+
+function historyEventFrom(row: Row): HistoryEvent {
+  return {
+    sequence: Number(row.sequence),
+    id: String(row.id),
+    type: "PreferenceChanged",
+    honeymoon_period_id: String(row.honeymoon_period_id),
+    actor_id: String(row.actor_id),
+    display_name: String(row.display_name),
+    accepted_at: String(row.accepted_at),
+    payload: {
+      reason: row.reason === null ? null : String(row.reason),
+      changes: {
+        vote: {
+          before: row.before_vote as HistoryEvent["payload"]["changes"]["vote"]["before"],
+          after: row.after_vote as HistoryEvent["payload"]["changes"]["vote"]["after"],
+        },
+        score: {
+          before: row.before_score === null ? null : Number(row.before_score),
+          after: row.after_score === null ? null : Number(row.after_score),
+        },
+      },
+    },
+  };
+}
+
+async function historyFor(db: D1Database, id: string): Promise<HistoryPage> {
+  const rows = await db
+    .prepare(`SELECT e.*, a.display_name FROM preference_events e
+    JOIN actors a ON a.id = e.actor_id
+    WHERE e.honeymoon_period_id = ? ORDER BY e.sequence`)
+    .bind(id)
+    .all<Row>();
+  return { items: rows.results.map(historyEventFrom) };
+}
+
+async function historyEventById(db: D1Database, eventId: string): Promise<HistoryEvent | null> {
+  const row = await db
+    .prepare(`SELECT e.*, a.display_name FROM preference_events e
+    JOIN actors a ON a.id = e.actor_id WHERE e.id = ?`)
+    .bind(eventId)
+    .first<Row>();
+  return row ? historyEventFrom(row) : null;
 }
 
 async function itemFrom(
@@ -410,7 +457,98 @@ async function update(
   return response(value, 200, "HoneymoonPeriodDetail");
 }
 
-async function putPreference(
+interface PreferenceWrite {
+  vote: PreferenceChangeInput["vote"];
+  score: PreferenceChangeInput["score"];
+  reason: string | null;
+}
+
+async function fingerprintPreferenceChange(
+  id: string,
+  input: PreferenceChangeInput,
+  reason: string | null,
+): Promise<string> {
+  const canonical = JSON.stringify([id, input.vote, input.score, reason]);
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonical));
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function applyPreferenceChange(
+  db: D1Database,
+  id: string,
+  actor: Actor,
+  input: PreferenceWrite,
+  requestIdentity: { clientRequestId: string; fingerprint: string },
+): Promise<PreferenceChangeResult> {
+  const eventId = crypto.randomUUID();
+  const requestId = crypto.randomUUID();
+  const acceptedAt = new Date().toISOString();
+  const statements: D1PreparedStatement[] = [
+    db
+      .prepare(`INSERT INTO preference_change_requests
+      (id, actor_id, client_request_id, honeymoon_period_id, payload_fingerprint)
+      VALUES (?, ?, ?, ?, ?)`)
+      .bind(requestId, actor.id, requestIdentity.clientRequestId, id, requestIdentity.fingerprint),
+    db
+      .prepare(`INSERT INTO preference_events
+      (id, request_id, honeymoon_period_id, actor_id, event_type, before_vote, after_vote, before_score, after_score, reason, accepted_at)
+      SELECT ?, ?, ?, ?, 'PreferenceChanged', p.vote, ?, p.score, ?, ?, ?
+      FROM (SELECT 1) seed
+      LEFT JOIN preferences p ON p.honeymoon_period_id = ? AND p.actor_id = ?
+      WHERE p.honeymoon_period_id IS NULL OR p.vote IS NOT ? OR p.score IS NOT ?`)
+      .bind(
+        eventId,
+        requestId,
+        id,
+        actor.id,
+        input.vote,
+        input.score,
+        input.reason,
+        acceptedAt,
+        id,
+        actor.id,
+        input.vote,
+        input.score,
+      ),
+    db
+      .prepare(`INSERT INTO preferences (honeymoon_period_id, actor_id, vote, score, updated_at)
+      SELECT ?, ?, ?, ?, ? WHERE EXISTS (SELECT 1 FROM preference_events WHERE id = ?)
+      ON CONFLICT (honeymoon_period_id, actor_id) DO UPDATE SET vote = excluded.vote,
+      score = excluded.score, updated_at = excluded.updated_at`)
+      .bind(id, actor.id, input.vote, input.score, acceptedAt, eventId),
+    db
+      .prepare(`UPDATE honeymoon_periods SET updated_at = ? WHERE id = ?
+      AND EXISTS (SELECT 1 FROM preference_events WHERE id = ?)`)
+      .bind(acceptedAt, id, eventId),
+  ];
+  await db.batch(statements);
+  const event = await historyEventById(db, eventId);
+  return { status: event ? "changed" : "unchanged", event };
+}
+
+async function storedPreferenceChange(
+  db: D1Database,
+  actorId: string,
+  clientRequestId: string,
+): Promise<{ fingerprint: string; result: PreferenceChangeResult } | null> {
+  const row = await db
+    .prepare(`SELECT id, payload_fingerprint FROM preference_change_requests
+    WHERE actor_id = ? AND client_request_id = ?`)
+    .bind(actorId, clientRequestId)
+    .first<{ id: string; payload_fingerprint: string }>();
+  if (!row) return null;
+  const eventRow = await db
+    .prepare("SELECT id FROM preference_events WHERE request_id = ?")
+    .bind(row.id)
+    .first<{ id: string }>();
+  const event = eventRow ? await historyEventById(db, eventRow.id) : null;
+  return {
+    fingerprint: row.payload_fingerprint,
+    result: { status: event ? "changed" : "unchanged", event },
+  };
+}
+
+async function createPreferenceChange(
   request: Request,
   db: D1Database,
   id: string,
@@ -418,26 +556,36 @@ async function putPreference(
 ): Promise<Response> {
   if (!(await db.prepare("SELECT 1 FROM honeymoon_periods WHERE id = ?").bind(id).first()))
     return failure(404, "not_found", "honeymoon-period not found");
-  const input = (await readBody(request, "PreferenceInput")) as PreferenceInput;
+  const input = (await readBody(request, "PreferenceChangeInput")) as PreferenceChangeInput;
+  idempotencyKey(actor.id, input.client_request_id);
   const owned = ownedPreference(actor.id, id, input);
-  await db.batch([
-    db
-      .prepare(`INSERT INTO preferences (honeymoon_period_id, actor_id, vote, score) VALUES (?, ?, ?, ?)
-      ON CONFLICT (honeymoon_period_id, actor_id) DO UPDATE SET vote = excluded.vote, score = excluded.score,
-      updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`)
-      .bind(id, owned.actorId, owned.vote, owned.score),
-    db
-      .prepare(
-        "UPDATE honeymoon_periods SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?",
-      )
-      .bind(id),
-  ]);
-  const value = (await preferencesFor(db, id)).find(
-    (preference) => preference.actor_id === actor.id,
-  );
-  /* istanbul ignore next -- the completed upsert must be readable by the same connection. */
-  if (!value) throw new Error("failed to write preference");
-  return response(value, 200, "Preference");
+  const reason = input.reason?.trim() ?? null;
+  if (input.reason !== undefined && !reason)
+    throw new ContractError({ "/reason": "must contain non-whitespace characters" });
+  const fingerprint = await fingerprintPreferenceChange(id, input, reason);
+  const existing = await storedPreferenceChange(db, actor.id, input.client_request_id);
+  if (existing) {
+    return existing.fingerprint === fingerprint
+      ? response(existing.result, 200, "PreferenceChangeResult")
+      : failure(409, "idempotency_conflict", "client request ID was already used");
+  }
+  let result: PreferenceChangeResult;
+  try {
+    result = await applyPreferenceChange(
+      db,
+      id,
+      actor,
+      { ...owned, reason },
+      { clientRequestId: input.client_request_id, fingerprint },
+    );
+  } catch (error) {
+    const raced = await storedPreferenceChange(db, actor.id, input.client_request_id);
+    if (!raced) throw error;
+    return raced.fingerprint === fingerprint
+      ? response(raced.result, 200, "PreferenceChangeResult")
+      : failure(409, "idempotency_conflict", "client request ID was already used");
+  }
+  return response(result, 201, "PreferenceChangeResult");
 }
 
 async function createNote(
@@ -530,6 +678,23 @@ async function route(request: Request, env: Env, actor: Actor): Promise<Response
     return createCapture(request, env, actor);
   if (request.method === "GET" && url.pathname === "/v1/honeymoon-periods")
     return list(request, env.DB, env.SINGLE_PARTICIPANT_RANKING_ACTOR_ID);
+  const preferenceChangeMatch = url.pathname.match(
+    /^\/v1\/honeymoon-periods\/([^/]+)\/preference-changes$/,
+  );
+  if (request.method === "POST" && preferenceChangeMatch)
+    return createPreferenceChange(
+      request,
+      env.DB,
+      pathIdentifier(preferenceChangeMatch[1] ?? "", "id"),
+      actor,
+    );
+  const historyMatch = url.pathname.match(/^\/v1\/honeymoon-periods\/([^/]+)\/history$/);
+  if (request.method === "GET" && historyMatch) {
+    const id = pathIdentifier(historyMatch[1] ?? "", "id");
+    if (!(await env.DB.prepare("SELECT 1 FROM honeymoon_periods WHERE id = ?").bind(id).first()))
+      return failure(404, "not_found", "honeymoon-period not found");
+    return response(await historyFor(env.DB, id), 200, "HistoryPage");
+  }
   const noteMatch = url.pathname.match(/^\/v1\/honeymoon-periods\/([^/]+)\/notes\/([^/]+)$/);
   if (request.method === "PATCH" && noteMatch)
     return updateNote(
@@ -539,7 +704,7 @@ async function route(request: Request, env: Env, actor: Actor): Promise<Response
       pathIdentifier(noteMatch[2] ?? "", "noteId"),
       actor,
     );
-  const match = url.pathname.match(/^\/v1\/honeymoon-periods\/([^/]+)(?:\/(preference|notes))?$/);
+  const match = url.pathname.match(/^\/v1\/honeymoon-periods\/([^/]+)(?:\/(notes))?$/);
   if (!match) return failure(404, "not_found", "route not found");
   const id = pathIdentifier(match[1] ?? "", "id");
   const child = match[2];
@@ -551,8 +716,6 @@ async function route(request: Request, env: Env, actor: Actor): Promise<Response
   }
   if (request.method === "PATCH" && !child)
     return update(request, env.DB, id, actor, env.SINGLE_PARTICIPANT_RANKING_ACTOR_ID);
-  if (request.method === "PUT" && child === "preference")
-    return putPreference(request, env.DB, id, actor);
   if (request.method === "POST" && child === "notes") return createNote(request, env.DB, id, actor);
   return failure(404, "not_found", "route not found");
 }
@@ -566,7 +729,7 @@ export default {
         headers: {
           "access-control-allow-origin": "*",
           "access-control-allow-headers": "authorization, content-type",
-          "access-control-allow-methods": "GET, POST, PUT, PATCH, OPTIONS",
+          "access-control-allow-methods": "GET, POST, PATCH, OPTIONS",
         },
       });
     if (url.pathname === "/health") return response({ status: "ok" });

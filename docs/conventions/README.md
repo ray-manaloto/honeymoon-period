@@ -7,7 +7,7 @@
 - `dist/` — generated signed Shortcut deliverables.
 - `.build/` — disposable compiler checkout and generated intermediates.
 - `.codex/` — trusted project configuration, custom agents, and deterministic hooks.
-- `apps/` and `packages/` — production web/API workspace once promoted from the provider prototype.
+- `apps/` and `packages/` — canonical production web/API workspace.
 - `openapi/` — canonical public contract and versioned generator inputs once implementation begins.
 - `docs/` — product context, cited research, decisions, evidence, and setup guides.
 
