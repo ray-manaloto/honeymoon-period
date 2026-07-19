@@ -3,13 +3,13 @@
   "goalId": "self-learning-autonomy-loop",
   "objectiveFingerprint": "429b78ea87394d1341c81bed3aae6f0cd0bbb4a413d011126295fad8013ef5f2",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "running",
+  "state": "ready",
   "reason": null,
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
-    "fingerprint": "7e8d3fb09ba1ab9f305e5e15ca90bb97875a0623789a34447bace276252e2b68",
+    "fingerprint": "54ebc8f366d3aee9e9e288f1f8be8496d6f45e15df823d6e4152730ccf01f589",
     "head": "bd102d342ad34e2bd6583c703a6b8220c31ac746",
-    "ownedManifest": "eaee7ef90428296d1d69f66c5e2a181935eebeb3919407974807563de1c8d019",
+    "ownedManifest": "99d04714e940ee47063844153d314bcf4bbc7634d2787ac9395b39564f226129",
     "ownedInputs": [
       "AGENTS.md",
       "docs/agents/adaptive-orchestration.md",
@@ -30,18 +30,14 @@
       "scripts/symphony-controller.mjs",
       "tests/symphony-controller.test.mjs",
       ".gitignore",
-      "scripts/mutation-lock.py"
+      "scripts/mutation-lock.py",
+      "biome.json"
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
   "leaseEpoch": 15,
   "question": null,
-  "run": {
-    "childClaims": [],
-    "deadlineAt": "2026-07-20T00:01:25.919Z",
-    "ownerTokenHash": "c3c34c69ee5255a2e3980c2346e57307e51c21732296afd42c1f8302d58f25f8",
-    "startedAt": "2026-07-19T23:31:25.919Z"
-  },
+  "run": null,
   "evidence": {
     "current": []
   },
@@ -112,7 +108,7 @@
         "revision": "441103b71a64ae0ac6f310eafe91b5879303c132ff7a93ef37c7b6f1cbfb1c9f"
       }
     ],
-    "enforceFromRevision": "7e8d3fb09ba1ab9f305e5e15ca90bb97875a0623789a34447bace276252e2b68"
+    "enforceFromRevision": "54ebc8f366d3aee9e9e288f1f8be8496d6f45e15df823d6e4152730ccf01f589"
   },
   "lastWakeTokenHash": "3abd20fcf0312c78e5a5f18401f2a95e199006a2a8cf8a395bb8848cef5ad42b"
 }
