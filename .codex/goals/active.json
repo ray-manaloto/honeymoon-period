@@ -3,12 +3,12 @@
   "goalId": "symphony-conformance-controller",
   "objectiveFingerprint": "455f7a3cf6bf7fe4992f177c46d333c14fdb7af6cf0ab7423dee1805d341305b",
   "objectiveRef": "delegated-goal-and-docs/agents/adaptive-orchestration.md",
-  "state": "waiting",
-  "reason": null,
+  "state": "ready",
+  "reason": "revision-changed",
   "revision": {
-    "fingerprint": "6e928f196fc938afff049495050616173f588fccaeccd566aa9495486f0d4547",
-    "head": "c6fa48b86223372633808af2b27f724272acaa9a",
-    "ownedManifest": "924149fc29aa271bbad9bcd7f96cf10ee8514c5af5229de0702022641f492bbb",
+    "fingerprint": "cabcae3d7236f0dfc697a3ea84572878adabfcbc18a411a5b4cc3206f20a79e1",
+    "head": "3f228936baf2f1b226c9d17ff1bf7b17314a9e99",
+    "ownedManifest": "6674d7f27d69d25ba7064914a332e80c9ae5fe6fc68d72a4ad24e5ca3daa90c3",
     "ownedInputs": [
       "docs/agents/adaptive-orchestration.md",
       "docs/research/openai-symphony-cookbook-controller.md",
