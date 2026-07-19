@@ -3,6 +3,16 @@
   "goalId": "preference-history-23",
   "objectiveFingerprint": "7f142cc88e18a8f136efbd5f7737d5a2383360b708fd274608385c47fed9a7fa",
   "objectiveRef": "issues/23",
+  "researchPreflight": {
+    "research": {
+      "status": "not-needed",
+      "evidenceRef": "docs/agents/adaptive-orchestration.md#goal-change-log"
+    },
+    "last30days": {
+      "status": "not-needed",
+      "evidenceRef": "docs/agents/adaptive-orchestration.md#goal-change-log"
+    }
+  },
   "state": "running",
   "reason": null,
   "revision": {
