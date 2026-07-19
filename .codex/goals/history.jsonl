@@ -10,3 +10,4 @@
 {"at":"2026-07-19T10:19:54.921Z","goalId":"symphony-conformance-controller","revision":"cabcae3d7236f0dfc697a3ea84572878adabfcbc18a411a5b4cc3206f20a79e1","type":"lease-renewed","epoch":2,"expiresAt":"2026-07-19T10:24:54.921Z"}
 {"at":"2026-07-19T10:21:39.351Z","goalId":"symphony-conformance-controller","revision":"cabcae3d7236f0dfc697a3ea84572878adabfcbc18a411a5b4cc3206f20a79e1","type":"lease-renewed","epoch":2,"expiresAt":"2026-07-19T10:26:39.351Z"}
 {"at":"2026-07-19T10:23:57.426Z","goalId":"symphony-conformance-controller","revision":"cabcae3d7236f0dfc697a3ea84572878adabfcbc18a411a5b4cc3206f20a79e1","type":"checkpoint","state":"failed","failureFingerprint":"473e6c9a6949a8a8de9ca350bdb51faa14d295d714a8233a23fdaab17a1fccb1","reason":null}
+{"at":"2026-07-19T10:29:08.085Z","goalId":"symphony-conformance-controller","revision":"f665a71ab6a6e3e422a658e86b54d4fb5b35ae25092cee79549f1a6fd6fa57ad","type":"evidence-invalidated","count":0}
