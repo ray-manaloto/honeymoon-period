@@ -879,9 +879,7 @@ describe("Worker adapter states", () => {
     expect(await (await api("/health")).json()).toEqual({ status: "ok" });
     const options = await api("/v1/captures", { method: "OPTIONS" });
     expect(options.status).toBe(204);
-    expect(options.headers.get("access-control-allow-methods")).toBe(
-      "GET, POST, PATCH, OPTIONS",
-    );
+    expect(options.headers.get("access-control-allow-methods")).toBe("GET, POST, PATCH, OPTIONS");
   });
 
   it("rejects disabled actors and enforces the bounded request rate", async () => {
