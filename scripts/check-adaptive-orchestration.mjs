@@ -132,6 +132,16 @@ requireMatch(
   /kind: "standards-review"/,
   "controller completion must require a standards-review record",
 );
+for (const invariant of [
+  ["schemaVersion: 2", "controller must use the versioned authority schema"],
+  ["record-iteration", "controller must persist every material iteration review"],
+  ["kind: \"goal-completion\"", "controller must require goal-specific completion evidence"],
+  ["mutation-lock.py", "controller must use the OS-backed mutation lock"],
+  ["replayTransition", "controller must replay state/history transitions"],
+  ["resolve-question", "controller must support explicit ambiguity resolution"],
+]) {
+  requireMatch(controller, new RegExp(invariant[0]), invariant[1]);
+}
 for (const outcome of ["promoted", "linked", "no-new-lesson"]) {
   requireMatch(
     controller,

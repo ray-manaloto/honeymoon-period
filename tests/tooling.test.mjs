@@ -25,6 +25,7 @@ const orchestrationPolicyPaths = [
   "docs/learning/TEMPLATE.md",
   "docs/research/codex-context-lifecycle.md",
   "scripts/symphony-controller.mjs",
+  "scripts/mutation-lock.py",
 ];
 
 function createOrchestrationFixture() {

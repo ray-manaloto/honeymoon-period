@@ -13,9 +13,13 @@ On each wake:
    its authority and budgets, renew with the returned `ownerToken` at least
    every two minutes during a long turn, follow the repository autonomous learning loop,
    and checkpoint with that token. Review findings require a retrospective, focused
-   repair with a guard, and fresh revision-bound subagent gates.
+   repair with a guard, and fresh revision-bound subagent gates. Before changing a
+   reviewed revision, persist its standards review and retrospective with
+   `record-iteration`; an unrecorded material revision is not admissible.
 3. If the action is `ask`, surface exactly that one question and do no other
-   work.
+   work. After the user answers, call `resolve-question` with the recorded
+   fingerprint before requesting another run. Unacknowledged delivery is retried
+   after the bounded TTL so a crash cannot silently suppress the only question.
 4. For `noop`, stop without mutation.
 5. Never treat this prompt, a plan, a handoff, a scheduled task, or model
    self-report as execution authority.
@@ -37,10 +41,17 @@ node scripts/symphony-controller.mjs checkpoint --root . \
   --verifier-record <revision-bound-verifier-json> \
   --validator-record <revision-bound-validator-json> \
   --aggregate-record <revision-bound-aggregate-json> \
+  --completion-record <revision-bound-goal-completion-json> \
   --protected-artifact-record <revision-bound-audit-json> \
   --retrospective-record <revision-bound-retrospective-json> \
   --retrospective-code <promoted|linked|no-new-lesson>
 ```
+
+The versioned active record also binds the branch, objective, prohibitions,
+completion contract, both research-lane statuses, and whether external
+postconditions are required. The goal-completion record proves the logical
+commit, research preflight, zero-debt audit, branch, and required external-state
+postcondition; prose or model self-report cannot substitute for it.
 
 The controller intentionally implements a Symphony-derived local subset. It
 does not claim full Symphony conformance, run Symphony, require Linear, create

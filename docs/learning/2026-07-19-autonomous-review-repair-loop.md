@@ -41,13 +41,18 @@ The in-lock reread applies to reconcile, acquire, renew, and checkpoint as well 
 adoption; mutex ownership does not make a snapshot captured before the mutex authoritative.
 Blocked-question emission follows the same rule: the filesystem claim deduplicates delivery,
 while an in-mutex active-state reread decides whether that question is still valid.
+The final hardening pass replaced recoverable directory ownership with an OS-backed
+worktree-local file lock, journals every state/history transition, stores capability hashes
+instead of raw tokens, and retries an unacknowledged ambiguity delivery after its TTL.
 
 ## Correction
 
 Every material controller-admitted iteration now uses a fresh read-only standards/spec
 review, a focused repair with a regression guard, and fresh revision-bound final gates.
 The append-only goal record classifies its retrospective as `promoted`, `linked`, or
-`no-new-lesson`. Exact-head merge readiness is evaluated deterministically.
+`no-new-lesson`. The versioned controller schema binds authority and completion requirements,
+and `record-iteration` prevents a reviewed material revision from being silently skipped.
+Exact-head merge readiness is evaluated deterministically.
 
 ## Enforcing guard
 
@@ -70,6 +75,5 @@ reduce but do not eliminate that risk.
 
 ## Retirement condition
 
-Retire this entry when the controller schema structurally enforces iteration review,
-retrospective classification, revision invalidation, and final-gate binding without relying
-on prose markers.
+Retire this entry when its controller guards are replaced by an equally strict maintained
+native mechanism and the repository no longer owns this orchestration boundary.

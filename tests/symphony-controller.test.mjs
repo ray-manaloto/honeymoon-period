@@ -18,6 +18,16 @@ import { join, resolve } from "node:path";
 import test from "node:test";
 
 const controller = resolve(import.meta.dirname, "../scripts/symphony-controller.mjs");
+const authorityOptions = {
+  completionContractRef: "docs/completion.md",
+  externalCompletion: "not-required",
+  last30daysRef: "docs/last30days.md",
+  last30daysStatus: "not-needed",
+  objectiveRef: "docs/goal.md",
+  prohibitedActionsRef: "docs/prohibitions.md",
+  researchRef: "docs/research.md",
+  researchStatus: "not-needed",
+};
 function git(root, ...args) {
   return execFileSync("git", args, { cwd: root, encoding: "utf8" }).trim();
 }
@@ -34,6 +44,7 @@ function createFixture(overrides = {}) {
   run(root, "init", {
     goal: "fixture-goal",
     objective: "Exercise the bounded controller",
+    ...authorityOptions,
     ownedInput: "owned/input.txt",
     ttlMs: 1_000,
     maxRuntimeMs: 10_000,
@@ -82,15 +93,6 @@ function history(root) {
     .map((line) => JSON.parse(line));
 }
 
-function expireMutation(root) {
-  const ownerPath = join(root, ".codex/goals/.mutation/owner.json");
-  const owner = JSON.parse(readFileSync(ownerPath, "utf8"));
-  writeFileSync(
-    ownerPath,
-    `${JSON.stringify({ ...owner, expiresAt: "2000-01-01T00:00:00.000Z" })}\n`,
-  );
-}
-
 function evidenceRecords(root, completedAt) {
   const directory = join(root, ".codex/goals/.evidence");
   mkdirSync(directory, { recursive: true });
@@ -104,6 +106,18 @@ function evidenceRecords(root, completedAt) {
       completedAt,
       head,
       command: "npm run check",
+    },
+    completionRecord: {
+      kind: "goal-completion",
+      status: "PASS",
+      revision,
+      completedAt,
+      head,
+      branch: git(root, "branch", "--show-current"),
+      externalState: "not-required",
+      logicalCommit: true,
+      researchPreflight: true,
+      zeroDebt: true,
     },
     protectedArtifactRecord: {
       kind: "protected-artifact-audit",
@@ -168,11 +182,21 @@ function evidenceRecords(root, completedAt) {
   return options;
 }
 
+function recordGreenIteration(root, ownerToken, completedAt) {
+  const records = evidenceRecords(root, completedAt);
+  return run(root, "record-iteration", {
+    ownerToken,
+    retrospectiveCode: "no-new-lesson",
+    retrospectiveRecord: records.retrospectiveRecord,
+    reviewerRecord: records.reviewerRecord,
+    reviewVerdict: "PASS",
+    now: completedAt,
+  });
+}
+
 function runAsync(root, action, options = {}) {
   const {
     testAdoptPrelockPauseMs,
-    testMutationInitCrash,
-    testMutationInitPauseMs,
     testQuestionPrelockPauseMs,
     testReconcilePrelockPauseMs,
     ...commandOptions
@@ -182,10 +206,6 @@ function runAsync(root, action, options = {}) {
       env: {
         ...process.env,
         SYMPHONY_CONTROLLER_TEST_MODE: "1",
-        ...(testMutationInitPauseMs
-          ? { SYMPHONY_CONTROLLER_TEST_MUTATION_INIT_PAUSE_MS: String(testMutationInitPauseMs) }
-          : {}),
-        ...(testMutationInitCrash ? { SYMPHONY_CONTROLLER_TEST_MUTATION_INIT_CRASH: "1" } : {}),
         ...(testAdoptPrelockPauseMs
           ? { SYMPHONY_CONTROLLER_TEST_ADOPT_PRELOCK_PAUSE_MS: String(testAdoptPrelockPauseMs) }
           : {}),
@@ -228,16 +248,14 @@ async function waitForPath(path) {
   assert.fail(`timed out waiting for ${path}`);
 }
 
-async function waitForMutationCandidate(root) {
+async function waitForMutationSession(root) {
   const directory = join(root, ".codex/goals");
   for (let attempt = 0; attempt < 100; attempt += 1) {
-    const candidate = readdirSync(directory).find((name) =>
-      name.startsWith(".mutation.candidate-"),
-    );
-    if (candidate && existsSync(join(directory, candidate, "owner.json"))) return candidate;
+    const session = readdirSync(directory).find((name) => name.startsWith(".mutation-session-"));
+    if (session && existsSync(join(directory, session, "result.json"))) return session;
     await new Promise((resolvePromise) => setTimeout(resolvePromise, 25));
   }
-  assert.fail("timed out waiting for prepared mutation candidate");
+  assert.fail("timed out waiting for acquired mutation session");
 }
 
 test("atomic lease contention admits exactly one concurrent writer", async () => {
@@ -320,9 +338,24 @@ test("a live owner can renew before the TTL and checkpoint within the run deadli
   assert.equal(checkpoint.state, "waiting");
 });
 
+test("startup replays a crashed non-checkpoint state and history transition once", () => {
+  const root = createFixture();
+  const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
+  const crashed = command(root, "renew", {
+    ownerToken: lease.ownerToken,
+    now: "2026-07-19T10:00:00.500Z",
+    testCrashAfter: "transition-state",
+  });
+  assert.equal(crashed.status, 86);
+  const recovered = run(root, "reconcile", { now: "2026-07-19T10:00:00.600Z" });
+  assert.equal(recovered.reason, "lease-held");
+  assert.equal(history(root).filter((entry) => entry.type === "lease-renewed").length, 1);
+});
+
 test("owned-input changes fence a live lease even when HEAD is unchanged", () => {
   const root = createFixture();
   const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
+  recordGreenIteration(root, lease.ownerToken, "2026-07-19T10:00:00.050Z");
   writeFileSync(join(root, "owned/input.txt"), "uncommitted revision\n");
   const reconciled = run(root, "reconcile", { now: "2026-07-19T10:00:00.100Z" });
   assert.equal(reconciled.state, "blocked");
@@ -498,9 +531,34 @@ test("time retry repair and direct-child budgets are bounded", () => {
   assert.equal(timedOut.reason, "time-budget-exhausted");
 });
 
+test("production commands reject injected time and checkpoints enforce the run deadline", () => {
+  const root = createFixture({ maxRuntimeMs: 100 });
+  const injected = spawnSync(
+    "node",
+    [controller, "reconcile", "--root", root, "--now", "2026-07-19T10:00:00.000Z"],
+    { encoding: "utf8", env: { ...process.env, SYMPHONY_CONTROLLER_TEST_MODE: "0" } },
+  );
+  assert.notEqual(injected.status, 0);
+  assert.match(injected.stderr, /injected-time-forbidden/);
+
+  const lease = run(root, "wake", { wakeToken: "deadline", now: "2026-07-19T10:00:00.000Z" });
+  const expired = command(root, "checkpoint", {
+    ownerToken: lease.ownerToken,
+    state: "waiting",
+    dueAt: "2026-07-19T10:00:01.000Z",
+    now: "2026-07-19T10:00:00.200Z",
+  });
+  assert.notEqual(expired.status, 0);
+  assert.match(expired.stderr, /time-budget-exhausted/);
+});
+
 test("retry and repair exhaustion stops without manufacturing ambiguity", () => {
   const root = createFixture({ maxRepairCycles: 0, maxRetries: 0 });
   const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
+  const goal = active(root);
+  assert.equal("ownerToken" in goal.run, false);
+  assert.equal("lastWakeToken" in goal, false);
+  assert.doesNotMatch(JSON.stringify(goal), new RegExp(lease.ownerToken));
   const failed = run(root, "checkpoint", {
     failureFingerprint: "new-failure",
     ownerToken: lease.ownerToken,
@@ -576,43 +634,6 @@ test("startup sweeps fenced lease residue and clears abandoned running state", (
   assert.ok(history(root).some((entry) => entry.type === "lease-residue-reconciled"));
 });
 
-test("startup recovers an ownerless crashed mutation lock by bounded age", () => {
-  const root = createFixture();
-  const mutation = join(root, ".codex/goals/.mutation");
-  mkdirSync(mutation);
-  utimesSync(mutation, new Date(0), new Date(0));
-  const result = run(root, "reconcile", { now: "2026-07-19T10:00:00.000Z" });
-  assert.equal(result.state, "ready");
-  assert.equal(existsSync(mutation), false);
-});
-
-test("mutation initialization atomically publishes an owned canonical lock", async () => {
-  const root = createFixture();
-  const initializing = runAsync(root, "reconcile", { testMutationInitPauseMs: 500 });
-  await waitForMutationCandidate(root);
-  assert.equal(existsSync(join(root, ".codex/goals/.mutation")), false);
-  const contender = run(root, "reconcile", { now: "2026-07-19T10:00:00.000Z" });
-  assert.equal(contender.state, "ready");
-  const initialized = await initializing;
-  assert.equal(initialized.status, 0, initialized.stderr);
-  assert.equal(initialized.result.state, "ready");
-});
-
-test("startup sweeps a dead prepared mutation candidate", async () => {
-  const root = createFixture();
-  const crashed = await runAsync(root, "reconcile", { testMutationInitCrash: true });
-  assert.equal(crashed.status, 87);
-  assert.ok(
-    readdirSync(join(root, ".codex/goals")).some((name) => name.startsWith(".mutation.candidate-")),
-  );
-  const recovered = run(root, "reconcile", { now: "2026-07-19T10:00:00.000Z" });
-  assert.equal(recovered.state, "ready");
-  assert.equal(
-    readdirSync(join(root, ".codex/goals")).some((name) => name.startsWith(".mutation.candidate-")),
-    false,
-  );
-});
-
 test("startup replays a checkpoint journal committed to active state", () => {
   const root = createFixture();
   const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
@@ -626,7 +647,6 @@ test("startup replays a checkpoint journal committed to active state", () => {
   assert.equal(crashed.status, 86);
   assert.equal(active(root).state, "waiting");
   assert.equal(history(root).filter((entry) => entry.type === "checkpoint").length, 0);
-  expireMutation(root);
   const recovered = run(root, "reconcile", { now: "2026-07-19T10:00:00.200Z" });
   assert.equal(recovered.state, "waiting");
   assert.equal(existsSync(join(root, ".codex/goals/.lease")), false);
@@ -645,13 +665,12 @@ test("startup discards an uncommitted checkpoint journal without false history",
   });
   assert.equal(crashed.status, 86);
   assert.equal(active(root).state, "running");
-  expireMutation(root);
   const recovered = run(root, "reconcile", { now: "2026-07-19T10:00:02.000Z" });
   assert.equal(recovered.state, "ready");
   assert.equal(history(root).filter((entry) => entry.type === "checkpoint").length, 0);
 });
 
-test("mutation serialization prevents takeover during a checkpoint", async () => {
+test("OS-backed mutation serialization prevents takeover during a checkpoint", async () => {
   const root = createFixture();
   const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
   const checkpointing = runAsync(root, "checkpoint", {
@@ -661,13 +680,7 @@ test("mutation serialization prevents takeover during a checkpoint", async () =>
     now: "2026-07-19T10:00:00.100Z",
     testPauseMs: 500,
   });
-  const mutexOwnerPath = join(root, ".codex/goals/.mutation/owner.json");
-  await waitForPath(mutexOwnerPath);
-  const mutexOwner = JSON.parse(readFileSync(mutexOwnerPath, "utf8"));
-  writeFileSync(
-    mutexOwnerPath,
-    `${JSON.stringify({ ...mutexOwner, expiresAt: "2000-01-01T00:00:00.000Z" })}\n`,
-  );
+  await waitForMutationSession(root);
   const contender = run(root, "wake", {
     wakeToken: "two",
     now: "2026-07-19T10:00:02.000Z",
@@ -676,27 +689,29 @@ test("mutation serialization prevents takeover during a checkpoint", async () =>
   const completed = await checkpointing;
   assert.equal(completed.status, 0, completed.stderr);
   assert.equal(completed.result.state, "waiting");
-  assert.equal(existsSync(join(root, ".codex/goals/.mutation")), false);
+  assert.equal(
+    readdirSync(join(root, ".codex/goals")).some((name) => name.startsWith(".mutation-session-")),
+    false,
+  );
 });
 
-test("a former mutation owner cannot remove a differently-tokened successor lock", async () => {
+test("a crashed mutation owner releases the OS lock for startup reconciliation", () => {
   const root = createFixture();
   const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
-  const checkpointing = runAsync(root, "checkpoint", {
+  const crashed = command(root, "checkpoint", {
     dueAt: "2026-07-19T10:00:05.000Z",
     ownerToken: lease.ownerToken,
     state: "waiting",
     now: "2026-07-19T10:00:00.100Z",
-    testPauseMs: 500,
+    testCrashAfter: "journal",
   });
-  const mutexOwnerPath = join(root, ".codex/goals/.mutation/owner.json");
-  await waitForPath(mutexOwnerPath);
-  const mutexOwner = JSON.parse(readFileSync(mutexOwnerPath, "utf8"));
-  writeFileSync(mutexOwnerPath, `${JSON.stringify({ ...mutexOwner, token: "successor" })}\n`);
-  const completed = await checkpointing;
-  assert.equal(completed.status, 0, completed.stderr);
-  assert.equal(existsSync(join(root, ".codex/goals/.mutation")), true);
-  assert.equal(JSON.parse(readFileSync(mutexOwnerPath, "utf8")).token, "successor");
+  assert.equal(crashed.status, 86);
+  const recovered = run(root, "reconcile", { now: "2026-07-19T10:00:02.000Z" });
+  assert.equal(recovered.state, "ready");
+  assert.equal(
+    readdirSync(join(root, ".codex/goals")).some((name) => name.startsWith(".mutation-session-")),
+    false,
+  );
 });
 
 test("question claim recovers after a pre-emission crash window", () => {
@@ -721,9 +736,36 @@ test("question claim recovers after a pre-emission crash window", () => {
   assert.equal(recovered.action, "ask");
 });
 
+test("an unacknowledged ambiguity question is retried and explicit resolution resumes work", () => {
+  const root = createFixture({ ttlMs: 1_000 });
+  const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
+  run(root, "checkpoint", {
+    ownerToken: lease.ownerToken,
+    question: "Which authorized option should continue?",
+    state: "blocked",
+    now: "2026-07-19T10:00:00.100Z",
+  });
+  const first = run(root, "wake", { wakeToken: "two", now: "2026-07-19T10:00:00.200Z" });
+  assert.equal(first.action, "ask");
+  const retried = run(root, "wake", {
+    wakeToken: "three",
+    now: "2026-07-19T10:00:01.300Z",
+  });
+  assert.equal(retried.action, "ask");
+  assert.equal(retried.question, first.question);
+  const fingerprint = active(root).question.fingerprint;
+  const resolved = run(root, "resolve-question", {
+    questionFingerprint: fingerprint,
+    now: "2026-07-19T10:00:01.400Z",
+  });
+  assert.equal(resolved.state, "ready");
+  assert.equal(active(root).question, null);
+});
+
 test("question emission cannot restore state invalidated by reconciliation", async () => {
   const root = createFixture();
   const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
+  recordGreenIteration(root, lease.ownerToken, "2026-07-19T10:00:00.050Z");
   run(root, "checkpoint", {
     ownerToken: lease.ownerToken,
     question: "Which authorized option should continue?",
@@ -829,9 +871,17 @@ test("owned inputs must be readable in-root files and budgets have hard maxima",
   symlinkSync(tmpdir(), join(root, "escape"));
   git(root, "add", "file.txt");
   git(root, "commit", "-qm", "fixture");
+  const missingAuthority = command(root, "init", {
+    goal: "invalid-fixture",
+    objective: "missing authority",
+    ownedInput: "file.txt",
+  });
+  assert.notEqual(missingAuthority.status, 0);
+  assert.match(missingAuthority.stderr, /research-preflight-required/);
   for (const ownedInput of ["owned", "missing.txt", "escape"]) {
     rmSync(join(root, ".codex"), { recursive: true, force: true });
     const rejected = command(root, "init", {
+      ...authorityOptions,
       goal: "invalid-fixture",
       objective: "invalid input",
       ownedInput,
@@ -841,6 +891,7 @@ test("owned inputs must be readable in-root files and budgets have hard maxima",
   }
   rmSync(join(root, ".codex"), { recursive: true, force: true });
   const unbounded = command(root, "init", {
+    ...authorityOptions,
     goal: "invalid-fixture",
     objective: "invalid budget",
     ownedInput: "file.txt",
@@ -862,6 +913,7 @@ test("an explicit transition replaces only a completed goal and preserves histor
   });
   const previousHistoryLength = history(root).length;
   const initialized = run(root, "init", {
+    ...authorityOptions,
     goal: "replacement-goal",
     objective: "Exercise the next bounded goal",
     objectiveRef: "issues/23",
@@ -934,6 +986,17 @@ test("an admitted goal can adopt a new material owned input before evidence", ()
   git(root, "commit", "-qm", "change lesson");
   const reconciled = run(root, "reconcile", { now: "2026-07-19T10:00:01.000Z" });
   assert.equal(reconciled.reason, "revision-changed");
+});
+
+test("a material revision cannot advance without a durable iteration review", () => {
+  const root = createFixture();
+  const priorRevision = active(root).revision.fingerprint;
+  writeFileSync(join(root, "owned/input.txt"), "revision two\n");
+  git(root, "add", "owned/input.txt");
+  git(root, "commit", "-qm", "unreviewed revision");
+  const blocked = run(root, "reconcile", { now: "2026-07-19T10:00:00.000Z" });
+  assert.equal(blocked.reason, "iteration-review-required");
+  assert.equal(active(root).revision.fingerprint, priorRevision);
 });
 
 test("concurrent differing owned-input adoption preserves both paths", async () => {
