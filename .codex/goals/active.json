@@ -7,9 +7,9 @@
   "reason": "revision-changed",
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
-    "fingerprint": "d547fe025162120d37bad6bf40364394f09ba10f092f3b57f3a4090611975200",
-    "head": "f41bf8fcc5e352e8cbbb2acf317011112b9c18d2",
-    "ownedManifest": "a379f3c8e97631198f3bedbdb0ba34f8bf4d96a302bc53f5e54970542783d689",
+    "fingerprint": "441103b71a64ae0ac6f310eafe91b5879303c132ff7a93ef37c7b6f1cbfb1c9f",
+    "head": "8b54c243a2e87fe51c965556bc3dc95884d548ce",
+    "ownedManifest": "7376e656ed0a9210f92b0ea7596d536a1214cda2c6e23b20ed5f6e6fb0bc668f",
     "ownedInputs": [
       "AGENTS.md",
       "docs/agents/adaptive-orchestration.md",
@@ -98,7 +98,7 @@
         "revision": "490933e95c950860e13065d5879c71551ade97f2f4b5d1eb364bdfb85736a8bf"
       }
     ],
-    "enforceFromRevision": "d547fe025162120d37bad6bf40364394f09ba10f092f3b57f3a4090611975200"
+    "enforceFromRevision": "441103b71a64ae0ac6f310eafe91b5879303c132ff7a93ef37c7b6f1cbfb1c9f"
   },
   "lastWakeTokenHash": "ba5e4622febf4bf181e415a22efcbbbcb3a463b74bc8a727fc62a91fa8b5c546"
 }
