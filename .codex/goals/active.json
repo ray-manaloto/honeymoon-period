@@ -13,7 +13,7 @@
       "evidenceRef": "docs/agents/adaptive-orchestration.md#goal-change-log"
     }
   },
-  "state": "running",
+  "state": "complete",
   "reason": null,
   "revision": {
     "fingerprint": "fd13dcc4df133ef057a1560bff9262e3769e8dbb3202e4be56d80c8291e87257",
@@ -33,17 +33,25 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 10,
-  "lastWakeToken": "root-20260719T171000-issue23-preflight-pass",
+  "leaseEpoch": 11,
+  "lastWakeToken": "root-20260719T175000-issue23-complete",
   "question": null,
-  "run": {
-    "deadlineAt": "2026-07-19T16:14:19.535Z",
-    "directChildrenUsed": 0,
-    "ownerToken": "dc9edc09-ca7b-40fa-9c1b-1b51e3100f07",
-    "startedAt": "2026-07-19T15:44:19.535Z"
-  },
+  "run": null,
   "evidence": {
-    "current": []
+    "current": [
+      {
+        "aggregateRecordHash": "8f7d30c63dc236ad44bbae84f9d8ac794ad0219900a72dd41b221432a247d1a1",
+        "at": "2026-07-19T15:55:11.766Z",
+        "protectedArtifactRecordHash": "1aff155f652d31d3f9617ae17df286e6115b087a0c72b912c613332ab77ab9f1",
+        "revision": "fd13dcc4df133ef057a1560bff9262e3769e8dbb3202e4be56d80c8291e87257",
+        "validatorAgent": "61a8758639764f3b6e97721d57ad60feb9a6013fa6598f6531ba379ccb150117",
+        "validatorRecordHash": "4b81efc9e6f8a02cf3e659bc641a09e2183ce369b8858d83fd69c9482782a30a",
+        "validatorVerdict": "PASS",
+        "verifierAgent": "861cd061842e1c3cea4ba7aec479cba2eeeec31d43fae94e5b76c4899dd996dc",
+        "verifierRecordHash": "271b0d7b6e6469821325c15a3df6dde6d52a5bc02bac2841e1e4b9d237b4ac61",
+        "verifierVerdict": "ACCEPT"
+      }
+    ]
   },
   "continuation": {
     "automationId": "continue-symphony-controller-goal",
@@ -57,7 +65,7 @@
   "budgets": {
     "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 10
+    "runsUsed": 11
   },
   "policy": {
     "maxDirectChildren": 3,
@@ -65,5 +73,7 @@
     "maxRetries": 2,
     "maxRuntimeMs": 1800000,
     "ttlMs": 300000
-  }
+  },
+  "waiting": null,
+  "lastCheckpointId": "af79edd6-048f-4308-89b6-cc943ef13742"
 }
