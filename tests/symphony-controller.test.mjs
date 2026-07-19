@@ -525,6 +525,12 @@ test("mutation serialization prevents takeover during a checkpoint", async () =>
     testPauseMs: 500,
   });
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 100));
+  const mutexOwnerPath = join(root, ".codex/goals/.mutation/owner.json");
+  const mutexOwner = JSON.parse(readFileSync(mutexOwnerPath, "utf8"));
+  writeFileSync(
+    mutexOwnerPath,
+    `${JSON.stringify({ ...mutexOwner, expiresAt: "2000-01-01T00:00:00.000Z" })}\n`,
+  );
   const contender = run(root, "wake", {
     wakeToken: "two",
     now: "2026-07-19T10:00:02.000Z",
@@ -533,6 +539,27 @@ test("mutation serialization prevents takeover during a checkpoint", async () =>
   const completed = await checkpointing;
   assert.equal(completed.status, 0, completed.stderr);
   assert.equal(completed.result.state, "waiting");
+  assert.equal(existsSync(join(root, ".codex/goals/.mutation")), false);
+});
+
+test("a former mutation owner cannot remove a differently-tokened successor lock", async () => {
+  const root = createFixture();
+  const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
+  const checkpointing = runAsync(root, "checkpoint", {
+    dueAt: "2026-07-19T10:00:05.000Z",
+    ownerToken: lease.ownerToken,
+    state: "waiting",
+    now: "2026-07-19T10:00:00.100Z",
+    testPauseMs: 500,
+  });
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 100));
+  const mutexOwnerPath = join(root, ".codex/goals/.mutation/owner.json");
+  const mutexOwner = JSON.parse(readFileSync(mutexOwnerPath, "utf8"));
+  writeFileSync(mutexOwnerPath, `${JSON.stringify({ ...mutexOwner, token: "successor" })}\n`);
+  const completed = await checkpointing;
+  assert.equal(completed.status, 0, completed.stderr);
+  assert.equal(existsSync(join(root, ".codex/goals/.mutation")), true);
+  assert.equal(JSON.parse(readFileSync(mutexOwnerPath, "utf8")).token, "successor");
 });
 
 test("question claim recovers after a pre-emission crash window", () => {

@@ -258,20 +258,36 @@ function event(goal, now, type, details = {}) {
   };
 }
 
+function processIdentity(pid) {
+  try {
+    const started = execFileSync("ps", ["-o", "lstart=", "-p", String(pid)], {
+      encoding: "utf8",
+    }).trim();
+    return started ? hash(`${pid}\0${started}`) : null;
+  } catch {
+    return null;
+  }
+}
+
 function withMutationLock(root, callback) {
   const lock = join(paths(root).directory, ".mutation");
+  const selfIdentity = processIdentity(process.pid);
+  if (!selfIdentity) fail("process-identity-unavailable");
+  let token;
   const acquire = () => {
     try {
       mkdirSync(lock, { mode: 0o700 });
+      token = randomUUID();
       atomicJson(join(lock, "owner.json"), {
-        expiresAt: new Date(Date.now() + 30_000).toISOString(),
-        token: randomUUID(),
+        pid: process.pid,
+        processIdentity: selfIdentity,
+        token,
       });
       return true;
     } catch {
       try {
         const owner = JSON.parse(readFileSync(join(lock, "owner.json"), "utf8"));
-        if (Date.parse(owner.expiresAt) <= Date.now()) {
+        if (!owner.processIdentity || processIdentity(owner.pid) !== owner.processIdentity) {
           const stale = `${lock}.stale-${randomUUID()}`;
           renameSync(lock, stale);
           fsyncParent(lock);
@@ -298,8 +314,18 @@ function withMutationLock(root, callback) {
   try {
     return callback();
   } finally {
-    rmSync(lock, { recursive: true });
-    fsyncParent(lock);
+    try {
+      const owner = JSON.parse(readFileSync(join(lock, "owner.json"), "utf8"));
+      if (owner.token === token) {
+        const released = `${lock}.released-${token}`;
+        renameSync(lock, released);
+        fsyncParent(lock);
+        rmSync(released, { recursive: true });
+        fsyncParent(released);
+      }
+    } catch {
+      // A recovered former owner must never remove a successor's lock.
+    }
   }
 }
 
@@ -342,7 +368,8 @@ function reconcileLocked(root, goal, now) {
     (name) =>
       name.startsWith(".lease.stale-") ||
       name.startsWith(".lease.released-") ||
-      name.startsWith(".mutation.stale-"),
+      name.startsWith(".mutation.stale-") ||
+      name.startsWith(".mutation.released-"),
   );
   for (const residue of residues)
     rmSync(join(controllerPaths.directory, residue), { recursive: true });
