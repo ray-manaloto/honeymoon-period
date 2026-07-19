@@ -3,13 +3,13 @@
   "goalId": "self-learning-autonomy-loop",
   "objectiveFingerprint": "429b78ea87394d1341c81bed3aae6f0cd0bbb4a413d011126295fad8013ef5f2",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "running",
-  "reason": null,
+  "state": "ready",
+  "reason": "revision-changed",
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
-    "fingerprint": "54ebc8f366d3aee9e9e288f1f8be8496d6f45e15df823d6e4152730ccf01f589",
-    "head": "bd102d342ad34e2bd6583c703a6b8220c31ac746",
-    "ownedManifest": "99d04714e940ee47063844153d314bcf4bbc7634d2787ac9395b39564f226129",
+    "fingerprint": "e2bbec1010a3656a40741c30456a4171e92151ca019c857aa30a86029cf96f38",
+    "head": "1e9c7ef1926120a0b5dbdd8b3141c31cb83e7438",
+    "ownedManifest": "e69f9a1a3115c81b71317b4928c9ce38f769a11bc9de137e44c997eb21df3c8f",
     "ownedInputs": [
       "AGENTS.md",
       "docs/agents/adaptive-orchestration.md",
@@ -31,52 +31,14 @@
       "tests/symphony-controller.test.mjs",
       ".gitignore",
       "scripts/mutation-lock.py",
-      "biome.json"
+      "biome.json",
+      "tests/support/symphony-controller-harness.mjs"
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
   "leaseEpoch": 16,
   "question": null,
-  "run": {
-    "childClaims": [
-      {
-        "epoch": 16,
-        "expiresAt": "2026-07-19T23:41:30.867Z",
-        "head": "3d0dc4521a420af9c760b27e4b0d32056927c59e",
-        "manifest": "99d04714e940ee47063844153d314bcf4bbc7634d2787ac9395b39564f226129",
-        "revision": "54ebc8f366d3aee9e9e288f1f8be8496d6f45e15df823d6e4152730ccf01f589",
-        "status": "completed",
-        "taskRefHash": "408e3d2ce0d38f9655cac11f580f4be5dd3b1413378abaa098ed97479b2d1d5d",
-        "tokenHash": "71dd3e2db83a565a49712ea0032d471258836bea59b61412cccee023c2a8526d",
-        "settledAt": "2026-07-19T23:43:09.038Z"
-      },
-      {
-        "epoch": 16,
-        "expiresAt": "2026-07-19T23:41:30.867Z",
-        "head": "3d0dc4521a420af9c760b27e4b0d32056927c59e",
-        "manifest": "99d04714e940ee47063844153d314bcf4bbc7634d2787ac9395b39564f226129",
-        "revision": "54ebc8f366d3aee9e9e288f1f8be8496d6f45e15df823d6e4152730ccf01f589",
-        "status": "completed",
-        "taskRefHash": "98c2128c25f991d7c976af66b8f17d0a5014f1133a12b8e141f4b849aeb54f73",
-        "tokenHash": "ddcdf35f0301b0bf16f40caa771d57959c7ddd7879d0318abe6978c1df4c91f0",
-        "settledAt": "2026-07-19T23:39:38.029Z"
-      },
-      {
-        "epoch": 16,
-        "expiresAt": "2026-07-19T23:41:30.867Z",
-        "head": "3d0dc4521a420af9c760b27e4b0d32056927c59e",
-        "manifest": "99d04714e940ee47063844153d314bcf4bbc7634d2787ac9395b39564f226129",
-        "revision": "54ebc8f366d3aee9e9e288f1f8be8496d6f45e15df823d6e4152730ccf01f589",
-        "status": "completed",
-        "taskRefHash": "ff99d5a97dc2cacae349725f255d2b5ec86115aed64a7f49e76b312dd9ff172f",
-        "tokenHash": "72ae981de76ecea703bf1092b1a8b095624a4e5c43d0aafdca24bfa8aa6e9068",
-        "settledAt": "2026-07-19T23:39:03.834Z"
-      }
-    ],
-    "deadlineAt": "2026-07-20T00:02:02.075Z",
-    "ownerTokenHash": "24043a6fc490cc538e9ce5557b2e8bdc66691eb7c47899356c704bd878b77f5f",
-    "startedAt": "2026-07-19T23:32:02.075Z"
-  },
+  "run": null,
   "evidence": {
     "current": []
   },
@@ -156,7 +118,7 @@
         "revision": "54ebc8f366d3aee9e9e288f1f8be8496d6f45e15df823d6e4152730ccf01f589"
       }
     ],
-    "enforceFromRevision": "54ebc8f366d3aee9e9e288f1f8be8496d6f45e15df823d6e4152730ccf01f589"
+    "enforceFromRevision": "e2bbec1010a3656a40741c30456a4171e92151ca019c857aa30a86029cf96f38"
   },
   "lastWakeTokenHash": "39434b479f7e7525bfff73a842dc8699af8ba4b1064ec01746f5456c9b478a56"
 }
