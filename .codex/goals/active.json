@@ -7,9 +7,9 @@
   "reason": null,
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
-    "fingerprint": "441103b71a64ae0ac6f310eafe91b5879303c132ff7a93ef37c7b6f1cbfb1c9f",
-    "head": "8b54c243a2e87fe51c965556bc3dc95884d548ce",
-    "ownedManifest": "7376e656ed0a9210f92b0ea7596d536a1214cda2c6e23b20ed5f6e6fb0bc668f",
+    "fingerprint": "7e8d3fb09ba1ab9f305e5e15ca90bb97875a0623789a34447bace276252e2b68",
+    "head": "bd102d342ad34e2bd6583c703a6b8220c31ac746",
+    "ownedManifest": "eaee7ef90428296d1d69f66c5e2a181935eebeb3919407974807563de1c8d019",
     "ownedInputs": [
       "AGENTS.md",
       "docs/agents/adaptive-orchestration.md",
@@ -34,13 +34,13 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 14,
+  "leaseEpoch": 15,
   "question": null,
   "run": {
-    "deadlineAt": "2026-07-19T23:47:16.494Z",
-    "directChildrenUsed": 0,
-    "ownerTokenHash": "e6ca5c0409dc0d0cd7cb8afb3c53b1f64a092524811b25e9d05b625827773ca0",
-    "startedAt": "2026-07-19T23:17:16.494Z"
+    "childClaims": [],
+    "deadlineAt": "2026-07-20T00:01:25.919Z",
+    "ownerTokenHash": "c3c34c69ee5255a2e3980c2346e57307e51c21732296afd42c1f8302d58f25f8",
+    "startedAt": "2026-07-19T23:31:25.919Z"
   },
   "evidence": {
     "current": []
@@ -48,7 +48,7 @@
   "budgets": {
     "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 14
+    "runsUsed": 15
   },
   "policy": {
     "maxDirectChildren": 3,
@@ -112,7 +112,7 @@
         "revision": "441103b71a64ae0ac6f310eafe91b5879303c132ff7a93ef37c7b6f1cbfb1c9f"
       }
     ],
-    "enforceFromRevision": "441103b71a64ae0ac6f310eafe91b5879303c132ff7a93ef37c7b6f1cbfb1c9f"
+    "enforceFromRevision": "7e8d3fb09ba1ab9f305e5e15ca90bb97875a0623789a34447bace276252e2b68"
   },
-  "lastWakeTokenHash": "d4bed26b3cb42a346432ba3d4e88c5c65b6df7c6920e5fd06f3df5061ec1f63e"
+  "lastWakeTokenHash": "3abd20fcf0312c78e5a5f18401f2a95e199006a2a8cf8a395bb8848cef5ad42b"
 }
