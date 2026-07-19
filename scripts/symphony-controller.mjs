@@ -700,7 +700,10 @@ function adoptInput(root, goal, options, now) {
     goal.revision = revision(root, goal);
     goal.evidence.current = [];
     atomicJson(paths(root).active, goal);
-    appendEvent(paths(root).history, event(goal, now, "owned-input-adopted", { input: hash(input) }));
+    appendEvent(
+      paths(root).history,
+      event(goal, now, "owned-input-adopted", { input: hash(input) }),
+    );
     return { action: "owned-input-adopted", state: goal.state };
   });
   if (!locked) fail("mutation-contention");
