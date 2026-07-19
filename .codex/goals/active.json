@@ -3,8 +3,8 @@
   "goalId": "symphony-conformance-controller",
   "objectiveFingerprint": "455f7a3cf6bf7fe4992f177c46d333c14fdb7af6cf0ab7423dee1805d341305b",
   "objectiveRef": "delegated-goal-and-docs/agents/adaptive-orchestration.md",
-  "state": "ready",
-  "reason": "revision-changed",
+  "state": "waiting",
+  "reason": null,
   "revision": {
     "fingerprint": "6e928f196fc938afff049495050616173f588fccaeccd566aa9495486f0d4547",
     "head": "c6fa48b86223372633808af2b27f724272acaa9a",
@@ -19,8 +19,8 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 0,
-  "lastWakeToken": null,
+  "leaseEpoch": 1,
+  "lastWakeToken": "heartbeat-20260719T101600-native-continuation",
   "question": null,
   "run": null,
   "evidence": {
@@ -28,17 +28,19 @@
   },
   "continuation": {
     "automationId": "continue-symphony-controller-goal",
-    "configHash": "b2fc60974fc40e9f5e1abcc86bbd26fa25e620fa340b39f72af08b5fea90604d",
+    "configHash": "40c4dcc6fbbdc652c32d1e50a684ef49767234f5b68d9af5a9d2454498991fec",
     "intervalMinutes": 10,
     "kind": "codex-desktop-heartbeat",
-    "registryReadAt": "2026-07-19T10:15:00.000Z",
+    "observedWakeAt": "2026-07-19T10:16:31.137Z",
+    "observedWakeEpoch": 1,
+    "registryReadAt": "2026-07-19T10:17:00.000Z",
     "role": "wake-trigger-only",
     "status": "ACTIVE"
   },
   "budgets": {
     "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 0
+    "runsUsed": 1
   },
   "policy": {
     "maxDirectChildren": 3,
@@ -46,5 +48,9 @@
     "maxRetries": 2,
     "maxRuntimeMs": 1800000,
     "ttlMs": 300000
+  },
+  "waiting": {
+    "dueAt": "2026-07-19T15:30:00.000Z",
+    "reason": "observed-heartbeat-recording"
   }
 }
