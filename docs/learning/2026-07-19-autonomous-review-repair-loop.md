@@ -35,6 +35,8 @@ Gate records also carry the exact reviewed Git HEAD as well as the controller re
 the latter intentionally filters state-only commits and cannot substitute for merge-head binding.
 The fault review also required mutation-lock initialization to publish the directory and
 owner atomically; an ownerless canonical mutex is never a valid live intermediate state.
+All state-changing commands must reread authoritative state inside that mutex, and dead
+prepared-lock candidates must be reconciled so crash safety does not create hidden residue.
 
 ## Correction
 

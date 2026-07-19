@@ -283,10 +283,35 @@ function processIdentity(pid) {
   }
 }
 
+function sweepMutationCandidates(root) {
+  const directory = paths(root).directory;
+  for (const name of readdirSync(directory).filter((entry) =>
+    entry.startsWith(".mutation.candidate-"),
+  )) {
+    const candidate = join(directory, name);
+    let recover = false;
+    try {
+      const owner = JSON.parse(readFileSync(join(candidate, "owner.json"), "utf8"));
+      recover = !owner.processIdentity || processIdentity(owner.pid) !== owner.processIdentity;
+    } catch {
+      try {
+        recover = Date.now() - statSync(candidate).mtimeMs > 30_000;
+      } catch {
+        continue;
+      }
+    }
+    if (recover) {
+      rmSync(candidate, { recursive: true, force: true });
+      fsyncParent(candidate);
+    }
+  }
+}
+
 function withMutationLock(root, callback) {
   const lock = join(paths(root).directory, ".mutation");
   const selfIdentity = processIdentity(process.pid);
   if (!selfIdentity) fail("process-identity-unavailable");
+  sweepMutationCandidates(root);
   let token;
   const acquire = () => {
     token = randomUUID();
@@ -298,6 +323,12 @@ function withMutationLock(root, callback) {
         processIdentity: selfIdentity,
         token,
       });
+      if (
+        process.env.SYMPHONY_CONTROLLER_TEST_MODE === "1" &&
+        process.env.SYMPHONY_CONTROLLER_TEST_MUTATION_INIT_CRASH === "1"
+      ) {
+        process.exit(87);
+      }
       if (process.env.SYMPHONY_CONTROLLER_TEST_MODE === "1") {
         const pause = Number(process.env.SYMPHONY_CONTROLLER_TEST_MUTATION_INIT_PAUSE_MS ?? 0);
         if (pause > 0) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, pause);
@@ -709,7 +740,12 @@ function initializeLocked(root, options, now) {
 }
 
 function adoptInput(root, goal, options, now) {
+  if (process.env.SYMPHONY_CONTROLLER_TEST_MODE === "1") {
+    const pause = Number(process.env.SYMPHONY_CONTROLLER_TEST_ADOPT_PRELOCK_PAUSE_MS ?? 0);
+    if (pause > 0) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, pause);
+  }
   const locked = withMutationLock(root, () => {
+    goal = readJson(paths(root).active, "active-goal-missing");
     if (goal.state !== "ready" || existsSync(paths(root).lease)) fail("goal-not-ready");
     const input = safeOwnedInput(options.ownedInput);
     if (goal.revision.ownedInputs.includes(input)) {

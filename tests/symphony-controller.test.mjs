@@ -169,7 +169,12 @@ function evidenceRecords(root, completedAt) {
 }
 
 function runAsync(root, action, options = {}) {
-  const { testMutationInitPauseMs, ...commandOptions } = options;
+  const {
+    testAdoptPrelockPauseMs,
+    testMutationInitCrash,
+    testMutationInitPauseMs,
+    ...commandOptions
+  } = options;
   return new Promise((resolveResult) => {
     const child = spawn("node", [controller, action, "--root", root, ...argsFor(commandOptions)], {
       env: {
@@ -177,6 +182,10 @@ function runAsync(root, action, options = {}) {
         SYMPHONY_CONTROLLER_TEST_MODE: "1",
         ...(testMutationInitPauseMs
           ? { SYMPHONY_CONTROLLER_TEST_MUTATION_INIT_PAUSE_MS: String(testMutationInitPauseMs) }
+          : {}),
+        ...(testMutationInitCrash ? { SYMPHONY_CONTROLLER_TEST_MUTATION_INIT_CRASH: "1" } : {}),
+        ...(testAdoptPrelockPauseMs
+          ? { SYMPHONY_CONTROLLER_TEST_ADOPT_PRELOCK_PAUSE_MS: String(testAdoptPrelockPauseMs) }
           : {}),
       },
       stdio: ["ignore", "pipe", "pipe"],
@@ -552,6 +561,21 @@ test("mutation initialization atomically publishes an owned canonical lock", asy
   assert.equal(initialized.result.state, "ready");
 });
 
+test("startup sweeps a dead prepared mutation candidate", async () => {
+  const root = createFixture();
+  const crashed = await runAsync(root, "reconcile", { testMutationInitCrash: true });
+  assert.equal(crashed.status, 87);
+  assert.ok(
+    readdirSync(join(root, ".codex/goals")).some((name) => name.startsWith(".mutation.candidate-")),
+  );
+  const recovered = run(root, "reconcile", { now: "2026-07-19T10:00:00.000Z" });
+  assert.equal(recovered.state, "ready");
+  assert.equal(
+    readdirSync(join(root, ".codex/goals")).some((name) => name.startsWith(".mutation.candidate-")),
+    false,
+  );
+});
+
 test("startup replays a checkpoint journal committed to active state", () => {
   const root = createFixture();
   const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
@@ -843,4 +867,22 @@ test("an admitted goal can adopt a new material owned input before evidence", ()
   git(root, "commit", "-qm", "change lesson");
   const reconciled = run(root, "reconcile", { now: "2026-07-19T10:00:01.000Z" });
   assert.equal(reconciled.reason, "revision-changed");
+});
+
+test("concurrent differing owned-input adoption preserves both paths", async () => {
+  const root = createFixture();
+  writeFileSync(join(root, "owned/a.txt"), "a\n");
+  writeFileSync(join(root, "owned/b.txt"), "b\n");
+  const delayed = runAsync(root, "adopt-input", {
+    ownedInput: "owned/a.txt",
+    testAdoptPrelockPauseMs: 500,
+  });
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 100));
+  const first = run(root, "adopt-input", { ownedInput: "owned/b.txt" });
+  assert.equal(first.action, "owned-input-adopted");
+  const second = await delayed;
+  assert.equal(second.status, 0, second.stderr);
+  assert.equal(second.result.action, "owned-input-adopted");
+  assert.ok(active(root).revision.ownedInputs.includes("owned/a.txt"));
+  assert.ok(active(root).revision.ownedInputs.includes("owned/b.txt"));
 });
