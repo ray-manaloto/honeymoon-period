@@ -13,10 +13,9 @@ unchanged and usable.
 ## Run the backend locally
 
 ```sh
-cd prototype/cloudflare-api
-npm install
-npm run migrate
-npm run dev
+npm ci --ignore-scripts
+npm run db:reset
+npm run dev:api
 ```
 
 Exercise the Shortcut-shaped request with:

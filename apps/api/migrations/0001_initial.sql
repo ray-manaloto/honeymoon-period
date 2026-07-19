@@ -41,7 +41,7 @@ CREATE TABLE preference_change_requests (
   id TEXT PRIMARY KEY,
   actor_id TEXT NOT NULL REFERENCES actors(id),
   client_request_id TEXT NOT NULL,
-  honeymoon_period_id TEXT NOT NULL REFERENCES honeymoon_periods(id) ON DELETE CASCADE,
+  honeymoon_period_id TEXT NOT NULL REFERENCES honeymoon_periods(id),
   payload_fingerprint TEXT NOT NULL,
   UNIQUE (actor_id, client_request_id)
 );
@@ -49,7 +49,7 @@ CREATE TABLE preference_events (
   sequence INTEGER PRIMARY KEY AUTOINCREMENT,
   id TEXT NOT NULL UNIQUE,
   request_id TEXT NOT NULL UNIQUE REFERENCES preference_change_requests(id),
-  honeymoon_period_id TEXT NOT NULL REFERENCES honeymoon_periods(id) ON DELETE CASCADE,
+  honeymoon_period_id TEXT NOT NULL REFERENCES honeymoon_periods(id),
   actor_id TEXT NOT NULL REFERENCES actors(id),
   event_type TEXT NOT NULL CHECK (event_type = 'PreferenceChanged'),
   before_vote TEXT CHECK (before_vote IN ('interested', 'maybe', 'decline') OR before_vote IS NULL),

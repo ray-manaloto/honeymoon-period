@@ -165,9 +165,15 @@ test("7. supports the primary phone viewport and keyboard-only capture", async (
   await expect(page.getByRole("heading", { name: "Fixture Bistro" })).toBeVisible();
   const preferenceForm = page.getByRole("form", { name: "Your preference" });
   await expect(preferenceForm).toBeVisible();
-  await preferenceForm.getByLabel("Vote").selectOption("interested");
-  await preferenceForm.getByLabel("Score (0–5, optional)").fill("4");
-  await preferenceForm.getByRole("button", { name: "Save preference" }).click();
+  await preferenceForm.getByLabel("Vote").focus();
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Tab");
+  await page.keyboard.type("4");
+  await page.keyboard.press("Tab");
+  await page.keyboard.type("Keyboard submission");
+  await page.keyboard.press("Tab");
+  await expect(preferenceForm.getByRole("button", { name: "Save preference" })).toBeFocused();
+  await page.keyboard.press("Enter");
   await expect(page.getByText("interested · 4/5", { exact: false })).toBeVisible();
   await expect
     .poll(() =>

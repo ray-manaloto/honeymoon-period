@@ -1,6 +1,5 @@
 import type {
   HoneymoonPeriod,
-  HoneymoonPeriodDetail,
   Note,
   Preference,
   PreferenceChangeInput,
@@ -12,6 +11,7 @@ import {
   ACTOR_STORAGE_KEY,
   ACTORS,
   type HoneymoonDataProvider,
+  type HoneymoonPeriodView,
   type HoneymoonRecord,
 } from "./data-provider";
 import { ErrorState, errorMessage, LoadingState } from "./state";
@@ -381,7 +381,7 @@ function Notes({ id, notes, done }: { id: string; notes: Note[]; done: () => voi
   );
 }
 
-function DetailContent({ detail, reload }: { detail: HoneymoonPeriodDetail; reload: () => void }) {
+function DetailContent({ detail, reload }: { detail: HoneymoonPeriodView; reload: () => void }) {
   const { item } = detail;
   const actor = currentActor();
   const ownPreference = detail.preferences.find((preference) => preference.actor_id === actor.id);
@@ -466,12 +466,12 @@ function DetailContent({ detail, reload }: { detail: HoneymoonPeriodDetail; relo
                 <li key={historyEvent.id}>
                   <strong>{historyEvent.display_name}</strong>
                   <span>
-                    {historyEvent.changes.vote.before ?? "No vote"} →{" "}
-                    {historyEvent.changes.vote.after ?? "No vote"};{" "}
-                    {historyEvent.changes.score.before ?? "No score"} →{" "}
-                    {historyEvent.changes.score.after ?? "No score"}
+                    {historyEvent.payload.changes.vote.before ?? "No vote"} →{" "}
+                    {historyEvent.payload.changes.vote.after ?? "No vote"};{" "}
+                    {historyEvent.payload.changes.score.before ?? "No score"} →{" "}
+                    {historyEvent.payload.changes.score.after ?? "No score"}
                   </span>
-                  {historyEvent.reason ? <p>{historyEvent.reason}</p> : null}
+                  {historyEvent.payload.reason ? <p>{historyEvent.payload.reason}</p> : null}
                   <time dateTime={historyEvent.accepted_at}>
                     Change {historyEvent.sequence} ·{" "}
                     {new Date(historyEvent.accepted_at).toLocaleString()}

@@ -163,12 +163,11 @@ The canonical planning board is the
 
 Preference/history semantics are approved in
 [#19](https://github.com/ray-manaloto/honeymoon-period/issues/19), which is
-closed as the decision record. Product implementation is not part of the current
-documentation/orchestration goal. Work the ready-for-agent tracer bullets in order:
+closed as the decision record. The immutable preference-change and shared-history
+slice is implemented by #23. Continue the remaining dependent tracer bullets in order:
 
-1. [#23 Record and show immutable preference changes](https://github.com/ray-manaloto/honeymoon-period/issues/23);
-2. [#24 Apply and replay the versioned preference policy](https://github.com/ray-manaloto/honeymoon-period/issues/24), blocked by #23; and
-3. [#25 Redact preference history to shared tombstones](https://github.com/ray-manaloto/honeymoon-period/issues/25), blocked by #24.
+1. [#24 Apply and replay the versioned preference policy](https://github.com/ray-manaloto/honeymoon-period/issues/24), after #23; and
+2. [#25 Redact preference history to shared tombstones](https://github.com/ray-manaloto/honeymoon-period/issues/25), blocked by #24.
 
 The remaining intentionally deferred questions are:
 

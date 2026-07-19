@@ -1,4 +1,4 @@
-import type { HoneymoonPeriodDetail } from "@honeymoon-period/generated";
+import type { HistoryPage, HoneymoonPeriodDetail } from "@honeymoon-period/generated";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { memoryStore } from "react-admin";
@@ -19,7 +19,7 @@ const item = {
   created_at: "2026-01-01T00:00:00.000Z",
   updated_at: "2026-01-02T00:00:00.000Z",
 };
-const detail: HoneymoonPeriodDetail = {
+const detail: HoneymoonPeriodDetail & { history: HistoryPage } = {
   item,
   captures: [
     {
@@ -62,10 +62,12 @@ const detail: HoneymoonPeriodDetail = {
         actor_id: "actor-a",
         display_name: "Participant A",
         accepted_at: item.updated_at,
-        reason: "Great patio",
-        changes: {
-          vote: { before: null, after: "interested" },
-          score: { before: null, after: 5 },
+        payload: {
+          reason: "Great patio",
+          changes: {
+            vote: { before: null, after: "interested" },
+            score: { before: null, after: 5 },
+          },
         },
       },
     ],

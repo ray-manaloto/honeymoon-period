@@ -2,6 +2,7 @@ import {
   type ApiClientOptions,
   createApiClient,
   createReactAdminTransport,
+  type HistoryPage,
   type HoneymoonPeriod,
   type HoneymoonPeriodDetail,
   type Note,
@@ -18,7 +19,8 @@ export const ACTORS = [
   { id: "actor-b", name: "Participant B", token: "prototype-participant-b" },
 ] as const;
 
-export type HoneymoonRecord = HoneymoonPeriod & { detail?: HoneymoonPeriodDetail };
+export type HoneymoonPeriodView = HoneymoonPeriodDetail & { history: HistoryPage };
+export type HoneymoonRecord = HoneymoonPeriod & { detail?: HoneymoonPeriodView };
 
 export interface HoneymoonDataProvider extends DataProvider {
   createPreferenceChange: (

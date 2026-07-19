@@ -76,10 +76,11 @@ approved specification. Its settled semantics are:
 - historical rank replays events with their applicable policy version; and
 - history is retained indefinitely by default through additive `/v1` evolution.
 
-Implementation is intentionally deferred to the ready-for-agent tracer bullets
-[#23](https://github.com/ray-manaloto/honeymoon-period/issues/23),
-[#24](https://github.com/ray-manaloto/honeymoon-period/issues/24), and
-[#25](https://github.com/ray-manaloto/honeymoon-period/issues/25).
+Immutable preference changes and participant-visible history are implemented by
+[#23](https://github.com/ray-manaloto/honeymoon-period/issues/23). Versioned policy
+replay and tombstone redaction remain intentionally deferred to the dependent
+[#24](https://github.com/ray-manaloto/honeymoon-period/issues/24) and
+[#25](https://github.com/ray-manaloto/honeymoon-period/issues/25) tracer bullets.
 
 ## Remaining semantics to refine
 

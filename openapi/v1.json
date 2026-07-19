@@ -414,7 +414,7 @@
       },
       "HoneymoonPeriodDetail": {
         "type": "object",
-        "required": ["item", "preferences", "notes", "captures", "history"],
+        "required": ["item", "preferences", "notes", "captures"],
         "additionalProperties": false,
         "properties": {
           "item": { "$ref": "#/components/schemas/HoneymoonPeriod" },
@@ -423,8 +423,7 @@
             "items": { "$ref": "#/components/schemas/Preference" }
           },
           "notes": { "type": "array", "items": { "$ref": "#/components/schemas/Note" } },
-          "captures": { "type": "array", "items": { "$ref": "#/components/schemas/Capture" } },
-          "history": { "$ref": "#/components/schemas/HistoryPage" }
+          "captures": { "type": "array", "items": { "$ref": "#/components/schemas/Capture" } }
         }
       },
       "HoneymoonPeriodUpdate": {
@@ -485,6 +484,15 @@
           }
         }
       },
+      "PreferenceChangedPayload": {
+        "type": "object",
+        "required": ["reason", "changes"],
+        "additionalProperties": false,
+        "properties": {
+          "reason": { "type": ["string", "null"] },
+          "changes": { "$ref": "#/components/schemas/PreferenceChangedData" }
+        }
+      },
       "HistoryEvent": {
         "type": "object",
         "required": [
@@ -495,8 +503,7 @@
           "actor_id",
           "display_name",
           "accepted_at",
-          "reason",
-          "changes"
+          "payload"
         ],
         "additionalProperties": false,
         "properties": {
@@ -507,8 +514,9 @@
           "actor_id": { "type": "string" },
           "display_name": { "type": "string" },
           "accepted_at": { "type": "string", "format": "date-time" },
-          "reason": { "type": ["string", "null"] },
-          "changes": { "$ref": "#/components/schemas/PreferenceChangedData" }
+          "payload": {
+            "oneOf": [{ "$ref": "#/components/schemas/PreferenceChangedPayload" }]
+          }
         }
       },
       "HistoryPage": {

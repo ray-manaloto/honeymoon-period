@@ -357,8 +357,7 @@ export const componentSchemas = {
       "item",
       "preferences",
       "notes",
-      "captures",
-      "history"
+      "captures"
     ],
     "additionalProperties": false,
     "properties": {
@@ -382,9 +381,6 @@ export const componentSchemas = {
         "items": {
           "$ref": "#/components/schemas/Capture"
         }
-      },
-      "history": {
-        "$ref": "#/components/schemas/HistoryPage"
       }
     }
   },
@@ -503,6 +499,25 @@ export const componentSchemas = {
       }
     }
   },
+  "PreferenceChangedPayload": {
+    "type": "object",
+    "required": [
+      "reason",
+      "changes"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "reason": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "changes": {
+        "$ref": "#/components/schemas/PreferenceChangedData"
+      }
+    }
+  },
   "HistoryEvent": {
     "type": "object",
     "required": [
@@ -513,8 +528,7 @@ export const componentSchemas = {
       "actor_id",
       "display_name",
       "accepted_at",
-      "reason",
-      "changes"
+      "payload"
     ],
     "additionalProperties": false,
     "properties": {
@@ -546,14 +560,12 @@ export const componentSchemas = {
         "type": "string",
         "format": "date-time"
       },
-      "reason": {
-        "type": [
-          "string",
-          "null"
+      "payload": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/PreferenceChangedPayload"
+          }
         ]
-      },
-      "changes": {
-        "$ref": "#/components/schemas/PreferenceChangedData"
       }
     }
   },

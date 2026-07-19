@@ -17,12 +17,14 @@ The working Apple Reminders + Beli + Shortcut workflow remains a supported basel
 - [Prototype trial](docs/TWO_WEEK_TRIAL.md)
 - [Repository conventions](docs/conventions/README.md)
 
-## Baseline and API prototype
+## Baseline and API MVP
 
 - Apple Reminders is the shared inbox and decision history.
 - Beli holds mutually wanted restaurants and post-visit rankings.
 - **Save honeymoon-period** captures shared URLs without a backend, analytics, paid API, or account token.
-- The local Workers + D1 vertical slice under `prototype/cloudflare-api` proves capture, actor-owned preferences, notes/metadata, deterministic ranking, and authenticated query behavior.
+- The canonical Workers + D1 service under `apps/api` implements capture,
+  immutable actor-owned preference history, notes/metadata, deterministic
+  ranking, and authenticated query behavior.
 
 Install and usage details remain in [docs/SETUP.md](docs/SETUP.md). The canonical Shortcut source is `shortcut/Save honeymoon-period.cherri`; `dist/Save honeymoon-period.shortcut` is the generated, signed deliverable.
 

@@ -158,15 +158,17 @@ function historyEventFrom(row: Row): HistoryEvent {
     actor_id: String(row.actor_id),
     display_name: String(row.display_name),
     accepted_at: String(row.accepted_at),
-    reason: row.reason === null ? null : String(row.reason),
-    changes: {
-      vote: {
-        before: row.before_vote as HistoryEvent["changes"]["vote"]["before"],
-        after: row.after_vote as HistoryEvent["changes"]["vote"]["after"],
-      },
-      score: {
-        before: row.before_score === null ? null : Number(row.before_score),
-        after: row.after_score === null ? null : Number(row.after_score),
+    payload: {
+      reason: row.reason === null ? null : String(row.reason),
+      changes: {
+        vote: {
+          before: row.before_vote as HistoryEvent["payload"]["changes"]["vote"]["before"],
+          after: row.after_vote as HistoryEvent["payload"]["changes"]["vote"]["after"],
+        },
+        score: {
+          before: row.before_score === null ? null : Number(row.before_score),
+          after: row.after_score === null ? null : Number(row.after_score),
+        },
       },
     },
   };
@@ -229,7 +231,7 @@ async function detail(
     .bind(id)
     .first<Row>();
   if (!row) return null;
-  const [preferences, notesResult, capturesResult, history] = await Promise.all([
+  const [preferences, notesResult, capturesResult] = await Promise.all([
     preferencesFor(db, id),
     db
       .prepare(`SELECT n.id, n.honeymoon_period_id, n.actor_id, a.display_name, n.body, n.created_at
@@ -240,7 +242,6 @@ async function detail(
       .prepare("SELECT * FROM captures WHERE honeymoon_period_id = ? ORDER BY captured_at, id")
       .bind(id)
       .all<Row>(),
-    historyFor(db, id),
   ]);
   const notes: Note[] = notesResult.results.map((note) => ({
     id: String(note.id),
@@ -255,7 +256,6 @@ async function detail(
     preferences,
     notes,
     captures: capturesResult.results.map(captureFrom),
-    history,
   };
 }
 
@@ -729,7 +729,7 @@ export default {
         headers: {
           "access-control-allow-origin": "*",
           "access-control-allow-headers": "authorization, content-type",
-          "access-control-allow-methods": "GET, POST, PUT, PATCH, OPTIONS",
+          "access-control-allow-methods": "GET, POST, PATCH, OPTIONS",
         },
       });
     if (url.pathname === "/health") return response({ status: "ok" });

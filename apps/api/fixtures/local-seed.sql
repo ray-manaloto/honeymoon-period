@@ -1,6 +1,8 @@
 PRAGMA foreign_keys = ON;
 DELETE FROM rate_limits;
 DELETE FROM notes;
+DELETE FROM preference_events;
+DELETE FROM preference_change_requests;
 DELETE FROM preferences;
 DELETE FROM captures;
 DELETE FROM honeymoon_periods;

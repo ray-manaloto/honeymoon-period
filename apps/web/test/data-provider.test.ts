@@ -147,15 +147,20 @@ describe("honeymoon-period data provider", () => {
   });
 
   it("maps detail reads and explicitly rejects unsupported collection mutations", async () => {
-    const detail = { item, captures: [], preferences: [], notes: [], history: { items: [] } };
-    const fetch = vi
-      .fn<typeof globalThis.fetch>()
-      .mockImplementation(async () => new Response(JSON.stringify(detail), { status: 200 }));
+    const apiDetail = { item, captures: [], preferences: [], notes: [] };
+    const history = { items: [] };
+    const fetch = vi.fn<typeof globalThis.fetch>().mockImplementation(
+      async (input) =>
+        new Response(JSON.stringify(String(input).endsWith("/history") ? history : apiDetail), {
+          status: 200,
+        }),
+    );
     const provider = createHoneymoonDataProvider({ baseUrl: "/v1", fetch });
 
-    expect((await provider.getOne("honeymoon-periods", { id: item.id })).data.detail).toEqual(
-      detail,
-    );
+    expect((await provider.getOne("honeymoon-periods", { id: item.id })).data.detail).toEqual({
+      ...apiDetail,
+      history,
+    });
     expect(
       (
         await provider.getMany("honeymoon-periods", {
@@ -184,13 +189,14 @@ describe("honeymoon-period data provider", () => {
   });
 
   it("preserves the stable API error for authorization and retry UI", async () => {
-    const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          error: { code: "unauthorized", message: "valid bearer token required" },
-        }),
-        { status: 401 },
-      ),
+    const fetch = vi.fn<typeof globalThis.fetch>().mockImplementation(
+      async () =>
+        new Response(
+          JSON.stringify({
+            error: { code: "unauthorized", message: "valid bearer token required" },
+          }),
+          { status: 401 },
+        ),
     );
     const provider = createHoneymoonDataProvider({ baseUrl: "/v1", fetch });
     await expect(provider.getOne("honeymoon-periods", { id: item.id })).rejects.toMatchObject({

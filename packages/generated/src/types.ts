@@ -164,13 +164,12 @@ export interface components {
             /** Format: date-time */
             accepted_at: string;
             actor_id: string;
-            changes: components["schemas"]["PreferenceChangedData"];
             display_name: string;
             /** Format: uuid */
             honeymoon_period_id: string;
             /** Format: uuid */
             id: string;
-            reason: string | null;
+            payload: components["schemas"]["PreferenceChangedPayload"];
             sequence: number;
             /** @enum {string} */
             type: "PreferenceChanged";
@@ -197,7 +196,6 @@ export interface components {
         };
         HoneymoonPeriodDetail: {
             captures: components["schemas"]["Capture"][];
-            history: components["schemas"]["HistoryPage"];
             item: components["schemas"]["HoneymoonPeriod"];
             notes: components["schemas"]["Note"][];
             preferences: components["schemas"]["Preference"][];
@@ -259,6 +257,10 @@ export interface components {
                 after: components["schemas"]["Vote"];
                 before: components["schemas"]["Vote"];
             };
+        };
+        PreferenceChangedPayload: {
+            changes: components["schemas"]["PreferenceChangedData"];
+            reason: string | null;
         };
         PreferenceChangeInput: {
             client_request_id: string;
