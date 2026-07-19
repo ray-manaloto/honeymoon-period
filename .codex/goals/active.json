@@ -1,14 +1,15 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "goalId": "self-learning-autonomy-loop",
   "objectiveFingerprint": "429b78ea87394d1341c81bed3aae6f0cd0bbb4a413d011126295fad8013ef5f2",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
   "state": "ready",
   "reason": "revision-changed",
   "revision": {
-    "fingerprint": "50fac99b99c635353d47966e6d8822fa35b575f97905932013ca8f0818d59d56",
-    "head": "edd5370ff3345990912b3f245ba61d06d1c82d89",
-    "ownedManifest": "dd7e28a9ae3f6b0f748def60bdf4e187983a2d955dff0a6c2fbde5e9758c26aa",
+    "branch": "codex/self-learning-autonomy-loop",
+    "fingerprint": "3fdb2dc633449a0adb1f3ef645e14fa75ed32e384fa595214fe1748510bc4304",
+    "head": "9b372f6bc9860e32f73fa83067fa933914f83306",
+    "ownedManifest": "cd5ce9f4223f5f37fa19681d3ad5a6cc72b65bdb96af51a0d20e012a9a8891e0",
     "ownedInputs": [
       "AGENTS.md",
       "docs/agents/adaptive-orchestration.md",
@@ -27,12 +28,13 @@
       "docs/research/codex-autonomy-workflow-primitives.md",
       "docs/research/autonomous-agent-orchestration-trends.md",
       "scripts/symphony-controller.mjs",
-      "tests/symphony-controller.test.mjs"
+      "tests/symphony-controller.test.mjs",
+      ".gitignore",
+      "scripts/mutation-lock.py"
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 9,
-  "lastWakeToken": "manual-20260719T171500-self-learning-lock-reread",
+  "leaseEpoch": 11,
   "question": null,
   "run": null,
   "evidence": {
@@ -41,7 +43,7 @@
   "budgets": {
     "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 9
+    "runsUsed": 11
   },
   "policy": {
     "maxDirectChildren": 3,
@@ -49,5 +51,36 @@
     "maxRetries": 3,
     "maxRuntimeMs": 1800000,
     "ttlMs": 300000
-  }
+  },
+  "authority": {
+    "branch": "codex/self-learning-autonomy-loop",
+    "completionContractRef": "docs/agents/adaptive-orchestration.md#completion-contract",
+    "externalCompletion": "not-required",
+    "last30days": {
+      "evidenceRef": "docs/research/README.md",
+      "reasonCode": null,
+      "status": "reused"
+    },
+    "prohibitedActionsRef": "AGENTS.md#product-priorities",
+    "research": {
+      "evidenceRef": "docs/research/codex-autonomy-quality-loops.md",
+      "reasonCode": null,
+      "status": "reused"
+    }
+  },
+  "learning": {
+    "completed": [
+      {
+        "at": "2026-07-19T22:28:33.919Z",
+        "retrospectiveCode": "linked",
+        "retrospectiveRecordHash": "ca0bd985ab3765e17addd4c966d50a49889c0cda3d4b914a42aee7266f316b74",
+        "reviewerAgent": "36730238dce9fdfed4bfc01da637ae40c3481b1c9a11a92bb971b4b08e0896bc",
+        "reviewerRecordHash": "cda08f0c2c591904f8ccf4f6fc5a99dc9f052046972342235cd8b2b87d90489d",
+        "reviewerVerdict": "FAIL",
+        "revision": "54515c023b2443a38227ef28460666cc7ae9cc9e16c30b97d85d6d1479be1c88"
+      }
+    ],
+    "enforceFromRevision": "3fdb2dc633449a0adb1f3ef645e14fa75ed32e384fa595214fe1748510bc4304"
+  },
+  "lastWakeTokenHash": "a2a677505c950f92f64987d242e0fac53faf6039b651a072fa5fb43ef2f94867"
 }
