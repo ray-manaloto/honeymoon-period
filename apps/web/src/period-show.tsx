@@ -5,7 +5,7 @@ import type {
   Preference,
   PreferenceChangeInput,
 } from "@honeymoon-period/generated";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useDataProvider, useGetOne, useUpdate } from "react-admin";
 import { Link, useParams } from "react-router-dom";
 import {
@@ -41,6 +41,7 @@ function PreferenceForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>();
   const [saved, setSaved] = useState(false);
+  const pendingRequest = useRef<{ fingerprint: string; id: string } | undefined>(undefined);
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     const numericScore = score === "" ? null : Number(score);
@@ -54,13 +55,19 @@ function PreferenceForm({
     setBusy(true);
     setError(undefined);
     setSaved(false);
+    const trimmedReason = reason.trim();
+    const fingerprint = JSON.stringify([vote, numericScore, trimmedReason]);
+    if (pendingRequest.current?.fingerprint !== fingerprint) {
+      pendingRequest.current = { fingerprint, id: crypto.randomUUID() };
+    }
     try {
       await provider.createPreferenceChange(id, {
         vote,
         score: numericScore,
-        client_request_id: crypto.randomUUID(),
-        ...(reason.trim() ? { reason: reason.trim() } : {}),
+        client_request_id: pendingRequest.current.id,
+        ...(trimmedReason ? { reason: trimmedReason } : {}),
       });
+      pendingRequest.current = undefined;
       setSaved(true);
       done();
     } catch (cause) {

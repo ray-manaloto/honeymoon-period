@@ -283,10 +283,14 @@ describe("web MVP", () => {
     const user = userEvent.setup();
     const failure = new Error("Synthetic mutation failure");
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const createPreferenceChange = vi
+      .fn()
+      .mockRejectedValueOnce(failure)
+      .mockResolvedValue({ data: { status: "unchanged", event: null } });
     render(
       <App
         dataProvider={provider({
-          createPreferenceChange: vi.fn().mockRejectedValue(failure),
+          createPreferenceChange,
           addNote: vi.fn().mockRejectedValue(failure),
         })}
         store={memoryStore()}
@@ -304,6 +308,11 @@ describe("web MVP", () => {
     await user.type(score, "2");
     await user.click(within(form).getByRole("button", { name: "Save preference" }));
     expect(await within(form).findByRole("alert")).toHaveTextContent("Synthetic mutation failure");
+    await user.click(within(form).getByRole("button", { name: "Save preference" }));
+    await waitFor(() => expect(createPreferenceChange).toHaveBeenCalledTimes(2));
+    expect(createPreferenceChange.mock.calls[1]?.[1].client_request_id).toBe(
+      createPreferenceChange.mock.calls[0]?.[1].client_request_id,
+    );
     await user.type(screen.getByRole("textbox", { name: "Add a note" }), "A failing note");
     await user.click(screen.getByRole("button", { name: "Post note" }));
     const noteForm = screen.getByRole("form", { name: "Add note" });
