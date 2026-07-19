@@ -104,7 +104,7 @@ function history(root) {
     .map((line) => JSON.parse(line));
 }
 
-function evidenceRecords(root, completedAt) {
+function evidenceRecords(root, completedAt, ownerToken) {
   const directory = join(root, ".codex/goals/.evidence");
   mkdirSync(directory, { recursive: true });
   const revision = active(root).revision.fingerprint;
@@ -184,11 +184,24 @@ function evidenceRecords(root, completedAt) {
   const options = {};
   for (const [name, record] of Object.entries(records)) {
     if (record.agentId) {
+      const taskRef = name;
+      const claim = run(root, "claim-child", {
+        ownerToken,
+        taskRef,
+        now: completedAt,
+      });
+      run(root, "settle-child", {
+        childClaim: claim.childClaim,
+        outcome: "completed",
+        ownerToken,
+        now: completedAt,
+      });
       const report = `${record.verdict}\nIndependent fixture evidence.\n`;
       const reportRelative = `.codex/goals/.evidence/${name}.report.txt`;
       writeFileSync(join(root, reportRelative), report);
       record.source = "collaboration-agent-output";
-      record.taskRef = name;
+      record.taskRef = taskRef;
+      record.childClaim = claim.childClaim;
       record.reportPath = reportRelative;
       record.reportHash = createHash("sha256").update(report).digest("hex");
     }
@@ -200,7 +213,7 @@ function evidenceRecords(root, completedAt) {
 }
 
 function recordGreenIteration(root, ownerToken, completedAt) {
-  const records = evidenceRecords(root, completedAt);
+  const records = evidenceRecords(root, completedAt, ownerToken);
   return run(root, "record-iteration", {
     ownerToken,
     retrospectiveCode: "no-new-lesson",
@@ -432,7 +445,7 @@ test("changed HEAD and owned inputs invalidate revision-bound evidence", () => {
   run(root, "checkpoint", {
     ownerToken: lease.ownerToken,
     state: "complete",
-    ...evidenceRecords(root, "2026-07-19T10:00:00.050Z"),
+    ...evidenceRecords(root, "2026-07-19T10:00:00.050Z", lease.ownerToken),
     retrospectiveCode: "no-new-lesson",
     now: "2026-07-19T10:00:00.100Z",
   });
@@ -557,17 +570,91 @@ test("unchanged failures stop repair while changed failures consume bounded budg
 test("time retry repair and direct-child budgets are bounded", () => {
   const root = createFixture({ maxRuntimeMs: 100, maxRetries: 0, maxRepairCycles: 0 });
   const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
-  const overDelegated = command(root, "checkpoint", {
+  const first = run(root, "claim-child", {
     ownerToken: lease.ownerToken,
-    state: "waiting",
-    directChildren: 3,
-    now: "2026-07-19T10:00:00.050Z",
+    taskRef: "bounded-review-a",
+    now: "2026-07-19T10:00:00.010Z",
+  });
+  const second = run(root, "claim-child", {
+    ownerToken: lease.ownerToken,
+    taskRef: "bounded-review-b",
+    now: "2026-07-19T10:00:00.020Z",
+  });
+  assert.notEqual(first.childClaim, second.childClaim);
+  assert.equal(active(root).run.childClaims.length, 2);
+  assert.doesNotMatch(JSON.stringify(active(root)), new RegExp(first.childClaim));
+  const duplicate = command(root, "claim-child", {
+    ownerToken: lease.ownerToken,
+    taskRef: "bounded-review-a",
+    now: "2026-07-19T10:00:00.030Z",
+  });
+  assert.notEqual(duplicate.status, 0);
+  assert.match(duplicate.stderr, /duplicate-child-claim/);
+  const overDelegated = command(root, "claim-child", {
+    ownerToken: lease.ownerToken,
+    taskRef: "bounded-review-c",
+    now: "2026-07-19T10:00:00.040Z",
   });
   assert.notEqual(overDelegated.status, 0);
   assert.match(overDelegated.stderr, /direct-child-budget-exhausted/);
+  const callerCount = command(root, "checkpoint", {
+    ownerToken: lease.ownerToken,
+    state: "waiting",
+    directChildren: 0,
+    now: "2026-07-19T10:00:00.050Z",
+  });
+  assert.notEqual(callerCount.status, 0);
+  assert.match(callerCount.stderr, /caller-child-count-forbidden/);
   const timedOut = run(root, "reconcile", { now: "2026-07-19T10:00:00.200Z" });
   assert.equal(timedOut.state, "failed");
   assert.equal(timedOut.reason, "time-budget-exhausted");
+});
+
+test("child claims must settle under the issuing lease before checkpoint", () => {
+  const root = createFixture({ maxDirectChildren: 1 });
+  const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
+  const claim = run(root, "claim-child", {
+    ownerToken: lease.ownerToken,
+    taskRef: "bounded-review",
+    now: "2026-07-19T10:00:00.010Z",
+  });
+  const pending = command(root, "checkpoint", {
+    dueAt: "2026-07-19T10:00:05.000Z",
+    ownerToken: lease.ownerToken,
+    state: "waiting",
+    now: "2026-07-19T10:00:00.020Z",
+  });
+  assert.notEqual(pending.status, 0);
+  assert.match(pending.stderr, /active-child-claims/);
+  const foreign = command(root, "settle-child", {
+    childClaim: "not-the-issued-claim",
+    outcome: "completed",
+    ownerToken: lease.ownerToken,
+    now: "2026-07-19T10:00:00.030Z",
+  });
+  assert.notEqual(foreign.status, 0);
+  assert.match(foreign.stderr, /invalid-child-claim/);
+  run(root, "settle-child", {
+    childClaim: claim.childClaim,
+    outcome: "completed",
+    ownerToken: lease.ownerToken,
+    now: "2026-07-19T10:00:00.040Z",
+  });
+  const duplicate = command(root, "settle-child", {
+    childClaim: claim.childClaim,
+    outcome: "completed",
+    ownerToken: lease.ownerToken,
+    now: "2026-07-19T10:00:00.050Z",
+  });
+  assert.notEqual(duplicate.status, 0);
+  assert.match(duplicate.stderr, /invalid-child-claim/);
+  const checkpoint = run(root, "checkpoint", {
+    dueAt: "2026-07-19T10:00:05.000Z",
+    ownerToken: lease.ownerToken,
+    state: "waiting",
+    now: "2026-07-19T10:00:00.060Z",
+  });
+  assert.equal(checkpoint.state, "waiting");
 });
 
 test("production commands reject injected time and checkpoints enforce the run deadline", () => {
@@ -636,7 +723,7 @@ test("completed current revisions never run again", () => {
   run(root, "checkpoint", {
     ownerToken: lease.ownerToken,
     state: "complete",
-    ...evidenceRecords(root, "2026-07-19T10:00:00.050Z"),
+    ...evidenceRecords(root, "2026-07-19T10:00:00.050Z", lease.ownerToken),
     retrospectiveCode: "no-new-lesson",
     now: "2026-07-19T10:00:00.100Z",
   });
@@ -721,6 +808,44 @@ test("OS-backed mutation serialization prevents takeover during a checkpoint", a
   const completed = await checkpointing;
   assert.equal(completed.status, 0, completed.stderr);
   assert.equal(completed.result.state, "waiting");
+});
+
+test("a forged mutation-lock environment flag cannot bypass flock", async () => {
+  const root = createFixture();
+  const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
+  const checkpointing = runAsync(root, "checkpoint", {
+    dueAt: "2026-07-19T10:00:05.000Z",
+    ownerToken: lease.ownerToken,
+    state: "waiting",
+    now: "2026-07-19T10:00:00.100Z",
+    testPauseMs: 2_000,
+  });
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 100));
+  const forged = spawnSync(
+    "node",
+    [
+      controller,
+      "wake",
+      "--root",
+      root,
+      "--wake-token",
+      "forged",
+      "--now",
+      "2026-07-19T10:00:02.000Z",
+    ],
+    {
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        SYMPHONY_CONTROLLER_TEST_MODE: "1",
+        SYMPHONY_MUTATION_LOCK_HELD: "1",
+      },
+    },
+  );
+  assert.equal(forged.status, 0, forged.stderr);
+  assert.equal(JSON.parse(forged.stdout).reason, "mutation-contention");
+  const completed = await checkpointing;
+  assert.equal(completed.status, 0, completed.stderr);
 });
 
 test("a crashed mutation owner releases the OS lock for startup reconciliation", () => {
@@ -870,7 +995,7 @@ test("tracked state stores fingerprints instead of objective worktree or questio
 test("completion rejects colliding or report-mismatched independent verdict records", () => {
   const root = createFixture();
   const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
-  const records = evidenceRecords(root, "2026-07-19T10:00:00.050Z");
+  const records = evidenceRecords(root, "2026-07-19T10:00:00.050Z", lease.ownerToken);
   const validatorPath = join(root, records.validatorRecord);
   const validator = JSON.parse(readFileSync(validatorPath, "utf8"));
   writeFileSync(
@@ -954,6 +1079,25 @@ test("owned inputs must be readable in-root files and budgets have hard maxima",
   });
   assert.notEqual(missingObjective.status, 0);
   assert.match(missingObjective.stderr, /invalid-objective-ref/);
+  writeFileSync(join(root, "docs/goal.md"), "# Goal Authority\n");
+  git(root, "add", "docs/goal.md");
+  git(root, "commit", "-qm", "add authority heading");
+  const missingAnchor = command(root, "init", {
+    ...authorityOptions,
+    goal: "invalid-fixture",
+    objective: "missing authority anchor",
+    objectiveRef: "docs/goal.md#nonexistent",
+    ownedInput: "file.txt",
+  });
+  assert.notEqual(missingAnchor.status, 0);
+  assert.match(missingAnchor.stderr, /invalid-objective-ref/);
+  run(root, "init", {
+    ...authorityOptions,
+    goal: "valid-fragment-fixture",
+    objective: "existing authority anchor",
+    objectiveRef: "docs/goal.md#goal-authority",
+    ownedInput: "file.txt",
+  });
   for (const ownedInput of ["owned", "missing.txt", "escape"]) {
     rmSync(join(root, ".codex"), { recursive: true, force: true });
     const rejected = command(root, "init", {
@@ -983,7 +1127,7 @@ test("an explicit transition replaces only a completed goal and preserves histor
   run(root, "checkpoint", {
     ownerToken: lease.ownerToken,
     state: "complete",
-    ...evidenceRecords(root, "2026-07-19T10:00:00.050Z"),
+    ...evidenceRecords(root, "2026-07-19T10:00:00.050Z", lease.ownerToken),
     retrospectiveCode: "no-new-lesson",
     now: "2026-07-19T10:00:00.100Z",
   });
@@ -1009,7 +1153,7 @@ test("an explicit transition replaces only a completed goal and preserves histor
 test("completion requires a fresh independent standards review and enumerated retrospective", () => {
   const root = createFixture();
   const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
-  const records = evidenceRecords(root, "2026-07-19T10:00:00.050Z");
+  const records = evidenceRecords(root, "2026-07-19T10:00:00.050Z", lease.ownerToken);
   const missingReview = command(root, "checkpoint", {
     ownerToken: lease.ownerToken,
     state: "complete",

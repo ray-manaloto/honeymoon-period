@@ -16,6 +16,10 @@ On each wake:
    repair with a guard, and fresh revision-bound subagent gates. Before changing a
    reviewed revision, persist its standards review and retrospective with
    `record-iteration`; an unrecorded material revision is not admissible.
+   Before spawning any direct child, call `claim-child` with the owner token and stable
+   task reference; give the returned claim only to that child brief, then call
+   `settle-child` after it finishes. The controller derives live delegation usage from
+   these lease/revision-bound claims and rejects checkpoints with active children.
 3. If the action is `ask`, surface exactly that one question and do no other
    work. After the user answers, append the decision to an authorized durable
    artifact and call `resolve-question` with its revision-bound resolution record
@@ -34,7 +38,7 @@ Checkpoint examples:
 
 ```sh
 node scripts/symphony-controller.mjs checkpoint --root . \
-  --owner-token <token> --state waiting --direct-children 0
+  --owner-token <token> --state waiting
 
 node scripts/symphony-controller.mjs checkpoint --root . \
   --owner-token <token> --state complete \

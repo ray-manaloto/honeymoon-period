@@ -53,6 +53,13 @@ children do not delegate. Assign disjoint writing paths and concise evidence con
 After material integration, use fresh independent direct children for semantic
 `ACCEPT`/`REJECT` and mechanical `PASS`/`FAIL` gates.
 
+The root must obtain a controller `claim-child` admission before each spawn and settle
+that exact claim after the child returns. Claims bind the task reference to the current
+lease epoch, authority revision, HEAD, and owned-input manifest; tracked state stores
+only their hashes. Checkpoint derives the live count from controller state and refuses
+caller-supplied counts or active claims. Revision-bound agent evidence must present its
+completed claim, so model self-report cannot substitute for admitted delegation.
+
 Configured capacity is not proof of live availability. Inspect the actual agent roster
 before allocating, and adapt optional fan-out to preserve the final gates.
 
@@ -169,6 +176,7 @@ This initial rollout log is append-only.
 | 38 | 2026-07-19 | The repaired schema revision passed focused behavioral checks, but the aggregate stopped at one Biome quote-format diagnostic in the orchestration checker. A fresh bounded standards agent reproduced exactly that issue and found no other scoped concern; its `FAIL` and `linked` retrospective were recorded before repair. | Apply only canonical formatting, rerun the aggregate, and invalidate the revision's prior focused evidence. This is linked to entries 22, 27, and 33 rather than promoted as a new lesson. |
 | 39 | 2026-07-19 | The exact-head revision passed the aggregate and mechanical gate, but fresh semantic and standards agents rejected remaining authority gaps: required references could be nonexistent; the detached helper, rather than the mutator, held the OS lock; leases omitted branch/revision; legacy `configure` could rewrite completed authority; retry/question transitions bypassed the generic journal; and the merge policy lacked a stable final-state sequence. The exact standards report and a `promoted` retrospective were recorded through the controller before repair. | Replace the helper protocol with `flock` inherited directly by the exec'd mutator; bind leases to the complete revision; delete `configure`; use one existing in-root reference validator; journal every tracked transition; add negative/fault tests; and define a two-phase source-completion then immutable exact-head publication ceremony. Invalidate the favorable aggregate/PASS evidence and rerun all gates. |
 | 40 | 2026-07-19 | During entry 39's repair, a scheduled wake reconciled the intentionally dirty root worktree after the lease expired. The controller first adopted the intermediate owned-input manifest, then blocked for dirtiness, and later demanded an iteration review for that never-admitted fingerprint. | Retrospective: `promoted` within the already recorded entry 39 repair. Check dirty conflicts before revision adoption and apply the learning transition gate only to revisions that received a durable `run-started` admission. Add a regression proving dirty work cannot become an iteration baseline. |
+| 41 | 2026-07-19 | Fresh exact-head standards and semantic gates rejected three remaining self-report paths: a caller could forge the ambient mutation-lock flag, Markdown authority fragments were never resolved to actual headings, and checkpoint accepted a caller-supplied child count without controller-issued admissions. The exact standards `FAIL` and promoted retrospective were recorded through `record-iteration` before this change. | Retrospective: `promoted`. Replace ambient lock trust with an inherited descriptor protocol verified against the locked Git-path inode and contention state; resolve Markdown fragments to canonical heading anchors; issue revision/lease-bound direct-child claims and derive usage from controller state. Add forged-environment, nonexistent-anchor, duplicate/foreign/stale child-claim, and budget-exhaustion tests, then invalidate and rerun all gates. |
 
 ## Initial tracker reconciliation evidence
 

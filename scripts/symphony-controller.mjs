@@ -6,6 +6,7 @@ import {
   appendFileSync,
   closeSync,
   existsSync,
+  fstatSync,
   fsyncSync,
   lstatSync,
   mkdirSync,
@@ -193,12 +194,34 @@ function safeReference(value, name) {
 
 function existingReference(root, value, name) {
   const reference = safeReference(value, name);
-  const path = resolve(root, reference.split("#", 1)[0]);
+  const [fileReference, fragment] = reference.split("#", 2);
+  const path = resolve(root, fileReference);
   if (!path.startsWith(`${root}/`)) fail(`invalid-${name}`);
   try {
     if (!lstatSync(path).isFile()) fail(`invalid-${name}`);
   } catch {
     fail(`invalid-${name}`);
+  }
+  if (fragment !== undefined) {
+    if (!fileReference.endsWith(".md") || !fragment) fail(`invalid-${name}`);
+    const occurrences = new Map();
+    const anchors = new Set();
+    for (const line of readFileSync(path, "utf8").split(/\r?\n/)) {
+      const heading = line.match(/^#{1,6}\s+(.+?)\s*#*\s*$/)?.[1];
+      if (!heading) continue;
+      const base = heading
+        .replace(/<[^>]*>/g, "")
+        .replace(/[`*_~]/g, "")
+        .toLowerCase()
+        .replace(/[^\p{Letter}\p{Number}\s-]/gu, "")
+        .trim()
+        .replace(/\s+/g, "-");
+      if (!base) continue;
+      const occurrence = occurrences.get(base) ?? 0;
+      anchors.add(occurrence === 0 ? base : `${base}-${occurrence}`);
+      occurrences.set(base, occurrence + 1);
+    }
+    if (!anchors.has(fragment)) fail(`invalid-${name}`);
   }
   return reference;
 }
@@ -399,9 +422,39 @@ function revisionRequiresReview(root, revisionFingerprint) {
     });
 }
 
-function delegateUnderMutationLock(root, action) {
-  if (process.env.SYMPHONY_MUTATION_LOCK_HELD === "1") return;
+let mutationLockVerified = false;
+
+function delegateUnderMutationLock(root, action, options) {
   const gitLock = git(root, ["rev-parse", "--git-path", "symphony-controller.lock"]);
+  const lockPath = resolve(root, gitLock);
+  if (options.mutationLockFd !== undefined) {
+    const descriptor = boundedNumber(options.mutationLockFd, "mutation-lock-fd", {
+      maximum: 1_024,
+      minimum: 3,
+    });
+    let descriptorMetadata;
+    let lockMetadata;
+    try {
+      descriptorMetadata = fstatSync(descriptor);
+      lockMetadata = statSync(lockPath);
+    } catch {
+      fail("mutation-lock-not-held");
+    }
+    if (
+      descriptorMetadata.dev !== lockMetadata.dev ||
+      descriptorMetadata.ino !== lockMetadata.ino
+    ) {
+      fail("mutation-lock-not-held");
+    }
+    const verified = spawnSync(
+      "python3",
+      [join(import.meta.dirname, "mutation-lock.py"), "--verify", lockPath],
+      { stdio: ["ignore", "ignore", "ignore", descriptor] },
+    );
+    if (verified.status !== 0) fail("mutation-lock-not-held");
+    mutationLockVerified = true;
+    return;
+  }
   const result = spawnSync(
     "python3",
     [
@@ -427,7 +480,7 @@ function delegateUnderMutationLock(root, action) {
 }
 
 function withMutationLock(_root, callback) {
-  if (process.env.SYMPHONY_MUTATION_LOCK_HELD !== "1") fail("mutation-lock-not-held");
+  if (!mutationLockVerified) fail("mutation-lock-not-held");
   replayTransition(_root);
   return callback();
 }
@@ -703,8 +756,8 @@ function acquireLocked(root, goal, now, wakeToken) {
     goal.lastWakeTokenHash = hash(wakeToken);
     goal.budgets.runsUsed += 1;
     goal.run = {
+      childClaims: [],
       deadlineAt: new Date(now.valueOf() + goal.policy.maxRuntimeMs).toISOString(),
-      directChildrenUsed: 0,
       ownerTokenHash: hash(ownerToken),
       startedAt: now.toISOString(),
     };
@@ -1093,7 +1146,18 @@ function loadAgentEvidenceRecord(root, recordPath, expected, goal, now) {
   if (record.source !== "collaboration-agent-output" || !record.agentId || record.fresh !== true) {
     fail("independent-verdicts-required");
   }
-  safeReference(record.taskRef, "agent-task-ref");
+  const taskRef = safeReference(record.taskRef, "agent-task-ref");
+  const childClaim = goal.run?.childClaims?.find(
+    (claim) => claim.tokenHash === hash(String(record.childClaim ?? "")),
+  );
+  if (
+    childClaim?.status !== "completed" ||
+    childClaim.taskRefHash !== hash(taskRef) ||
+    childClaim.revision !== goal.revision.fingerprint ||
+    childClaim.epoch !== goal.leaseEpoch
+  ) {
+    fail("independent-child-claim-required");
+  }
   const reportPath = resolve(root, String(record.reportPath ?? ""));
   if (!reportPath.startsWith(`${root}/`)) fail("agent-report-outside-root");
   let report;
@@ -1162,6 +1226,83 @@ function recordIteration(root, options, now) {
   return locked;
 }
 
+function claimChild(root, options, now) {
+  return withMutationLock(root, () => {
+    const goal = readJson(paths(root).active, "active-goal-missing");
+    const lease = assertLease(root, goal, options.ownerToken, now);
+    const taskRef = safeReference(options.taskRef, "child-task-ref");
+    goal.run.childClaims ??= [];
+    const taskRefHash = hash(taskRef);
+    if (goal.run.childClaims.some((claim) => claim.taskRefHash === taskRefHash)) {
+      fail("duplicate-child-claim");
+    }
+    const activeClaims = goal.run.childClaims.filter((claim) => claim.status === "active");
+    if (activeClaims.length >= goal.policy.maxDirectChildren) {
+      fail("direct-child-budget-exhausted");
+    }
+    const childClaim = randomUUID();
+    const claim = {
+      epoch: lease.epoch,
+      expiresAt: leaseExpiry(root, lease),
+      head: lease.head,
+      manifest: lease.manifest,
+      revision: lease.revision,
+      status: "active",
+      taskRefHash,
+      tokenHash: hash(childClaim),
+    };
+    goal.run.childClaims.push(claim);
+    commitTransition(
+      root,
+      [{ target: "active.json", value: goal }],
+      [event(goal, now, "child-claimed", { epoch: lease.epoch, taskRefHash })],
+      options,
+    );
+    return {
+      action: "child-claimed",
+      childClaim,
+      expiresAt: claim.expiresAt,
+      state: goal.state,
+    };
+  });
+}
+
+function settleChild(root, options, now) {
+  return withMutationLock(root, () => {
+    const goal = readJson(paths(root).active, "active-goal-missing");
+    const lease = assertLease(root, goal, options.ownerToken, now);
+    if (!new Set(["completed", "cancelled"]).has(options.outcome)) {
+      fail("invalid-child-outcome");
+    }
+    const claim = goal.run.childClaims?.find(
+      (candidate) => candidate.tokenHash === hash(String(options.childClaim ?? "")),
+    );
+    if (
+      claim?.status !== "active" ||
+      claim.epoch !== lease.epoch ||
+      claim.revision !== lease.revision ||
+      claim.head !== lease.head ||
+      claim.manifest !== lease.manifest
+    ) {
+      fail("invalid-child-claim");
+    }
+    claim.status = options.outcome;
+    claim.settledAt = now.toISOString();
+    commitTransition(
+      root,
+      [{ target: "active.json", value: goal }],
+      [
+        event(goal, now, "child-settled", {
+          outcome: options.outcome,
+          taskRefHash: claim.taskRefHash,
+        }),
+      ],
+      options,
+    );
+    return { action: "child-settled", outcome: options.outcome, state: goal.state };
+  });
+}
+
 function resolveQuestion(root, options, now) {
   const locked = withMutationLock(root, () => {
     const goal = readJson(paths(root).active, "active-goal-missing");
@@ -1217,9 +1358,10 @@ function checkpointLocked(root, goal, options, now) {
   }
   const lease = assertLease(root, goal, options.ownerToken, now);
   testPause(options);
-  const directChildren = boundedNumber(options.directChildren ?? 0, "direct-children");
-  if (directChildren > goal.policy.maxDirectChildren) fail("direct-child-budget-exhausted");
-  goal.run.directChildrenUsed = directChildren;
+  if (options.directChildren !== undefined) fail("caller-child-count-forbidden");
+  if (goal.run.childClaims?.some((claim) => claim.status === "active")) {
+    fail("active-child-claims");
+  }
   let reason = null;
   const details = { state: options.state };
   const extraEvents = [];
@@ -1428,7 +1570,7 @@ function checkpointLocked(root, goal, options, now) {
 try {
   const { action, options } = parseArguments(process.argv.slice(2));
   const root = realpathSync(resolve(options.root ?? "."));
-  delegateUnderMutationLock(root, action);
+  delegateUnderMutationLock(root, action, options);
   const now = nowFrom(options);
 
   let result;
@@ -1441,6 +1583,8 @@ try {
     else if (action === "renew") result = renew(root, goal, options, now);
     else if (action === "checkpoint") result = checkpoint(root, goal, options, now);
     else if (action === "adopt-input") result = adoptInput(root, goal, options, now);
+    else if (action === "claim-child") result = claimChild(root, options, now);
+    else if (action === "settle-child") result = settleChild(root, options, now);
     else if (action === "record-iteration") result = recordIteration(root, options, now);
     else if (action === "resolve-question") result = resolveQuestion(root, options, now);
     else fail("unknown-action");

@@ -140,6 +140,9 @@ for (const invariant of [
   ["mutation-lock.py", "controller must use the OS-backed mutation lock"],
   ["replayTransition", "controller must replay state/history transitions"],
   ["resolve-question", "controller must support explicit ambiguity resolution"],
+  ["claim-child", "controller must issue direct-child claims"],
+  ["settle-child", "controller must settle direct-child claims"],
+  ["caller-child-count-forbidden", "controller must reject caller-authored child counts"],
 ]) {
   requireMatch(controller, new RegExp(invariant[0]), invariant[1]);
 }
@@ -147,6 +150,16 @@ requireMatch(
   mutationLock,
   /os\.execvpe/,
   "OS mutex ownership must be inherited by the mutating controller process",
+);
+requireMatch(
+  mutationLock,
+  /def verify\(/,
+  "OS mutex inheritance must be verified rather than trusted from ambient state",
+);
+requireMatch(
+  controller,
+  /independent-child-claim-required/,
+  "independent agent evidence must bind a completed controller claim",
 );
 for (const outcome of ["promoted", "linked", "no-new-lesson"]) {
   requireMatch(
