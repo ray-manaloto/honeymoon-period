@@ -3,12 +3,12 @@
   "goalId": "self-learning-autonomy-loop",
   "objectiveFingerprint": "429b78ea87394d1341c81bed3aae6f0cd0bbb4a413d011126295fad8013ef5f2",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "running",
-  "reason": null,
+  "state": "ready",
+  "reason": "revision-changed",
   "revision": {
-    "fingerprint": "1fa01ce0b6bc523e4632d3dc0611136082d772f024016b0a5578a7fa679c9437",
-    "head": "8189f4a5cf1fdb5602f7e31965868064a52baa85",
-    "ownedManifest": "c441813024cb209c78e995892277151ca95117f49ed38e1489cac20991da7931",
+    "fingerprint": "045ea211906f8a771d91933be084e9ee2ded3ec41d63aafe0171cf00b6c4e2d8",
+    "head": "634d7727e27fc3536f26c640aa52f5a1cf722951",
+    "ownedManifest": "37205de889a27d947e51a8763bb34939ad801c88b787ca7c4987fa3cb3c8cc02",
     "ownedInputs": [
       "AGENTS.md",
       "docs/agents/adaptive-orchestration.md",
@@ -20,19 +20,21 @@
       "docs/research/codex-autonomy-quality-loops.md",
       "docs/research/codex-autonomous-goal-continuation.md",
       "scripts/check-adaptive-orchestration.mjs",
-      "tests/tooling.test.mjs"
+      "tests/tooling.test.mjs",
+      "docs/learning/2026-07-19-autonomous-review-repair-loop.md",
+      "docs/research/README.md",
+      "docs/research/codex-autonomy-release-capability-inventory.md",
+      "docs/research/codex-autonomy-workflow-primitives.md",
+      "docs/research/autonomous-agent-orchestration-trends.md",
+      "scripts/symphony-controller.mjs",
+      "tests/symphony-controller.test.mjs"
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
   "leaseEpoch": 1,
   "lastWakeToken": "manual-20260719T173500-self-learning-start",
   "question": null,
-  "run": {
-    "deadlineAt": "2026-07-19T21:19:58.901Z",
-    "directChildrenUsed": 0,
-    "ownerToken": "45fd19b4-edaa-4b59-88e9-5d89dc3cf25f",
-    "startedAt": "2026-07-19T20:49:58.901Z"
-  },
+  "run": null,
   "evidence": {
     "current": []
   },
