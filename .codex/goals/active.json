@@ -13,12 +13,12 @@
       "evidenceRef": "docs/agents/adaptive-orchestration.md#goal-change-log"
     }
   },
-  "state": "running",
+  "state": "complete",
   "reason": null,
   "revision": {
-    "fingerprint": "ad6c5f42642d3b7e3abd4d3b849d0c2bf6e68a1d0720adf7f4c07f4a8b6a260b",
-    "head": "f097a006b85d94b5b097053aef307e5fae6d8571",
-    "ownedManifest": "def4251de3525fd5ad237924d249daeedfdb9a94796a82a92ecea928947f19c1",
+    "fingerprint": "4ea4cac1de737f285b5b48bd377cfce3e9f73e06ab9debe347d05872f5cc1f83",
+    "head": "d5ff46bc2f7b3a0bf07f96c7310d5c38f94bbbc6",
+    "ownedManifest": "ef422d1a27bee45d7deec7f51b6d232348a6e58a69cd4a5237f96f1f885d3ad7",
     "ownedInputs": [
       "docs/agents/adaptive-orchestration.md",
       "docs/product/requirements.md",
@@ -39,22 +39,30 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 3,
-  "lastWakeToken": "manual-20260719T171600-issue24-repair1",
+  "leaseEpoch": 4,
+  "lastWakeToken": "manual-20260719T172000-issue24-repair1-postcommit",
   "question": null,
-  "run": {
-    "deadlineAt": "2026-07-19T17:46:33.556Z",
-    "directChildrenUsed": 0,
-    "ownerToken": "c992e8d5-7daa-4c30-b3b4-82afec15bcb6",
-    "startedAt": "2026-07-19T17:16:33.556Z"
-  },
+  "run": null,
   "evidence": {
-    "current": []
+    "current": [
+      {
+        "aggregateRecordHash": "d04f3ea3ef61bc5eb775d4ae94e1d15dd19468ec43c1766d5b1648283c3f5d51",
+        "at": "2026-07-19T17:25:24.335Z",
+        "protectedArtifactRecordHash": "3c670b8bce752ca75afdb6b11c831a6857d6d70b9850af5d5e9c977bcaf52532",
+        "revision": "4ea4cac1de737f285b5b48bd377cfce3e9f73e06ab9debe347d05872f5cc1f83",
+        "validatorAgent": "8b382028c0ee2b5548387fd6179dbab6ad781bae6080061ad29474d6af70a907",
+        "validatorRecordHash": "50fbb3404bcfa56a820df36adc91b8044a5dff13527711006fbe6a6f65c38662",
+        "validatorVerdict": "PASS",
+        "verifierAgent": "35bb5986df577054f380b3aa95818c700ae9f8598c8c7fa879106451e5caeb87",
+        "verifierRecordHash": "17237fc2c3410371558b6cf1dc845d64ae20a9814d0978de52d0677483647937",
+        "verifierVerdict": "ACCEPT"
+      }
+    ]
   },
   "budgets": {
     "repairCyclesUsed": 1,
     "retriesUsed": 1,
-    "runsUsed": 3
+    "runsUsed": 4
   },
   "policy": {
     "maxDirectChildren": 3,
@@ -66,5 +74,5 @@
   "waiting": null,
   "retryDueAt": "2026-07-19T17:16:28.388Z",
   "failureFingerprint": "5ca97f665c77b35357474698a32ce1f2b85e960dfd6f4efca16701bbc3122394",
-  "lastCheckpointId": "5eacb0d5-a4dd-480a-b87b-cb943beb8772"
+  "lastCheckpointId": "68c4dc9a-0ba3-41cb-aa38-f761089d8d7a"
 }
