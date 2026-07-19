@@ -69,6 +69,7 @@ describe("honeymoon-period data provider", () => {
         ),
       )
       .mockResolvedValueOnce(new Response(JSON.stringify(detail), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ items: [] }), { status: 200 }))
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
@@ -140,6 +141,7 @@ describe("honeymoon-period data provider", () => {
     expect(fetch.mock.calls.map(([, init]) => init?.method)).toEqual([
       "POST",
       "PATCH",
+      undefined,
       "POST",
       "POST",
       "PATCH",

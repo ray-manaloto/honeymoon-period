@@ -3,12 +3,12 @@
   "goalId": "preference-history-23",
   "objectiveFingerprint": "7f142cc88e18a8f136efbd5f7737d5a2383360b708fd274608385c47fed9a7fa",
   "objectiveRef": "issues/23",
-  "state": "ready",
+  "state": "running",
   "reason": null,
   "revision": {
-    "fingerprint": "3bb0290b5c1ac9fe907188705e233ae62ae69a537bbb303d32dd6cd3338591a6",
-    "head": "a9ef708127b9542eb601979dabc08f32485f95df",
-    "ownedManifest": "7bd903fef6777a86dd91cafc9257f016b486b07e0a04d5abbb1bdd393b0ad831",
+    "fingerprint": "e41f6daec833b0ad2f279e5bc9d143957299dfa6cf4238ce9d561d932857b06d",
+    "head": "57e7d8ddffce7c99b25b73e293791a7c319b71b7",
+    "ownedManifest": "ebb315af792e0f14051dcb800d8a6763b87a171d20cf03f3bd2e5dee8815eb35",
     "ownedInputs": [
       "docs/agents/adaptive-orchestration.md",
       "docs/product/requirements.md",
@@ -23,10 +23,15 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 0,
-  "lastWakeToken": null,
+  "leaseEpoch": 5,
+  "lastWakeToken": "root-20260719T152000-issue23-format",
   "question": null,
-  "run": null,
+  "run": {
+    "deadlineAt": "2026-07-19T15:49:15.441Z",
+    "directChildrenUsed": 0,
+    "ownerToken": "277154c8-2ac2-46e2-9b30-0be10694e583",
+    "startedAt": "2026-07-19T15:19:15.441Z"
+  },
   "evidence": {
     "current": []
   },
@@ -42,7 +47,7 @@
   "budgets": {
     "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 0
+    "runsUsed": 5
   },
   "policy": {
     "maxDirectChildren": 3,

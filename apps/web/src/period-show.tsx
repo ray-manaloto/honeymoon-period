@@ -97,15 +97,6 @@ function PreferenceForm({
             <option value="decline">Decline</option>
           </select>
         </label>
-        <label className="full-width">
-          <span>Reason (optional)</span>
-          <input
-            type="text"
-            maxLength={1000}
-            value={reason}
-            onChange={(event) => setReason(event.target.value)}
-          />
-        </label>
         <label>
           <span>Score (0–5, optional)</span>
           <input
@@ -115,6 +106,15 @@ function PreferenceForm({
             step="1"
             value={score}
             onChange={(event) => setScore(event.target.value)}
+          />
+        </label>
+        <label className="full-width">
+          <span>Reason (optional)</span>
+          <input
+            type="text"
+            maxLength={1000}
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
           />
         </label>
       </div>
