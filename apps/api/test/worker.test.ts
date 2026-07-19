@@ -281,6 +281,30 @@ describe("capture contract", () => {
 });
 
 describe("query, preference, notes, and metadata contract", () => {
+  it("reads a complete detail response through one transactional database batch", async () => {
+    const id = await capturedId();
+    let batchCalls = 0;
+    const database = new Proxy(env.DB, {
+      get(target, property) {
+        if (property === "batch") {
+          return (statements: D1PreparedStatement[]) => {
+            batchCalls += 1;
+            return target.batch(statements);
+          };
+        }
+        const value = Reflect.get(target, property);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+    const response = await worker.fetch(
+      new Request(`${base}/v1/honeymoon-periods/${id}`, { headers: headersA }),
+      { DB: database, TEST_MODE: "true" },
+    );
+    expect(response.status).toBe(200);
+    expect(batchCalls).toBe(1);
+    expect(await response.json()).toMatchObject({ item: { id }, preferences: [], notes: [] });
+  });
+
   async function capturedId(): Promise<string> {
     const response = await api("/v1/captures", {
       method: "POST",

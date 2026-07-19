@@ -140,7 +140,11 @@ async function preferencesFor(db: D1Database, id: string): Promise<Preference[]>
     FROM preferences p JOIN actors a ON a.id = p.actor_id WHERE p.honeymoon_period_id = ? ORDER BY p.actor_id`)
     .bind(id)
     .all<Row>();
-  return rows.results.map((row) => ({
+  return preferencesFrom(rows.results);
+}
+
+function preferencesFrom(rows: readonly Row[]): Preference[] {
+  return rows.map((row) => ({
     honeymoon_period_id: String(row.honeymoon_period_id),
     actor_id: String(row.actor_id),
     display_name: String(row.display_name),
@@ -263,23 +267,27 @@ async function itemFrom(db: D1Database, row: Row): Promise<HoneymoonPeriod> {
 }
 
 async function detail(db: D1Database, id: string): Promise<HoneymoonPeriodDetail | null> {
-  const row = await db
-    .prepare("SELECT * FROM honeymoon_periods WHERE id = ?")
-    .bind(id)
-    .first<Row>();
-  if (!row) return null;
-  const [preferences, notesResult, capturesResult] = await Promise.all([
-    preferencesFor(db, id),
+  const [itemResult, preferencesResult, notesResult, capturesResult] = await db.batch<Row>([
+    db.prepare("SELECT * FROM honeymoon_periods WHERE id = ?").bind(id),
+    db
+      .prepare(`SELECT p.honeymoon_period_id, p.actor_id, a.display_name, p.vote, p.score, p.updated_at
+      FROM preferences p JOIN actors a ON a.id = p.actor_id WHERE p.honeymoon_period_id = ? ORDER BY p.actor_id`)
+      .bind(id),
     db
       .prepare(`SELECT n.id, n.honeymoon_period_id, n.actor_id, a.display_name, n.body, n.created_at
       FROM notes n JOIN actors a ON a.id = n.actor_id WHERE n.honeymoon_period_id = ? ORDER BY n.created_at, n.id`)
-      .bind(id)
-      .all<Row>(),
+      .bind(id),
     db
       .prepare("SELECT * FROM captures WHERE honeymoon_period_id = ? ORDER BY captured_at, id")
-      .bind(id)
-      .all<Row>(),
+      .bind(id),
   ]);
+  /* istanbul ignore next -- D1 batch returns one result for every submitted statement. */
+  if (!itemResult || !preferencesResult || !notesResult || !capturesResult) {
+    throw new Error("detail batch returned incomplete results");
+  }
+  const row = itemResult.results[0];
+  if (!row) return null;
+  const preferences = preferencesFrom(preferencesResult.results);
   const notes: Note[] = notesResult.results.map((note) => ({
     id: String(note.id),
     honeymoon_period_id: String(note.honeymoon_period_id),

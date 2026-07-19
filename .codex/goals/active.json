@@ -13,12 +13,12 @@
       "evidenceRef": "docs/agents/adaptive-orchestration.md#goal-change-log"
     }
   },
-  "state": "blocked",
-  "reason": "dirty-tree-conflict",
+  "state": "running",
+  "reason": null,
   "revision": {
-    "fingerprint": "8d71d2bd752992de5b890f8d00f275d25edd3ea18738399e95f72363cc01f34e",
-    "head": "1f5f13413112f97fe7496b61619c4fdde28e8b83",
-    "ownedManifest": "6dab1be2be2a1dec03ee79c827df9383e357248c3bc6d0f5da067ce5bcdf9eaa",
+    "fingerprint": "ad6c5f42642d3b7e3abd4d3b849d0c2bf6e68a1d0720adf7f4c07f4a8b6a260b",
+    "head": "f097a006b85d94b5b097053aef307e5fae6d8571",
+    "ownedManifest": "def4251de3525fd5ad237924d249daeedfdb9a94796a82a92ecea928947f19c1",
     "ownedInputs": [
       "docs/agents/adaptive-orchestration.md",
       "docs/product/requirements.md",
@@ -39,17 +39,22 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 1,
-  "lastWakeToken": "root-20260719T163000-issue24-start",
+  "leaseEpoch": 3,
+  "lastWakeToken": "manual-20260719T171600-issue24-repair1",
   "question": null,
-  "run": null,
+  "run": {
+    "deadlineAt": "2026-07-19T17:46:33.556Z",
+    "directChildrenUsed": 0,
+    "ownerToken": "c992e8d5-7daa-4c30-b3b4-82afec15bcb6",
+    "startedAt": "2026-07-19T17:16:33.556Z"
+  },
   "evidence": {
     "current": []
   },
   "budgets": {
-    "repairCyclesUsed": 0,
-    "retriesUsed": 0,
-    "runsUsed": 1
+    "repairCyclesUsed": 1,
+    "retriesUsed": 1,
+    "runsUsed": 3
   },
   "policy": {
     "maxDirectChildren": 3,
@@ -57,5 +62,9 @@
     "maxRetries": 2,
     "maxRuntimeMs": 1800000,
     "ttlMs": 300000
-  }
+  },
+  "waiting": null,
+  "retryDueAt": "2026-07-19T17:16:28.388Z",
+  "failureFingerprint": "5ca97f665c77b35357474698a32ce1f2b85e960dfd6f4efca16701bbc3122394",
+  "lastCheckpointId": "5eacb0d5-a4dd-480a-b87b-cb943beb8772"
 }
