@@ -35,6 +35,15 @@ ambiguous `#42` with `gh pr view 42`, then fall back to `gh issue view 42`.
 
 ## Autonomous merge gate
 
+Source completion and publication are two distinct immutable phases. First, checkpoint
+the source candidate complete and commit that tracked goal state. Second, obtain fresh
+publication verifier and validator verdicts on that exact final commit, push it, and make
+no further source or tracked-goal mutation before the atomic merge command. The earlier
+controller-completion records remain source-candidate evidence; only the fresh second-phase
+verdicts authorize publication. A second-phase finding starts a replacement controlled goal
+instead of rewriting the completed record. This avoids a completion commit invalidating the
+head that the merge gate actually reviewed.
+
 The repository owner authorizes the root to merge one root-authored goal pull request
 without a separate confirmation only when all of these facts are freshly true:
 

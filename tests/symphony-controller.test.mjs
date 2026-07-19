@@ -5,7 +5,6 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
-  readdirSync,
   readFileSync,
   renameSync,
   rmSync,
@@ -160,7 +159,7 @@ function evidenceRecords(root, completedAt) {
       revision,
       completedAt,
       head,
-      evidenceRef: "docs/agents/adaptive-orchestration.md#goal-change-log",
+      evidenceRef: "docs/goal.md",
       reasonCode: "routine-green-no-new-pattern",
     },
     validatorRecord: {
@@ -266,16 +265,6 @@ async function waitForPath(path) {
   assert.fail(`timed out waiting for ${path}`);
 }
 
-async function waitForMutationSession(root) {
-  const directory = join(root, ".codex/goals");
-  for (let attempt = 0; attempt < 100; attempt += 1) {
-    const session = readdirSync(directory).find((name) => name.startsWith(".mutation-session-"));
-    if (session && existsSync(join(directory, session, "result.json"))) return session;
-    await new Promise((resolvePromise) => setTimeout(resolvePromise, 25));
-  }
-  assert.fail("timed out waiting for acquired mutation session");
-}
-
 test("atomic lease contention admits exactly one concurrent writer", async () => {
   const root = createFixture();
   run(root, "reconcile", { now: "2026-07-19T09:59:59.000Z" });
@@ -329,6 +318,18 @@ test("switching branches at the same HEAD violates recorded goal authority", () 
   const result = run(root, "reconcile", { now: "2026-07-19T10:00:00.000Z" });
   assert.equal(result.reason, "authority-branch-mismatch");
   assert.equal(result.state, "blocked");
+});
+
+test("a live lease cannot renew after a same-HEAD branch switch", () => {
+  const root = createFixture();
+  const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
+  git(root, "switch", "-q", "-c", "foreign-branch");
+  const renewed = command(root, "renew", {
+    ownerToken: lease.ownerToken,
+    now: "2026-07-19T10:00:00.100Z",
+  });
+  assert.notEqual(renewed.status, 0);
+  assert.match(renewed.stderr, /lease-lost/);
 });
 
 test("crash restart fences a stale lease and a lost owner cannot checkpoint", () => {
@@ -625,6 +626,20 @@ test("retry and repair exhaustion stops without manufacturing ambiguity", () => 
   assert.equal(active(root).question, null);
 });
 
+test("retry exhaustion is journaled before admission stops", () => {
+  const root = createFixture({ maxRetries: 0 });
+  const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
+  run(root, "checkpoint", {
+    failureFingerprint: "distinct-failure",
+    ownerToken: lease.ownerToken,
+    state: "failed",
+    now: "2026-07-19T10:00:00.100Z",
+  });
+  const stopped = run(root, "wake", { wakeToken: "two", now: "2026-07-19T10:00:02.000Z" });
+  assert.equal(stopped.reason, "retry-budget-exhausted");
+  assert.equal(history(root).filter((entry) => entry.type === "retry-budget-exhausted").length, 1);
+});
+
 test("completed current revisions never run again", () => {
   const root = createFixture();
   const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
@@ -726,9 +741,9 @@ test("OS-backed mutation serialization prevents takeover during a checkpoint", a
     ownerToken: lease.ownerToken,
     state: "waiting",
     now: "2026-07-19T10:00:00.100Z",
-    testPauseMs: 500,
+    testPauseMs: 1_000,
   });
-  await waitForMutationSession(root);
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 100));
   const contender = run(root, "wake", {
     wakeToken: "two",
     now: "2026-07-19T10:00:02.000Z",
@@ -737,10 +752,6 @@ test("OS-backed mutation serialization prevents takeover during a checkpoint", a
   const completed = await checkpointing;
   assert.equal(completed.status, 0, completed.stderr);
   assert.equal(completed.result.state, "waiting");
-  assert.equal(
-    readdirSync(join(root, ".codex/goals")).some((name) => name.startsWith(".mutation-session-")),
-    false,
-  );
 });
 
 test("a crashed mutation owner releases the OS lock for startup reconciliation", () => {
@@ -756,23 +767,6 @@ test("a crashed mutation owner releases the OS lock for startup reconciliation",
   assert.equal(crashed.status, 86);
   const recovered = run(root, "reconcile", { now: "2026-07-19T10:00:02.000Z" });
   assert.equal(recovered.state, "ready");
-  assert.equal(
-    readdirSync(join(root, ".codex/goals")).some((name) => name.startsWith(".mutation-session-")),
-    false,
-  );
-});
-
-test("startup removes an abandoned OS-lock session before mutation", () => {
-  const root = createFixture();
-  const session = join(root, ".codex/goals/.mutation-session-abandoned");
-  mkdirSync(session);
-  writeFileSync(
-    join(session, "result.json"),
-    `${JSON.stringify({ parentIdentity: "dead", parentPid: "999999", status: "acquired" })}\n`,
-  );
-  const reconciled = run(root, "reconcile", { now: "2026-07-19T10:00:00.000Z" });
-  assert.equal(reconciled.state, "ready");
-  assert.equal(existsSync(session), false);
 });
 
 test("question claim recovers after a pre-emission crash window", () => {
@@ -814,13 +808,21 @@ test("an unacknowledged ambiguity question is retried and explicit resolution re
   });
   assert.equal(retried.action, "ask");
   assert.equal(retried.question, first.question);
+  assert.equal(
+    history(root).filter((entry) => entry.type === "operator-question-delivered").length,
+    2,
+  );
+  assert.equal(
+    history(root).filter((entry) => entry.type === "operator-question-delivery-retried").length,
+    1,
+  );
   const fingerprint = active(root).question.fingerprint;
   const resolutionPath = ".codex/goals/.evidence/operator-resolution.json";
   mkdirSync(join(root, ".codex/goals/.evidence"), { recursive: true });
   writeFileSync(
     join(root, resolutionPath),
     `${JSON.stringify({
-      authorityRef: "docs/goal.md",
+      authorityRef: "docs/missing-decision.md",
       completedAt: "2026-07-19T10:00:01.350Z",
       head: git(root, "rev-parse", "HEAD"),
       kind: "operator-resolution",
@@ -828,6 +830,18 @@ test("an unacknowledged ambiguity question is retried and explicit resolution re
       revision: active(root).revision.fingerprint,
       status: "ACCEPT",
     })}\n`,
+  );
+  const rejectedResolution = command(root, "resolve-question", {
+    questionFingerprint: fingerprint,
+    resolutionRecord: resolutionPath,
+    now: "2026-07-19T10:00:01.400Z",
+  });
+  assert.notEqual(rejectedResolution.status, 0);
+  assert.match(rejectedResolution.stderr, /invalid-operator-authority-ref/);
+  const resolution = JSON.parse(readFileSync(join(root, resolutionPath), "utf8"));
+  writeFileSync(
+    join(root, resolutionPath),
+    `${JSON.stringify({ ...resolution, authorityRef: "docs/goal.md" })}\n`,
   );
   const resolved = run(root, "resolve-question", {
     questionFingerprint: fingerprint,
@@ -884,19 +898,6 @@ test("tracked state stores fingerprints instead of objective worktree or questio
   goal = active(root);
   assert.equal("text" in goal.question, false);
   assert.doesNotMatch(JSON.stringify(goal), /Private free-form ambiguity/);
-});
-
-test("authority configuration removes legacy raw capabilities", () => {
-  const root = createFixture();
-  const goal = active(root);
-  goal.schemaVersion = 1;
-  goal.lastWakeToken = "legacy-raw-wake";
-  writeFileSync(join(root, ".codex/goals/active.json"), `${JSON.stringify(goal)}\n`);
-  run(root, "configure", { ...authorityOptions });
-  const configured = active(root);
-  assert.equal(configured.schemaVersion, 2);
-  assert.equal("lastWakeToken" in configured, false);
-  assert.doesNotMatch(JSON.stringify(configured), /legacy-raw-wake/);
 });
 
 test("completion rejects colliding or report-mismatched independent verdict records", () => {
@@ -977,6 +978,15 @@ test("owned inputs must be readable in-root files and budgets have hard maxima",
   });
   assert.notEqual(missingAuthority.status, 0);
   assert.match(missingAuthority.stderr, /research-preflight-required/);
+  const missingObjective = command(root, "init", {
+    ...authorityOptions,
+    goal: "invalid-fixture",
+    objective: "missing objective artifact",
+    objectiveRef: "docs/missing-objective.md",
+    ownedInput: "file.txt",
+  });
+  assert.notEqual(missingObjective.status, 0);
+  assert.match(missingObjective.stderr, /invalid-objective-ref/);
   for (const ownedInput of ["owned", "missing.txt", "escape"]) {
     rmSync(join(root, ".codex"), { recursive: true, force: true });
     const rejected = command(root, "init", {
@@ -1015,7 +1025,7 @@ test("an explicit transition replaces only a completed goal and preserves histor
     ...authorityOptions,
     goal: "replacement-goal",
     objective: "Exercise the next bounded goal",
-    objectiveRef: "issues/23",
+    objectiveRef: "docs/goal.md",
     ownedInput: "owned/input.txt",
     replaceComplete: true,
     now: "2026-07-19T10:00:01.000Z",
@@ -1056,6 +1066,19 @@ test("completion requires a fresh independent standards review and enumerated re
 
   const retrospectivePath = join(root, records.retrospectiveRecord);
   const retrospective = JSON.parse(readFileSync(retrospectivePath, "utf8"));
+  writeFileSync(
+    retrospectivePath,
+    `${JSON.stringify({ ...retrospective, evidenceRef: "docs/missing-retrospective.md" })}\n`,
+  );
+  const missingRetrospectiveEvidence = command(root, "checkpoint", {
+    ownerToken: lease.ownerToken,
+    state: "complete",
+    ...records,
+    retrospectiveCode: "no-new-lesson",
+    now: "2026-07-19T10:00:00.100Z",
+  });
+  assert.notEqual(missingRetrospectiveEvidence.status, 0);
+  assert.match(missingRetrospectiveEvidence.stderr, /invalid-retrospective-record/);
   writeFileSync(retrospectivePath, `${JSON.stringify({ ...retrospective, reasonCode: "" })}\n`);
   const missingReason = command(root, "checkpoint", {
     ownerToken: lease.ownerToken,
