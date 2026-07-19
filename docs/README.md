@@ -14,8 +14,8 @@
 | [`docs/agents/adaptive-orchestration.md`](agents/adaptive-orchestration.md) | Adaptive goals, context lifecycle, dependency deletion tests, agent allocation, tracker ceremony, and append-only change history |
 | [`docs/agents/handoff-template.md`](agents/handoff-template.md) | Context-boundary handoff contract for dirty trees, artifacts, commands, and agent reservations |
 | [`docs/learning/`](learning/README.md) | Durable repository lessons and their enforcing regression guards |
-| [`docs/SETUP.md`](SETUP.md) | Baseline prototype installation |
-| [`docs/TWO_WEEK_TRIAL.md`](TWO_WEEK_TRIAL.md) | Baseline prototype validation and upgrade triggers |
+| [`docs/SETUP.md`](SETUP.md) | Protected baseline installation |
+| [`docs/TWO_WEEK_TRIAL.md`](TWO_WEEK_TRIAL.md) | Protected baseline validation and replacement triggers |
 | [`docs/testing/`](testing/prototype-evidence.md) | Dated behavioral evidence without private production data |
 | [`docs/testing/web-mvp.md`](testing/web-mvp.md) | Local web/API test matrix, commands, and evidence boundaries |
 | [`docs/deployment/web-mvp-readiness.md`](deployment/web-mvp-readiness.md) | Local deployment-readiness, migration, rollback, and human checkpoint |

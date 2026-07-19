@@ -4,11 +4,11 @@ import worker from "../src/worker";
 
 const base = "http://example.test";
 const headersA = {
-  authorization: "Bearer prototype-participant-a",
+  authorization: "Bearer local-participant-a",
   "content-type": "application/json",
 };
 const headersB = {
-  authorization: "Bearer prototype-participant-b",
+  authorization: "Bearer local-participant-b",
   "content-type": "application/json",
 };
 

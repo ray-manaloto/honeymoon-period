@@ -15,8 +15,8 @@ import type { DataProvider, Identifier } from "react-admin";
 export const ACTOR_STORAGE_KEY = "honeymoon-period.fixture-actor-token";
 export const ACTOR_CHANGED_EVENT = "honeymoon-period:actor-changed";
 export const ACTORS = [
-  { id: "actor-a", name: "Participant A", token: "prototype-participant-a" },
-  { id: "actor-b", name: "Participant B", token: "prototype-participant-b" },
+  { id: "actor-a", name: "Participant A", token: "local-participant-a" },
+  { id: "actor-b", name: "Participant B", token: "local-participant-b" },
 ] as const;
 
 export type HoneymoonPeriodView = HoneymoonPeriodDetail & { history: HistoryPage };

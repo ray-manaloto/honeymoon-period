@@ -115,7 +115,7 @@ describe("web MVP", () => {
     await user.click(screen.getByRole("button", { name: "Sort ascending" }));
     await user.selectOptions(
       screen.getByRole("combobox", { name: "Acting as participant" }),
-      "prototype-participant-b",
+      "local-participant-b",
     );
     await user.click(screen.getByRole("link", { name: /Fixture Bistro/ }));
     expect(await screen.findByRole("heading", { name: "Fixture Bistro" })).toBeVisible();

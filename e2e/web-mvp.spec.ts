@@ -1,7 +1,7 @@
 import { type APIRequestContext, expect, type Page, test } from "@playwright/test";
 
 const apiBase = "http://127.0.0.1:8788/v1";
-const actorA = { authorization: "Bearer prototype-participant-a" };
+const actorA = { authorization: "Bearer local-participant-a" };
 
 async function capture(request: APIRequestContext, host: string, requestId: string) {
   const response = await request.post(`${apiBase}/captures`, {
@@ -39,7 +39,7 @@ test("2. replays one client request without duplicating its honeymoon-period", a
       fetch("/v1/captures", {
         method: "POST",
         headers: {
-          authorization: "Bearer prototype-participant-a",
+          authorization: "Bearer local-participant-a",
           "content-type": "application/json",
         },
         body: JSON.stringify(input),
@@ -69,7 +69,7 @@ test("3. records each participant preference without overwriting ownership", asy
   const history = page.getByRole("list", { name: "Chronological preference history" });
   await expect(history).toContainText("Great first choice");
   await expect(history.getByRole("listitem")).toHaveCount(1);
-  await page.getByLabel("Acting as participant").selectOption("prototype-participant-b");
+  await page.getByLabel("Acting as participant").selectOption("local-participant-b");
   await page.getByLabel("Vote").selectOption("maybe");
   await page.getByLabel("Score (0–5, optional)").fill("3");
   await page.getByRole("button", { name: "Save preference" }).click();
@@ -128,7 +128,7 @@ test("6. renders empty, invalid-link, unauthorized, and network-retry states", a
   await page.goto("/#/honeymoon-periods");
   await expect(page.getByRole("alert")).toContainText("not authorized");
   await page.evaluate(() =>
-    localStorage.setItem("honeymoon-period.fixture-actor-token", "prototype-participant-a"),
+    localStorage.setItem("honeymoon-period.fixture-actor-token", "local-participant-a"),
   );
   await page.route("**/v1/honeymoon-periods*", (route) => route.abort("internetdisconnected"));
   await page.reload();

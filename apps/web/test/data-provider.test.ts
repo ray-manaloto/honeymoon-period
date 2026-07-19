@@ -39,7 +39,7 @@ describe("honeymoon-period data provider", () => {
     expect(String(url)).toContain(
       "page=2&per_page=10&sort=title&order=asc&status=planned&q=bistro&kind=restaurant",
     );
-    expect(new Headers(init?.headers).get("authorization")).toBe("Bearer prototype-participant-b");
+    expect(new Headers(init?.headers).get("authorization")).toBe("Bearer local-participant-b");
 
     await provider.getList("honeymoon-periods", {
       sort: { field: "updated_at", order: "DESC" },

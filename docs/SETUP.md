@@ -90,7 +90,7 @@ Find the Mac's LAN IPv4 address in **System Settings → Network → Wi-Fi →
 Details → TCP/IP**. Import `dist/Save Date Idea API.shortcut` on the iPhone and
 answer its questions with
 `http://MAC_LAN_IP:8788/v1/captures` and that phone's synthetic participant
-token (`prototype-participant-a` or `prototype-participant-b`). Keep the
+token (`local-participant-a` or `local-participant-b`). Keep the
 terminal open while testing; if macOS asks whether Node may
 accept incoming connections, that system consent is a human-only step.
 
