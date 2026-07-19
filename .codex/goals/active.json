@@ -7,9 +7,9 @@
   "reason": "revision-changed",
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
-    "fingerprint": "490933e95c950860e13065d5879c71551ade97f2f4b5d1eb364bdfb85736a8bf",
-    "head": "55a80a19d49ceb5119d984783d9e7466a640d95a",
-    "ownedManifest": "02add887f07d2cfca9c23068c6dab82dc6992559759100d14f56c0237768b3cc",
+    "fingerprint": "d547fe025162120d37bad6bf40364394f09ba10f092f3b57f3a4090611975200",
+    "head": "f41bf8fcc5e352e8cbbb2acf317011112b9c18d2",
+    "ownedManifest": "a379f3c8e97631198f3bedbdb0ba34f8bf4d96a302bc53f5e54970542783d689",
     "ownedInputs": [
       "AGENTS.md",
       "docs/agents/adaptive-orchestration.md",
@@ -34,7 +34,7 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 12,
+  "leaseEpoch": 13,
   "question": null,
   "run": null,
   "evidence": {
@@ -43,7 +43,7 @@
   "budgets": {
     "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 12
+    "runsUsed": 13
   },
   "policy": {
     "maxDirectChildren": 3,
@@ -87,9 +87,18 @@
         "reviewerRecordHash": "ce499286be2823b86f00dc56f0d9faf6f8b75f53db42119f6959704f41d30a6f",
         "reviewerVerdict": "FAIL",
         "revision": "3fdb2dc633449a0adb1f3ef645e14fa75ed32e384fa595214fe1748510bc4304"
+      },
+      {
+        "at": "2026-07-19T22:50:50.680Z",
+        "retrospectiveCode": "promoted",
+        "retrospectiveRecordHash": "e5d2d99fe8ac61dcdf91bfc377b2eb5d85396b0bbab96026fcd241eaabe149f1",
+        "reviewerAgent": "5f810963f7ec0ffdd28367daaf90f7eb0564587271236797811ad81d8656da99",
+        "reviewerRecordHash": "2abec0c94d67c54432ee0aedbbf21a03db287354eb4ee7d3a0c5af9e74811d7c",
+        "reviewerVerdict": "FAIL",
+        "revision": "490933e95c950860e13065d5879c71551ade97f2f4b5d1eb364bdfb85736a8bf"
       }
     ],
-    "enforceFromRevision": "490933e95c950860e13065d5879c71551ade97f2f4b5d1eb364bdfb85736a8bf"
+    "enforceFromRevision": "d547fe025162120d37bad6bf40364394f09ba10f092f3b57f3a4090611975200"
   },
-  "lastWakeTokenHash": "2df7050cc99f76e4f978eae78dfe0d73f0e481200244459116f98ba7a515324c"
+  "lastWakeTokenHash": "ba5e4622febf4bf181e415a22efcbbbcb3a463b74bc8a727fc62a91fa8b5c546"
 }
