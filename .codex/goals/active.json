@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "goalId": "symphony-conformance-controller",
+  "objectiveFingerprint": "455f7a3cf6bf7fe4992f177c46d333c14fdb7af6cf0ab7423dee1805d341305b",
+  "objectiveRef": "delegated-goal-and-docs/agents/adaptive-orchestration.md",
+  "state": "ready",
+  "reason": null,
+  "revision": {
+    "fingerprint": "3d08efb5ecb43de23c3630219fceca26a0be6fd7175d6d3b8b76feb60ee410fd",
+    "head": "7da6a46cbe27ae41b669f10cc78391dfac5c47c7",
+    "ownedManifest": "28da06fef27e055650fbdaef7c85b33c10b694738603f9ff4d68142911926c34",
+    "ownedInputs": [
+      "docs/agents/adaptive-orchestration.md",
+      "docs/research/openai-symphony-cookbook-controller.md",
+      "scripts/symphony-controller.mjs",
+      "tests/symphony-controller.test.mjs",
+      ".codex/goals/CONTINUATION.md",
+      "package.json"
+    ],
+    "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
+  },
+  "leaseEpoch": 0,
+  "lastWakeToken": null,
+  "question": null,
+  "run": null,
+  "evidence": {
+    "current": []
+  },
+  "continuation": {
+    "automationId": "continue-symphony-controller-goal",
+    "intervalMinutes": 10,
+    "kind": "codex-desktop-heartbeat",
+    "role": "wake-trigger-only",
+    "status": "ACTIVE"
+  },
+  "budgets": {
+    "repairCyclesUsed": 0,
+    "retriesUsed": 0,
+    "runsUsed": 0
+  },
+  "policy": {
+    "maxDirectChildren": 3,
+    "maxRepairCycles": 1,
+    "maxRetries": 2,
+    "maxRuntimeMs": 1800000,
+    "ttlMs": 300000
+  }
+}

@@ -9,6 +9,10 @@ playwright-report/
 test-results/
 .playwright-cli/
 .artifacts/
+.codex/goals/.lease*/
+.codex/goals/.mutation*/
+.codex/goals/.question-*/
+.codex/goals/.evidence*/
 *.plist
 *_processed.cherri
 *_unsigned.shortcut
