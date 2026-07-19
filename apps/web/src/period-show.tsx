@@ -464,13 +464,15 @@ function DetailContent({ detail, reload }: { detail: HoneymoonPeriodView; reload
             <ol className="timeline" aria-label="Chronological preference history">
               {detail.history.items.map((historyEvent) => (
                 <li key={historyEvent.id}>
-                  <strong>{historyEvent.display_name}</strong>
-                  <span>
-                    {historyEvent.payload.changes.vote.before ?? "No vote"} →{" "}
-                    {historyEvent.payload.changes.vote.after ?? "No vote"};{" "}
-                    {historyEvent.payload.changes.score.before ?? "No score"} →{" "}
-                    {historyEvent.payload.changes.score.after ?? "No score"}
-                  </span>
+                  <div>
+                    <strong>{historyEvent.display_name}</strong>
+                    <span>
+                      {historyEvent.payload.changes.vote.before ?? "No vote"} →{" "}
+                      {historyEvent.payload.changes.vote.after ?? "No vote"};{" "}
+                      {historyEvent.payload.changes.score.before ?? "No score"} →{" "}
+                      {historyEvent.payload.changes.score.after ?? "No score"}
+                    </span>
+                  </div>
                   {historyEvent.payload.reason ? <p>{historyEvent.payload.reason}</p> : null}
                   <time dateTime={historyEvent.accepted_at}>
                     Change {historyEvent.sequence} ·{" "}
