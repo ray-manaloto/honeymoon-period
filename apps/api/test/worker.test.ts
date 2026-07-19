@@ -1,4 +1,5 @@
 import { env, exports } from "cloudflare:workers";
+import type { HoneymoonPeriod } from "@honeymoon-period/generated";
 import { beforeEach, describe, expect, it } from "vitest";
 import worker from "../src/worker";
 
@@ -305,26 +306,45 @@ describe("query, preference, notes, and metadata contract", () => {
       body: JSON.stringify({ vote: "maybe", score: 3, client_request_id: "rank-b" }),
     });
     const detail = await (await api(`/v1/honeymoon-periods/${id}`, { headers: headersA })).json<{
-      item: { rank: unknown };
+      item: { status: string; rank: unknown };
       preferences: Array<{ actor_id: string; vote: string }>;
     }>();
     expect(detail.preferences).toEqual([
       expect.objectContaining({ actor_id: "actor-a", vote: "interested" }),
       expect.objectContaining({ actor_id: "actor-b", vote: "maybe" }),
     ]);
-    expect(detail.item.rank).toEqual({ score: 4, votes: 3, boost: 0, total: 7 });
+    expect(detail.item.rank).toEqual({
+      policy_version: 1,
+      planning_eligible: true,
+      score: 4,
+      votes: 3,
+      boost: 0,
+      total: 7,
+    });
     await api(`/v1/honeymoon-periods/${id}/preference-changes`, {
       method: "POST",
       headers: headersB,
-      body: JSON.stringify({ vote: null, score: null, client_request_id: "rank-b-clear" }),
+      body: JSON.stringify({ vote: "decline", score: 1, client_request_id: "rank-b-decline" }),
+    });
+    const declined = await (await api(`/v1/honeymoon-periods/${id}`, { headers: headersA })).json<{
+      item: { status: string; rank: { planning_eligible: boolean } };
+    }>();
+    expect(declined.item).toMatchObject({
+      status: "active",
+      rank: { planning_eligible: false },
+    });
+    await api(`/v1/honeymoon-periods/${id}/preference-changes`, {
+      method: "POST",
+      headers: headersB,
+      body: JSON.stringify({ vote: "maybe", score: 3, client_request_id: "rank-b-reverse" }),
     });
     expect(
       (
         await (
           await api(`/v1/honeymoon-periods/${id}`, { headers: headersA })
-        ).json<{ item: { rank: { score: number } } }>()
-      ).item.rank.score,
-    ).toBe(5);
+        ).json<{ item: { rank: { planning_eligible: boolean } } }>()
+      ).item.rank.planning_eligible,
+    ).toBe(true);
   });
 
   it("records immutable field-level preference history and replays identical requests", async () => {
@@ -476,14 +496,70 @@ describe("query, preference, notes, and metadata contract", () => {
       }),
     ]);
     expect(responses.map(({ status }) => status)).toEqual([201, 201]);
+    await env.DB.prepare(
+      "UPDATE preference_events SET accepted_at = ? WHERE honeymoon_period_id = ?",
+    )
+      .bind("2026-01-01T00:00:00.000Z", id)
+      .run();
     const history = await (
       await api(`/v1/honeymoon-periods/${id}/history`, { headers: headersA })
-    ).json<{ items: Array<{ sequence: number; actor_id: string }> }>();
+    ).json<{ items: Array<{ sequence: number; actor_id: string; accepted_at: string }> }>();
     expect(history.items).toHaveLength(2);
     expect(history.items[1]?.sequence).toBe((history.items[0]?.sequence ?? 0) + 1);
+    expect(new Set(history.items.map(({ accepted_at }) => accepted_at))).toEqual(
+      new Set(["2026-01-01T00:00:00.000Z"]),
+    );
     expect(new Set(history.items.map(({ actor_id }) => actor_id))).toEqual(
       new Set(["actor-a", "actor-b"]),
     );
+    const firstEvent = history.items[0];
+    if (!firstEvent) throw new Error("missing first concurrent event");
+    const firstSnapshot = await (
+      await api(`/v1/honeymoon-periods/${id}/ranking?through_sequence=${firstEvent.sequence}`, {
+        headers: headersB,
+      })
+    ).json<{ rank: HoneymoonPeriod["rank"] }>();
+    expect(firstSnapshot.rank).toEqual(
+      firstEvent.actor_id === "actor-a"
+        ? {
+            policy_version: 1,
+            planning_eligible: true,
+            score: 5,
+            votes: 2,
+            boost: 0,
+            total: 7,
+          }
+        : {
+            policy_version: 1,
+            planning_eligible: false,
+            score: 1,
+            votes: -2,
+            boost: 0,
+            total: -1,
+          },
+    );
+    const secondEvent = history.items[1];
+    if (!secondEvent) throw new Error("missing second concurrent event");
+    const finalSnapshot = await (
+      await api(`/v1/honeymoon-periods/${id}/ranking?through_sequence=${secondEvent.sequence}`, {
+        headers: headersA,
+      })
+    ).json<{ rank: HoneymoonPeriod["rank"] }>();
+    expect(finalSnapshot.rank).toEqual({
+      policy_version: 1,
+      planning_eligible: false,
+      score: 3,
+      votes: 0,
+      boost: 0,
+      total: 3,
+    });
+    const current = await (await api(`/v1/honeymoon-periods/${id}`, { headers: headersB })).json<{
+      item: HoneymoonPeriod;
+    }>();
+    expect(current.item).toMatchObject({
+      status: "active",
+      rank: { policy_version: 1, planning_eligible: false, total: 3 },
+    });
     expect(
       (
         await env.DB.prepare(
@@ -558,29 +634,77 @@ describe("query, preference, notes, and metadata contract", () => {
     expect(history.items).toHaveLength(1);
   });
 
-  it("can rank from one configured participant without changing the two-participant default", async () => {
+  it("replays versioned ranking through an inclusive accepted sequence", async () => {
     const id = await capturedId();
-    await api(`/v1/honeymoon-periods/${id}/preference-changes`, {
+    expect(
+      (
+        await api(`/v1/honeymoon-periods/${id}/ranking?through_sequence=1`, {
+          headers: headersA,
+        })
+      ).status,
+    ).toBe(404);
+    await api(`/v1/honeymoon-periods/${id}`, {
+      method: "PATCH",
+      headers: headersA,
+      body: JSON.stringify({ rank_boost: 2 }),
+    });
+    const first = await api(`/v1/honeymoon-periods/${id}/preference-changes`, {
       method: "POST",
       headers: headersA,
-      body: JSON.stringify({ vote: "interested", score: 5, client_request_id: "single-a" }),
+      body: JSON.stringify({ vote: "decline", score: null, client_request_id: "snapshot-a" }),
     });
-    await api(`/v1/honeymoon-periods/${id}/preference-changes`, {
+    const firstSequence = (await first.json<{ event: { sequence: number } }>()).event.sequence;
+    await api(`/v1/honeymoon-periods/${id}`, {
+      method: "PATCH",
+      headers: headersA,
+      body: JSON.stringify({ rank_boost: 9 }),
+    });
+    const second = await api(`/v1/honeymoon-periods/${id}/preference-changes`, {
       method: "POST",
       headers: headersB,
-      body: JSON.stringify({ vote: "decline", score: 1, client_request_id: "single-b" }),
+      body: JSON.stringify({ vote: "interested", score: 5, client_request_id: "snapshot-b" }),
     });
-    const defaultDetail = await (
-      await api(`/v1/honeymoon-periods/${id}`, { headers: headersA })
-    ).json<{ item: { rank: { total: number } } }>();
-    expect(defaultDetail.item.rank.total).toBe(3);
-    const singleActorResponse = await worker.fetch(
-      new Request(`${base}/v1/honeymoon-periods/${id}`, { headers: headersA }),
-      { DB: env.DB, TEST_MODE: "true", SINGLE_PARTICIPANT_RANKING_ACTOR_ID: "actor-a" },
-    );
+    const secondSequence = (await second.json<{ event: { sequence: number } }>()).event.sequence;
+
     expect(
-      (await singleActorResponse.json<{ item: { rank: { total: number } } }>()).item.rank.total,
-    ).toBe(7);
+      await (
+        await api(`/v1/honeymoon-periods/${id}/ranking?through_sequence=${firstSequence}`, {
+          headers: headersB,
+        })
+      ).json(),
+    ).toEqual({
+      honeymoon_period_id: id,
+      through_sequence: firstSequence,
+      rank: {
+        policy_version: 1,
+        planning_eligible: false,
+        score: 0,
+        votes: -2,
+        boost: 2,
+        total: 0,
+      },
+    });
+    expect(
+      await (
+        await api(`/v1/honeymoon-periods/${id}/ranking?through_sequence=${secondSequence}`, {
+          headers: headersA,
+        })
+      ).json(),
+    ).toEqual({
+      honeymoon_period_id: id,
+      through_sequence: secondSequence,
+      rank: {
+        policy_version: 1,
+        planning_eligible: false,
+        score: 5,
+        votes: 0,
+        boost: 9,
+        total: 14,
+      },
+    });
+    expect((await api(`/v1/honeymoon-periods/${id}/ranking`, { headers: headersA })).status).toBe(
+      400,
+    );
   });
 
   it("updates shared metadata, records note provenance, filters, sorts, and paginates", async () => {
@@ -751,6 +875,13 @@ describe("query, preference, notes, and metadata contract", () => {
     ).toBe(404);
     expect(
       (
+        await api(`/v1/honeymoon-periods/${missing}/ranking?through_sequence=1`, {
+          headers: headersA,
+        })
+      ).status,
+    ).toBe(404);
+    expect(
+      (
         await api(`/v1/honeymoon-periods/${missing}/notes`, {
           method: "POST",
           headers: headersA,
@@ -892,7 +1023,7 @@ describe("Worker adapter states", () => {
     expect(last?.status).toBe(429);
   });
 
-  it("exercises the observable error matrix for preference mutation and history", async () => {
+  it("exercises the observable error matrix for preference mutation, history, and ranking", async () => {
     const id = "00000000-0000-4000-8000-000000000301";
     await env.DB.prepare(
       "INSERT INTO honeymoon_periods (id, title, normalized_url) VALUES (?, ?, ?)",
@@ -909,8 +1040,16 @@ describe("Worker adapter states", () => {
       ).status,
     ).toBe(401);
     expect((await api(`/v1/honeymoon-periods/${id}/history`)).status).toBe(401);
+    expect((await api(`/v1/honeymoon-periods/${id}/ranking?through_sequence=1`)).status).toBe(401);
     expect(
       (await api("/v1/honeymoon-periods/not-a-uuid/history", { headers: headersA })).status,
+    ).toBe(400);
+    expect(
+      (
+        await api("/v1/honeymoon-periods/not-a-uuid/ranking?through_sequence=1", {
+          headers: headersA,
+        })
+      ).status,
     ).toBe(400);
 
     const windowStart = Math.floor(Date.now() / 60_000);
@@ -935,6 +1074,14 @@ describe("Worker adapter states", () => {
     expect((await api(`/v1/honeymoon-periods/${id}/history`, { headers: headersA })).status).toBe(
       429,
     );
+    await primeLimit();
+    expect(
+      (
+        await api(`/v1/honeymoon-periods/${id}/ranking?through_sequence=1`, {
+          headers: headersA,
+        })
+      ).status,
+    ).toBe(429);
 
     const broken = {
       prepare: () => {
@@ -948,6 +1095,9 @@ describe("Worker adapter states", () => {
         body: JSON.stringify({ vote: null, score: null, client_request_id: "broken" }),
       }),
       new Request(`${base}/v1/honeymoon-periods/${id}/history`, { headers: headersA }),
+      new Request(`${base}/v1/honeymoon-periods/${id}/ranking?through_sequence=1`, {
+        headers: headersA,
+      }),
     ]) {
       const result = await worker.fetch(request, { DB: broken, TEST_MODE: "true" });
       expect(result.status).toBe(500);

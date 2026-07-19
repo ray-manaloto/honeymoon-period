@@ -27,7 +27,8 @@ flowchart LR
 The first releasable local slice includes:
 
 - authenticated capture creation with exact source provenance, conservative normalization, idempotent replay, and exact-link deduplication;
-- ranked and filterable honeymoon-period lists with visible rank components;
+- ranked and filterable honeymoon-period lists with visible policy version,
+  planning eligibility, and rank components;
 - one detail surface for source history, notes, metadata, and each participant's preference;
 - actor-owned vote and optional score writes that cannot overwrite the other participant;
 - stable sorting and querying APIs suitable for web, Shortcut, native, CLI, and TUI clients;
@@ -36,7 +37,12 @@ The first releasable local slice includes:
 
 The MVP does not include general registration, invitations, account recovery, multiple households, realtime subscriptions, synchronous URL enrichment, AI ranking, calendar access, push notifications, native iOS screens, paid services, or production deployment. Those are explicit later slices, not implicit placeholders.
 
-Preference and ranking behavior begins with the reversible defaults in [requirements](requirements.md): visible actor-owned votes, optional 0–5 scores, neutral missing values, vote weights of +2/+1/−2, explicit rank boost, and visible additive components. Keep these constants inside tested domain behavior so later product refinement does not require a contract or UI rewrite.
+Preference and ranking behavior follows the canonical policy v1 in
+[requirements](requirements.md): visible actor-owned votes, optional 0–5 scores,
+neutral missing values, vote weights of +2/+1/−2, explicit rank boost, a
+reversible decline veto for planning eligibility, and visible additive
+components. Historical queries replay that same versioned policy inclusively
+through an accepted event sequence.
 
 ## Contract and generation policy
 
@@ -85,9 +91,11 @@ Commit independent tests for:
 
 1. capture a valid link and observe it in the ranked list;
 2. replay the same request without duplicating the honeymoon-period;
-3. record each participant's preference and preserve ownership;
+3. record each participant's preference, preserve ownership, expose immediate
+   planning eligibility, and replay ranking inclusively through each accepted
+   change;
 4. edit notes and structured metadata;
-5. filter and sort while retaining visible rank explanations;
+5. filter and sort while retaining visible policy, eligibility, and rank explanations;
 6. exercise empty, invalid-link, unauthorized, and network-retry states;
 7. verify the primary phone viewport and keyboard-only workflow; and
 8. reload with persisted server state and no client-only source of truth.
@@ -164,10 +172,10 @@ The canonical planning board is the
 Preference/history semantics are approved in
 [#19](https://github.com/ray-manaloto/honeymoon-period/issues/19), which is
 closed as the decision record. The immutable preference-change and shared-history
-slice is implemented by #23. Continue the remaining dependent tracer bullets in order:
+slice is implemented by #23, and the versioned preference-policy slice is
+implemented by #24. Continue with the remaining dependent tracer bullet:
 
-1. [#24 Apply and replay the versioned preference policy](https://github.com/ray-manaloto/honeymoon-period/issues/24), after #23; and
-2. [#25 Redact preference history to shared tombstones](https://github.com/ray-manaloto/honeymoon-period/issues/25), blocked by #24.
+1. [#25 Redact preference history to shared tombstones](https://github.com/ray-manaloto/honeymoon-period/issues/25), after #24.
 
 The remaining intentionally deferred questions are:
 

@@ -4,11 +4,13 @@ import {
   normalizeUrl,
   ownedPreference,
   rank,
+  replayRank,
 } from "@honeymoon-period/domain";
 import type {
   Capture,
   CaptureInput,
   CaptureResult,
+  HistoricalRanking,
   HistoryEvent,
   HistoryPage,
   HoneymoonPeriod,
@@ -26,7 +28,6 @@ import { assertContract, ContractError } from "./contract";
 interface Env {
   DB: D1Database;
   TEST_MODE?: string;
-  SINGLE_PARTICIPANT_RANKING_ACTOR_ID?: string;
 }
 interface Actor {
   id: string;
@@ -193,16 +194,52 @@ async function historyEventById(db: D1Database, eventId: string): Promise<Histor
   return row ? historyEventFrom(row) : null;
 }
 
-async function itemFrom(
+async function historicalRankingFor(
   db: D1Database,
-  row: Row,
-  rankingActorId?: string,
-): Promise<HoneymoonPeriod> {
-  const preferences = await preferencesFor(db, String(row.id));
+  id: string,
+  throughSequence: number,
+): Promise<HistoricalRanking | null> {
+  const events = await db
+    .prepare(`SELECT sequence, actor_id, after_vote, after_score, policy_version, rank_boost
+    FROM preference_events
+    WHERE honeymoon_period_id = ? AND sequence <= ? ORDER BY sequence`)
+    .bind(id, throughSequence)
+    .all<Row>();
+  if (events.results.length === 0) return null;
+  const historical = replayRank(
+    events.results.map((event) => ({
+      sequence: Number(event.sequence),
+      actorId: String(event.actor_id),
+      policyVersion: Number(event.policy_version),
+      rankBoost: Number(event.rank_boost),
+      after: {
+        vote: event.after_vote as Preference["vote"],
+        score: event.after_score === null ? null : Number(event.after_score),
+      },
+    })),
+    throughSequence,
+  );
+  return {
+    honeymoon_period_id: id,
+    through_sequence: throughSequence,
+    rank: apiRank(historical),
+  };
+}
+
+function apiRank(components: ReturnType<typeof rank>): HoneymoonPeriod["rank"] {
+  return {
+    policy_version: components.policyVersion,
+    planning_eligible: components.planningEligible,
+    score: components.score,
+    votes: components.votes,
+    boost: components.boost,
+    total: components.total,
+  };
+}
+
+function itemFromRow(row: Row, preferences: readonly Preference[]): HoneymoonPeriod {
   const components = rank(
-    preferences
-      .filter((preference) => !rankingActorId || preference.actor_id === rankingActorId)
-      .map(({ vote, score }) => ({ vote, score })),
+    preferences.map(({ vote, score }) => ({ vote, score })),
     Number(row.rank_boost),
   );
   return {
@@ -215,17 +252,17 @@ async function itemFrom(
     metadata_updated_by_actor_id:
       row.metadata_updated_by_actor_id === null ? null : String(row.metadata_updated_by_actor_id),
     rank_boost: Number(row.rank_boost),
-    rank: components,
+    rank: apiRank(components),
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
   };
 }
 
-async function detail(
-  db: D1Database,
-  id: string,
-  rankingActorId?: string,
-): Promise<HoneymoonPeriodDetail | null> {
+async function itemFrom(db: D1Database, row: Row): Promise<HoneymoonPeriod> {
+  return itemFromRow(row, await preferencesFor(db, String(row.id)));
+}
+
+async function detail(db: D1Database, id: string): Promise<HoneymoonPeriodDetail | null> {
   const row = await db
     .prepare("SELECT * FROM honeymoon_periods WHERE id = ?")
     .bind(id)
@@ -252,7 +289,7 @@ async function detail(
     created_at: String(note.created_at),
   }));
   return {
-    item: await itemFrom(db, row, rankingActorId),
+    item: itemFromRow(row, preferences),
     preferences,
     notes,
     captures: capturesResult.results.map(captureFrom),
@@ -268,11 +305,7 @@ async function createCapture(request: Request, env: Env, actor: Actor): Promise<
     .bind(actor.id, input.client_request_id)
     .first<Row>();
   if (replay) {
-    const replayDetail = await detail(
-      env.DB,
-      String(replay.honeymoon_period_id),
-      env.SINGLE_PARTICIPANT_RANKING_ACTOR_ID,
-    );
+    const replayDetail = await detail(env.DB, String(replay.honeymoon_period_id));
     /* istanbul ignore next -- foreign keys make this a defensive corruption guard. */
     if (!replayDetail) throw new Error("capture references a missing honeymoon-period");
     const result: CaptureResult = {
@@ -313,11 +346,7 @@ async function createCapture(request: Request, env: Env, actor: Actor): Promise<
       .first<Row>();
     /* istanbul ignore next -- a zero-change unique insert must have a conflicting row. */
     if (!concurrent) throw new Error("failed to resolve concurrent capture replay");
-    const replayDetail = await detail(
-      env.DB,
-      String(concurrent.honeymoon_period_id),
-      env.SINGLE_PARTICIPANT_RANKING_ACTOR_ID,
-    );
+    const replayDetail = await detail(env.DB, String(concurrent.honeymoon_period_id));
     /* istanbul ignore next -- foreign keys make this a defensive corruption guard. */
     if (!replayDetail) throw new Error("capture references a missing honeymoon-period");
     return response(
@@ -339,12 +368,12 @@ async function createCapture(request: Request, env: Env, actor: Actor): Promise<
   const result: CaptureResult = {
     status: itemInsert.meta.changes === 1 ? "created" : "existing",
     capture: captureFrom(captureRow),
-    honeymoon_period: await itemFrom(env.DB, itemRow, env.SINGLE_PARTICIPANT_RANKING_ACTOR_ID),
+    honeymoon_period: await itemFrom(env.DB, itemRow),
   };
   return response(result, 201, "CaptureResult");
 }
 
-async function list(request: Request, db: D1Database, rankingActorId?: string): Promise<Response> {
+async function list(request: Request, db: D1Database): Promise<Response> {
   const url = new URL(request.url);
   const status = url.searchParams.get("status") ?? "active";
   const kind = url.searchParams.get("kind");
@@ -372,7 +401,7 @@ async function list(request: Request, db: D1Database, rankingActorId?: string): 
     .prepare("SELECT * FROM honeymoon_periods WHERE status = ?")
     .bind(status)
     .all<Row>();
-  const items = (await Promise.all(rows.results.map((row) => itemFrom(db, row, rankingActorId))))
+  const items = (await Promise.all(rows.results.map((row) => itemFrom(db, row))))
     .filter(
       (item) =>
         (!kind || item.kind === kind) && (!query || item.title.toLowerCase().includes(query)),
@@ -407,7 +436,6 @@ async function update(
   db: D1Database,
   id: string,
   actor: Actor,
-  rankingActorId?: string,
 ): Promise<Response> {
   const input = (await readBody(request, "HoneymoonPeriodUpdate")) as HoneymoonPeriodUpdate;
   const current = await db
@@ -451,7 +479,7 @@ async function update(
     .prepare(`UPDATE honeymoon_periods SET ${assignments.join(", ")} WHERE id = ?`)
     .bind(...values, id)
     .run();
-  const value = await detail(db, id, rankingActorId);
+  const value = await detail(db, id);
   /* istanbul ignore next -- the row is protected by the completed update. */
   if (!value) throw new Error("updated honeymoon-period disappeared");
   return response(value, 200, "HoneymoonPeriodDetail");
@@ -491,8 +519,9 @@ async function applyPreferenceChange(
       .bind(requestId, actor.id, requestIdentity.clientRequestId, id, requestIdentity.fingerprint),
     db
       .prepare(`INSERT INTO preference_events
-      (id, request_id, honeymoon_period_id, actor_id, event_type, before_vote, after_vote, before_score, after_score, reason, accepted_at)
-      SELECT ?, ?, ?, ?, 'PreferenceChanged', p.vote, ?, p.score, ?, ?, ?
+      (id, request_id, honeymoon_period_id, actor_id, event_type, before_vote, after_vote, before_score, after_score, reason, policy_version, rank_boost, accepted_at)
+      SELECT ?, ?, ?, ?, 'PreferenceChanged', p.vote, ?, p.score, ?, ?, 1,
+      (SELECT rank_boost FROM honeymoon_periods WHERE id = ?), ?
       FROM (SELECT 1) seed
       LEFT JOIN preferences p ON p.honeymoon_period_id = ? AND p.actor_id = ?
       WHERE p.honeymoon_period_id IS NULL OR p.vote IS NOT ? OR p.score IS NOT ?`)
@@ -504,6 +533,7 @@ async function applyPreferenceChange(
         input.vote,
         input.score,
         input.reason,
+        id,
         acceptedAt,
         id,
         actor.id,
@@ -677,7 +707,7 @@ async function route(request: Request, env: Env, actor: Actor): Promise<Response
   if (request.method === "POST" && url.pathname === "/v1/captures")
     return createCapture(request, env, actor);
   if (request.method === "GET" && url.pathname === "/v1/honeymoon-periods")
-    return list(request, env.DB, env.SINGLE_PARTICIPANT_RANKING_ACTOR_ID);
+    return list(request, env.DB);
   const preferenceChangeMatch = url.pathname.match(
     /^\/v1\/honeymoon-periods\/([^/]+)\/preference-changes$/,
   );
@@ -695,6 +725,25 @@ async function route(request: Request, env: Env, actor: Actor): Promise<Response
       return failure(404, "not_found", "honeymoon-period not found");
     return response(await historyFor(env.DB, id), 200, "HistoryPage");
   }
+  const rankingMatch = url.pathname.match(/^\/v1\/honeymoon-periods\/([^/]+)\/ranking$/);
+  if (request.method === "GET" && rankingMatch) {
+    const id = pathIdentifier(rankingMatch[1] ?? "", "id");
+    if (!(await env.DB.prepare("SELECT 1 FROM honeymoon_periods WHERE id = ?").bind(id).first()))
+      return failure(404, "not_found", "honeymoon-period not found");
+    const rawThroughSequence = url.searchParams.get("through_sequence");
+    const throughSequence = Number(rawThroughSequence);
+    if (
+      rawThroughSequence === null ||
+      !Number.isSafeInteger(throughSequence) ||
+      throughSequence < 1
+    ) {
+      throw new ContractError({ through_sequence: "must be a positive safe integer" });
+    }
+    const snapshot = await historicalRankingFor(env.DB, id, throughSequence);
+    return snapshot
+      ? response(snapshot, 200, "HistoricalRanking")
+      : failure(404, "not_found", "ranking snapshot not found");
+  }
   const noteMatch = url.pathname.match(/^\/v1\/honeymoon-periods\/([^/]+)\/notes\/([^/]+)$/);
   if (request.method === "PATCH" && noteMatch)
     return updateNote(
@@ -709,13 +758,12 @@ async function route(request: Request, env: Env, actor: Actor): Promise<Response
   const id = pathIdentifier(match[1] ?? "", "id");
   const child = match[2];
   if (request.method === "GET" && !child) {
-    const value = await detail(env.DB, id, env.SINGLE_PARTICIPANT_RANKING_ACTOR_ID);
+    const value = await detail(env.DB, id);
     return value
       ? response(value, 200, "HoneymoonPeriodDetail")
       : failure(404, "not_found", "honeymoon-period not found");
   }
-  if (request.method === "PATCH" && !child)
-    return update(request, env.DB, id, actor, env.SINGLE_PARTICIPANT_RANKING_ACTOR_ID);
+  if (request.method === "PATCH" && !child) return update(request, env.DB, id, actor);
   if (request.method === "POST" && child === "notes") return createNote(request, env.DB, id, actor);
   return failure(404, "not_found", "route not found");
 }

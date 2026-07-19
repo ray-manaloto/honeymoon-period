@@ -80,6 +80,8 @@ export const componentSchemas = {
   "Rank": {
     "type": "object",
     "required": [
+      "policy_version",
+      "planning_eligible",
       "score",
       "votes",
       "boost",
@@ -87,6 +89,15 @@ export const componentSchemas = {
     ],
     "additionalProperties": false,
     "properties": {
+      "policy_version": {
+        "type": "integer",
+        "enum": [
+          1
+        ]
+      },
+      "planning_eligible": {
+        "type": "boolean"
+      },
       "score": {
         "type": "number"
       },
@@ -98,6 +109,28 @@ export const componentSchemas = {
       },
       "total": {
         "type": "number"
+      }
+    }
+  },
+  "HistoricalRanking": {
+    "type": "object",
+    "required": [
+      "honeymoon_period_id",
+      "through_sequence",
+      "rank"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "honeymoon_period_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "through_sequence": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "rank": {
+        "$ref": "#/components/schemas/Rank"
       }
     }
   },

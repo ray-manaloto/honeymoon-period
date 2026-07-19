@@ -69,13 +69,27 @@ test("3. records each participant preference without overwriting ownership", asy
   const history = page.getByRole("list", { name: "Chronological preference history" });
   await expect(history).toContainText("Great first choice");
   await expect(history.getByRole("listitem")).toHaveCount(1);
+  const replay = page.getByRole("form", { name: "Replay historical ranking" });
+  await replay.getByLabel("Through change").fill("1");
+  await replay.getByRole("button", { name: "Replay ranking" }).click();
+  await expect(page.getByRole("region", { name: "Ranking through change 1" })).toContainText(
+    "Eligible for planning",
+  );
   await page.getByLabel("Acting as participant").selectOption("local-participant-b");
-  await page.getByLabel("Vote").selectOption("maybe");
+  await page.getByLabel("Vote").selectOption("decline");
   await page.getByLabel("Score (0–5, optional)").fill("3");
   await page.getByRole("button", { name: "Save preference" }).click();
   await expect(page.getByText("interested · 5/5", { exact: false })).toBeVisible();
-  await expect(page.getByText("maybe · 3/5", { exact: false })).toBeVisible();
+  await expect(page.getByText("decline · 3/5", { exact: false })).toBeVisible();
+  await expect(
+    page.getByText("Planning unavailable: a participant declined").first(),
+  ).toBeVisible();
   await expect(history.getByRole("listitem")).toHaveCount(2);
+  await replay.getByLabel("Through change").fill("2");
+  await replay.getByRole("button", { name: "Replay ranking" }).click();
+  await expect(page.getByRole("region", { name: "Ranking through change 2" })).toContainText(
+    "Planning unavailable: a participant declined",
+  );
 });
 
 test("4. edits notes and structured metadata", async ({ page, request }) => {
@@ -110,6 +124,12 @@ test("5. filters and sorts while retaining visible rank explanations", async ({ 
   const card = page.getByRole("listitem").filter({ hasText: "Fixture Bistro" });
   await expect(card).toBeVisible();
   await expect(card.getByLabel("Rank explanation for Fixture Bistro")).toContainText("Total");
+  await expect(card.getByLabel("Rank explanation for Fixture Bistro")).toContainText(
+    "Preference policy v1",
+  );
+  await expect(card.getByLabel("Rank explanation for Fixture Bistro")).toContainText(
+    "Eligible for planning",
+  );
 });
 
 test("6. renders empty, invalid-link, unauthorized, and network-retry states", async ({ page }) => {
@@ -159,6 +179,14 @@ test("7. supports the primary phone viewport and keyboard-only capture", async (
 
   await page.goto("/#/honeymoon-periods");
   await expect(page.getByRole("list", { name: "Ranked honeymoon-periods" })).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate(() => ({
+        clientWidth: document.documentElement.clientWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+      })),
+    )
+    .toEqual({ clientWidth: 390, scrollWidth: 390 });
   const firstIdea = page.getByRole("listitem").filter({ hasText: "Fixture Bistro" });
   await expect(firstIdea.getByLabel("Rank explanation for Fixture Bistro")).toContainText("Total");
   await firstIdea.getByRole("link", { name: "Fixture Bistro" }).click();

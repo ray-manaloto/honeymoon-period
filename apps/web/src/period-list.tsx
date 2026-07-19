@@ -2,32 +2,10 @@ import type { HoneymoonPeriod } from "@honeymoon-period/generated";
 import { useDeferredValue, useState } from "react";
 import { useGetList } from "react-admin";
 import { Link } from "react-router-dom";
+import { RankExplanation } from "./rank-explanation";
 import { ErrorState, LoadingState } from "./state";
 
 type Status = HoneymoonPeriod["status"];
-
-function RankBreakdown({ item }: { item: HoneymoonPeriod }) {
-  return (
-    <dl className="rank-breakdown" aria-label={`Rank explanation for ${item.title}`}>
-      <div>
-        <dt>Scores</dt>
-        <dd>{item.rank.score}</dd>
-      </div>
-      <div>
-        <dt>Votes</dt>
-        <dd>{item.rank.votes}</dd>
-      </div>
-      <div>
-        <dt>Boost</dt>
-        <dd>{item.rank.boost}</dd>
-      </div>
-      <div className="rank-total">
-        <dt>Total</dt>
-        <dd>{item.rank.total}</dd>
-      </div>
-    </dl>
-  );
-}
 
 export function PeriodList() {
   const [query, setQuery] = useState("");
@@ -122,7 +100,11 @@ export function PeriodList() {
                 <h2>
                   <Link to={`/honeymoon-periods/${item.id}/show`}>{item.title}</Link>
                 </h2>
-                <RankBreakdown item={item} />
+                <RankExplanation
+                  rank={item.rank}
+                  className="rank-breakdown"
+                  label={`Rank explanation for ${item.title}`}
+                />
               </div>
             </li>
           ))}

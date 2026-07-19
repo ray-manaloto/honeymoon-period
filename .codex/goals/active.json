@@ -13,12 +13,12 @@
       "evidenceRef": "docs/agents/adaptive-orchestration.md#goal-change-log"
     }
   },
-  "state": "ready",
-  "reason": null,
+  "state": "blocked",
+  "reason": "dirty-tree-conflict",
   "revision": {
-    "fingerprint": "3ced43eba86831c0d2d75a618e06fd5f0b9a49635fc41d824e7d76ae6dc74926",
+    "fingerprint": "8d71d2bd752992de5b890f8d00f275d25edd3ea18738399e95f72363cc01f34e",
     "head": "1f5f13413112f97fe7496b61619c4fdde28e8b83",
-    "ownedManifest": "b3c322dc9fd5299289cd006486d6e93f07f4e8ceac62efd282c2a268b39dc8f9",
+    "ownedManifest": "6dab1be2be2a1dec03ee79c827df9383e357248c3bc6d0f5da067ce5bcdf9eaa",
     "ownedInputs": [
       "docs/agents/adaptive-orchestration.md",
       "docs/product/requirements.md",
@@ -39,8 +39,8 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 0,
-  "lastWakeToken": null,
+  "leaseEpoch": 1,
+  "lastWakeToken": "root-20260719T163000-issue24-start",
   "question": null,
   "run": null,
   "evidence": {
@@ -49,7 +49,7 @@
   "budgets": {
     "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 0
+    "runsUsed": 1
   },
   "policy": {
     "maxDirectChildren": 3,

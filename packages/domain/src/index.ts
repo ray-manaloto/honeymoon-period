@@ -1,5 +1,7 @@
 const TRACKING_KEYS = new Set(["fbclid", "gclid", "igshid", "mc_cid", "mc_eid", "si"]);
 const VOTE_WEIGHTS = { interested: 2, maybe: 1, decline: -2 } as const;
+export const RANKING_POLICY_VERSION = 1 as const;
+export type RankingPolicyVersion = typeof RANKING_POLICY_VERSION;
 export type Vote = keyof typeof VOTE_WEIGHTS | null;
 
 export class DomainError extends Error {}
@@ -56,13 +58,27 @@ export function ownedPreference(
 }
 
 export interface RankComponents {
+  policyVersion: typeof RANKING_POLICY_VERSION;
+  planningEligible: boolean;
   score: number;
   votes: number;
   boost: number;
   total: number;
 }
 
-export function rank(preferences: readonly PreferenceValues[], boost: number): RankComponents {
+export interface PreferenceRankEvent {
+  sequence: number;
+  actorId: string;
+  policyVersion: number;
+  rankBoost: number;
+  after: PreferenceValues;
+}
+
+export interface HistoricalRank extends RankComponents {
+  throughSequence: number;
+}
+
+function rankV1(preferences: readonly PreferenceValues[], boost: number): RankComponents {
   let scoreTotal = 0;
   let scoreCount = 0;
   let votes = 0;
@@ -74,5 +90,52 @@ export function rank(preferences: readonly PreferenceValues[], boost: number): R
     if (preference.vote !== null) votes += VOTE_WEIGHTS[preference.vote];
   }
   const score = scoreCount === 0 ? 0 : scoreTotal / scoreCount;
-  return { score, votes, boost, total: score + votes + boost };
+  return {
+    policyVersion: RANKING_POLICY_VERSION,
+    planningEligible: !preferences.some((preference) => preference.vote === "decline"),
+    score,
+    votes,
+    boost,
+    total: score + votes + boost,
+  };
+}
+
+export function rankForPolicy(
+  policyVersion: number,
+  preferences: readonly PreferenceValues[],
+  boost: number,
+): RankComponents {
+  switch (policyVersion) {
+    case 1:
+      return rankV1(preferences, boost);
+    default:
+      throw new DomainError(`unsupported ranking policy version ${policyVersion}`);
+  }
+}
+
+export function rank(preferences: readonly PreferenceValues[], boost: number): RankComponents {
+  return rankForPolicy(RANKING_POLICY_VERSION, preferences, boost);
+}
+
+export function replayRank(
+  events: readonly PreferenceRankEvent[],
+  throughSequence: number,
+): HistoricalRank {
+  if (!Number.isSafeInteger(throughSequence) || throughSequence < 1) {
+    throw new DomainError("through sequence must be a positive safe integer");
+  }
+  const included = events
+    .filter((event) => event.sequence <= throughSequence)
+    .toSorted((left, right) => left.sequence - right.sequence);
+  if (included.length === 0) throw new DomainError("no preference snapshot at sequence");
+  const preferences = new Map<string, PreferenceValues>();
+  for (const event of included) {
+    preferences.set(event.actorId, event.after);
+  }
+  const last = included.at(-1);
+  if (!last) throw new DomainError("no preference snapshot at sequence");
+  return {
+    throughSequence,
+    ...rankForPolicy(last.policyVersion, [...preferences.values()], last.rankBoost),
+  };
 }

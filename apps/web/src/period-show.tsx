@@ -1,4 +1,5 @@
 import type {
+  HistoricalRanking,
   HoneymoonPeriod,
   Note,
   Preference,
@@ -14,6 +15,7 @@ import {
   type HoneymoonPeriodView,
   type HoneymoonRecord,
 } from "./data-provider";
+import { RankExplanation } from "./rank-explanation";
 import { ErrorState, errorMessage, LoadingState } from "./state";
 
 function currentActor() {
@@ -23,6 +25,71 @@ function currentActor() {
 
 function actorName(id: string): string {
   return ACTORS.find((actor) => actor.id === id)?.name ?? id;
+}
+
+function HistoricalRankingReplay({ id }: { id: string }) {
+  const provider = useDataProvider<HoneymoonDataProvider>();
+  const [throughSequence, setThroughSequence] = useState("");
+  const [result, setResult] = useState<HistoricalRanking>();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<unknown>();
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const sequence = Number(throughSequence);
+    if (!Number.isSafeInteger(sequence) || sequence < 1) {
+      setError(new Error("Choose a positive whole-number change."));
+      return;
+    }
+    setBusy(true);
+    setError(undefined);
+    try {
+      const response = await provider.getHistoricalRanking(id, sequence);
+      setResult(response.data);
+    } catch (cause) {
+      setResult(undefined);
+      setError(cause);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div>
+      <form
+        className="inline-form"
+        aria-label="Replay historical ranking"
+        onSubmit={(event) => void submit(event)}
+      >
+        <label>
+          <span>Through change</span>
+          <input
+            type="number"
+            min="1"
+            step="1"
+            value={throughSequence}
+            onChange={(event) => setThroughSequence(event.target.value)}
+            required
+          />
+        </label>
+        {error ? (
+          <p className="field-error" role="alert">
+            {errorMessage(error).detail}
+          </p>
+        ) : null}
+        <button className="button secondary" type="submit" disabled={busy}>
+          {busy ? "Replaying…" : "Replay ranking"}
+        </button>
+      </form>
+      {result ? (
+        <section
+          className="historical-ranking"
+          aria-label={`Ranking through change ${result.through_sequence}`}
+        >
+          <h3>Snapshot through change {result.through_sequence}</h3>
+          <RankExplanation rank={result.rank} className="large-breakdown" />
+        </section>
+      ) : null}
+    </div>
+  );
 }
 
 function PreferenceForm({
@@ -411,27 +478,7 @@ function DetailContent({ detail, reload }: { detail: HoneymoonPeriodView; reload
       <div className="detail-grid">
         <section className="surface">
           <h2>Why it ranks</h2>
-          <dl className="large-breakdown">
-            <div>
-              <dt>Scores</dt>
-              <dd>{item.rank.score}</dd>
-            </div>
-            <div>
-              <dt>Votes</dt>
-              <dd>{item.rank.votes}</dd>
-            </div>
-            <div>
-              <dt>Explicit boost</dt>
-              <dd>{item.rank.boost}</dd>
-            </div>
-            <div>
-              <dt>Total</dt>
-              <dd>{item.rank.total}</dd>
-            </div>
-          </dl>
-          <p className="field-help">
-            Total = average available score + vote weights + explicit boost.
-          </p>
+          <RankExplanation rank={item.rank} className="large-breakdown" showFormula />
         </section>
         <section className="surface">
           <h2>Preferences</h2>
@@ -484,6 +531,7 @@ function DetailContent({ detail, reload }: { detail: HoneymoonPeriodView; reload
           ) : (
             <p className="muted">No preference changes yet.</p>
           )}
+          <HistoricalRankingReplay id={item.id} />
         </section>
         <section className="surface wide">
           <h2>Details & metadata</h2>

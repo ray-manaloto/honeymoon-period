@@ -14,7 +14,6 @@
 - Keep partner onboarding to one app installation plus an invitation when possible.
 - Time-box an existing-app bake-off before custom development.
 - Keep preference ranking system-owned, explainable, and versioned.
-- Support a development feature flag that can rank from one person's vote while partner voting is unavailable.
 - Expose versioned REST APIs for capture, preferences, notes/metadata, sorting, ranking, and queries so presentation clients remain replaceable.
 - Deliver the first complete interactive client as a responsive source-controlled web UI; retain the Shortcut as the initial iOS capture client.
 - Generate clients, models, validators, mocks, and routine plumbing from stable contracts. Permit Codex/Sites-generated presentation source while keeping human-authored code focused on business behavior.
@@ -47,12 +46,16 @@ Use the behavior already proven by the local vertical slice so implementation ca
 - score is optional from 0 through 5; a missing vote or score contributes zero rather than blocking ranking;
 - each participant can replace only their own preference;
 - ranking is the average available score plus vote weights (`interested` +2, `maybe` +1, `decline` -2) plus an explicit `rank_boost`, with newest update as the tie-breaker;
-- `decline` lowers rank but is not a hard veto; moving the shared item to declined status is a separate shared action;
+- `decline` lowers rank and is a reversible planning-eligibility veto; it never changes the shared item status;
 - notes and metadata are shared, retain actor/source provenance where available, and never contain production private data in fixtures; and
-- ranking responses expose score, vote, boost, and total components.
+- ranking responses identify policy v1, expose planning eligibility plus score,
+  vote, boost, and total components; and
+- historical ranking replays the same policy inclusively through a requested
+  accepted sequence, using the policy version and explicit boost recorded with
+  each accepted preference event.
 
-These defaults describe the accepted implementation baseline. They remain in place until
-the approved #19 child tickets are implemented and independently accepted.
+These defaults describe the canonical implementation. There is no alternate
+single-participant policy or compatibility transport.
 
 ## Approved preference and history evolution
 
@@ -78,9 +81,10 @@ approved specification. Its settled semantics are:
 
 Immutable preference changes and participant-visible history are implemented by
 [#23](https://github.com/ray-manaloto/honeymoon-period/issues/23). Versioned policy
-replay and tombstone redaction remain intentionally deferred to the dependent
-[#24](https://github.com/ray-manaloto/honeymoon-period/issues/24) and
-[#25](https://github.com/ray-manaloto/honeymoon-period/issues/25) tracer bullets.
+replay is implemented by
+[#24](https://github.com/ray-manaloto/honeymoon-period/issues/24). Tombstone
+redaction remains intentionally deferred to the dependent
+[#25](https://github.com/ray-manaloto/honeymoon-period/issues/25) tracer bullet.
 
 ## Remaining semantics to refine
 

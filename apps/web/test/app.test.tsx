@@ -1,4 +1,8 @@
-import type { HistoryPage, HoneymoonPeriodDetail } from "@honeymoon-period/generated";
+import type {
+  HistoricalRanking,
+  HistoryPage,
+  HoneymoonPeriodDetail,
+} from "@honeymoon-period/generated";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { memoryStore } from "react-admin";
@@ -15,9 +19,28 @@ const item = {
   metadata: { cuisine: "Fixture cuisine", address: "123 Example Street" },
   metadata_updated_by_actor_id: null,
   rank_boost: 1,
-  rank: { score: 4, votes: 3, boost: 1, total: 8 },
+  rank: {
+    policy_version: 1 as const,
+    planning_eligible: true,
+    score: 4,
+    votes: 3,
+    boost: 1,
+    total: 8,
+  },
   created_at: "2026-01-01T00:00:00.000Z",
   updated_at: "2026-01-02T00:00:00.000Z",
+};
+const historicalRanking: HistoricalRanking = {
+  honeymoon_period_id: item.id,
+  through_sequence: 1,
+  rank: {
+    policy_version: 1,
+    planning_eligible: false,
+    score: 0,
+    votes: -2,
+    boost: 1,
+    total: 0,
+  },
 };
 const detail: HoneymoonPeriodDetail & { history: HistoryPage } = {
   item,
@@ -90,6 +113,7 @@ function provider(overrides: Partial<HoneymoonDataProvider> = {}): HoneymoonData
     }),
     addNote: vi.fn().mockResolvedValue({ data: detail.notes[0] }),
     updateNote: vi.fn().mockResolvedValue({ data: detail.notes[0] }),
+    getHistoricalRanking: vi.fn().mockResolvedValue({ data: historicalRanking }),
     ...overrides,
   };
 }
@@ -108,6 +132,8 @@ describe("web MVP", () => {
     const rank = screen.getByLabelText("Rank explanation for Fixture Bistro");
     expect(within(rank).getByText("Total")).toBeVisible();
     expect(within(rank).getByText("8")).toBeVisible();
+    expect(within(rank).getByText("Preference policy v1")).toBeVisible();
+    expect(within(rank).getByText("Eligible for planning")).toBeVisible();
     await user.type(screen.getByRole("searchbox", { name: "Search" }), "Fixture");
     await user.selectOptions(screen.getByRole("combobox", { name: "Status" }), "planned");
     await user.selectOptions(screen.getByRole("combobox", { name: "Kind" }), "restaurant");
@@ -121,9 +147,44 @@ describe("web MVP", () => {
     expect(await screen.findByRole("heading", { name: "Fixture Bistro" })).toBeVisible();
     expect(screen.getAllByRole("main")).toHaveLength(1);
     expect(screen.getByRole("heading", { name: "Why it ranks" })).toBeVisible();
+    expect(screen.getByText("Preference policy v1")).toBeVisible();
+    expect(screen.getByText("Eligible for planning")).toBeVisible();
     expect(screen.getByRole("heading", { name: "Source history" })).toBeVisible();
     expect(screen.getByText("Try the patio")).toBeVisible();
     expect(screen.getByText("Fixture cuisine")).toBeVisible();
+  });
+
+  it("replays the canonical ranking inclusively through a selected history sequence", async () => {
+    const user = userEvent.setup();
+    const getHistoricalRanking = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("Synthetic replay failure"))
+      .mockResolvedValue({ data: historicalRanking });
+    render(
+      <App
+        dataProvider={provider({ getHistoricalRanking })}
+        store={memoryStore()}
+        initialPath="/honeymoon-periods/period-1/show"
+      />,
+    );
+
+    await screen.findByRole("heading", { name: "Fixture Bistro" });
+    const replay = screen.getByRole("form", { name: "Replay historical ranking" });
+    await user.type(within(replay).getByRole("spinbutton", { name: "Through change" }), "0");
+    fireEvent.submit(replay);
+    expect(await within(replay).findByRole("alert")).toHaveTextContent("positive whole-number");
+    await user.clear(within(replay).getByRole("spinbutton", { name: "Through change" }));
+    await user.type(within(replay).getByRole("spinbutton", { name: "Through change" }), "1");
+    await user.click(within(replay).getByRole("button", { name: "Replay ranking" }));
+    expect(await within(replay).findByRole("alert")).toHaveTextContent("Synthetic replay failure");
+    await user.click(within(replay).getByRole("button", { name: "Replay ranking" }));
+
+    await waitFor(() => expect(getHistoricalRanking).toHaveBeenCalledWith(item.id, 1));
+    const snapshot = await screen.findByRole("region", { name: "Ranking through change 1" });
+    expect(snapshot).toHaveTextContent("Preference policy v1");
+    expect(snapshot).toHaveTextContent("Planning unavailable: a participant declined");
+    expect(snapshot).toHaveTextContent("Total");
+    expect(snapshot).toHaveTextContent("0");
   });
 
   it("creates a capture and provides validation feedback", async () => {
