@@ -1,76 +1,54 @@
 {
   "schemaVersion": 1,
-  "goalId": "symphony-conformance-controller",
-  "objectiveFingerprint": "455f7a3cf6bf7fe4992f177c46d333c14fdb7af6cf0ab7423dee1805d341305b",
-  "objectiveRef": "delegated-goal-and-docs/agents/adaptive-orchestration.md",
-  "state": "complete",
+  "goalId": "preference-history-23",
+  "objectiveFingerprint": "7f142cc88e18a8f136efbd5f7737d5a2383360b708fd274608385c47fed9a7fa",
+  "objectiveRef": "issues/23",
+  "state": "ready",
   "reason": null,
   "revision": {
-    "fingerprint": "fda833bf7c67c5776b343d548b9a17963898f1ed2cba69d735e1eed1eb957581",
-    "head": "23ec5fb33b4b7f09726690eb232a53df99434e90",
-    "ownedManifest": "b9552ae1dca87e0689c37b2f8186467e59b01a614ccb357b59b9b834a5b43a0e",
+    "fingerprint": "3bb0290b5c1ac9fe907188705e233ae62ae69a537bbb303d32dd6cd3338591a6",
+    "head": "a9ef708127b9542eb601979dabc08f32485f95df",
+    "ownedManifest": "7bd903fef6777a86dd91cafc9257f016b486b07e0a04d5abbb1bdd393b0ad831",
     "ownedInputs": [
       "docs/agents/adaptive-orchestration.md",
-      "docs/research/openai-symphony-cookbook-controller.md",
-      "scripts/symphony-controller.mjs",
-      "tests/symphony-controller.test.mjs",
-      ".codex/goals/CONTINUATION.md",
+      "docs/product/requirements.md",
+      "openapi/v1.json",
+      "openapi/ui-metadata.json",
+      "apps/api/migrations/0001_initial.sql",
+      "apps/api/src/worker.ts",
+      "packages/domain/src/index.ts",
+      "apps/web/src/period-show.tsx",
+      "scripts/generate.mjs",
       "package.json"
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 5,
-  "lastWakeToken": "root-20260719T104200-final-fault-gates",
+  "leaseEpoch": 0,
+  "lastWakeToken": null,
   "question": null,
   "run": null,
   "evidence": {
-    "current": [
-      {
-        "aggregateRecordHash": "615781d0c552b875daf179abc710e7047188c9096550572a9d797e6e098e5375",
-        "at": "2026-07-19T10:48:43.644Z",
-        "protectedArtifactRecordHash": "e8361dd8fcd77b8708b57f274e060e038499427bdb6ae904b3cecf5c036db328",
-        "revision": "fda833bf7c67c5776b343d548b9a17963898f1ed2cba69d735e1eed1eb957581",
-        "validatorAgent": "98886c0b62fe8614803b08729cbc34e723e56060c322c4a0d615c2a0f9f850fd",
-        "validatorRecordHash": "777b570d2590f82339629c2c627e76077a84c8ccb1e18ab248a0d8a5817b80a2",
-        "validatorVerdict": "PASS",
-        "verifierAgent": "ccd5726129b0f881c84c1260ed349aa62d3c31f9fd1b2e776d004e66ebf6a406",
-        "verifierRecordHash": "f479cbe94706f0d8b30c52037b26bff8c4b0cafd3641eeebba74270714809695",
-        "verifierVerdict": "ACCEPT"
-      }
-    ]
+    "current": []
   },
   "continuation": {
     "automationId": "continue-symphony-controller-goal",
-    "configHash": "b82cfd6f3e02e5e0969b605ff28ef27ebed649467754d69ee1f24bb2ba679a0f",
+    "configHash": "f7a92191e9a8f274a521b603872484f1ab9430a15074d69f4fc60f79343ebab3",
     "intervalMinutes": 10,
     "kind": "codex-desktop-heartbeat",
-    "observedWakeAt": "2026-07-19T10:16:31.137Z",
-    "observedWakeEpoch": 1,
-    "registryReadAt": "2026-07-19T10:49:23.000Z",
+    "registryReadAt": "2026-07-19T14:45:16.000Z",
     "role": "wake-trigger-only",
-    "status": "PAUSED"
-  },
-  "publication": {
-    "branch": "codex/symphony-conformance-controller",
-    "initialPrHead": "3e4736c07bb11f1bce28990a9bff3f092d6287ab",
-    "prNumber": 27,
-    "repository": "ray-manaloto/honeymoon-period",
-    "state": "OPEN_READY"
+    "status": "ACTIVE"
   },
   "budgets": {
-    "repairCyclesUsed": 1,
+    "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 5
+    "runsUsed": 0
   },
   "policy": {
     "maxDirectChildren": 3,
-    "maxRepairCycles": 1,
+    "maxRepairCycles": 2,
     "maxRetries": 2,
     "maxRuntimeMs": 1800000,
     "ttlMs": 300000
-  },
-  "waiting": null,
-  "retryDueAt": "2026-07-19T10:23:58.426Z",
-  "failureFingerprint": "473e6c9a6949a8a8de9ca350bdb51faa14d295d714a8233a23fdaab17a1fccb1",
-  "lastCheckpointId": "e504e0c4-87d1-4af5-9323-229daae75c0f"
+  }
 }
