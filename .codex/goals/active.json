@@ -3,8 +3,8 @@
   "goalId": "symphony-conformance-controller",
   "objectiveFingerprint": "455f7a3cf6bf7fe4992f177c46d333c14fdb7af6cf0ab7423dee1805d341305b",
   "objectiveRef": "delegated-goal-and-docs/agents/adaptive-orchestration.md",
-  "state": "ready",
-  "reason": "revision-changed",
+  "state": "complete",
+  "reason": null,
   "revision": {
     "fingerprint": "fda833bf7c67c5776b343d548b9a17963898f1ed2cba69d735e1eed1eb957581",
     "head": "23ec5fb33b4b7f09726690eb232a53df99434e90",
@@ -19,28 +19,41 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 4,
-  "lastWakeToken": "root-20260719T110700-process-fenced-final-gates",
+  "leaseEpoch": 5,
+  "lastWakeToken": "root-20260719T104200-final-fault-gates",
   "question": null,
   "run": null,
   "evidence": {
-    "current": []
+    "current": [
+      {
+        "aggregateRecordHash": "615781d0c552b875daf179abc710e7047188c9096550572a9d797e6e098e5375",
+        "at": "2026-07-19T10:48:43.644Z",
+        "protectedArtifactRecordHash": "e8361dd8fcd77b8708b57f274e060e038499427bdb6ae904b3cecf5c036db328",
+        "revision": "fda833bf7c67c5776b343d548b9a17963898f1ed2cba69d735e1eed1eb957581",
+        "validatorAgent": "98886c0b62fe8614803b08729cbc34e723e56060c322c4a0d615c2a0f9f850fd",
+        "validatorRecordHash": "777b570d2590f82339629c2c627e76077a84c8ccb1e18ab248a0d8a5817b80a2",
+        "validatorVerdict": "PASS",
+        "verifierAgent": "ccd5726129b0f881c84c1260ed349aa62d3c31f9fd1b2e776d004e66ebf6a406",
+        "verifierRecordHash": "f479cbe94706f0d8b30c52037b26bff8c4b0cafd3641eeebba74270714809695",
+        "verifierVerdict": "ACCEPT"
+      }
+    ]
   },
   "continuation": {
     "automationId": "continue-symphony-controller-goal",
-    "configHash": "40c4dcc6fbbdc652c32d1e50a684ef49767234f5b68d9af5a9d2454498991fec",
+    "configHash": "b82cfd6f3e02e5e0969b605ff28ef27ebed649467754d69ee1f24bb2ba679a0f",
     "intervalMinutes": 10,
     "kind": "codex-desktop-heartbeat",
     "observedWakeAt": "2026-07-19T10:16:31.137Z",
     "observedWakeEpoch": 1,
-    "registryReadAt": "2026-07-19T10:17:00.000Z",
+    "registryReadAt": "2026-07-19T10:49:23.000Z",
     "role": "wake-trigger-only",
-    "status": "ACTIVE"
+    "status": "PAUSED"
   },
   "budgets": {
     "repairCyclesUsed": 1,
     "retriesUsed": 0,
-    "runsUsed": 4
+    "runsUsed": 5
   },
   "policy": {
     "maxDirectChildren": 3,
@@ -51,5 +64,6 @@
   },
   "waiting": null,
   "retryDueAt": "2026-07-19T10:23:58.426Z",
-  "failureFingerprint": "473e6c9a6949a8a8de9ca350bdb51faa14d295d714a8233a23fdaab17a1fccb1"
+  "failureFingerprint": "473e6c9a6949a8a8de9ca350bdb51faa14d295d714a8233a23fdaab17a1fccb1",
+  "lastCheckpointId": "e504e0c4-87d1-4af5-9323-229daae75c0f"
 }
