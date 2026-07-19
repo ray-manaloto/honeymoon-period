@@ -37,6 +37,8 @@ The fault review also required mutation-lock initialization to publish the direc
 owner atomically; an ownerless canonical mutex is never a valid live intermediate state.
 All state-changing commands must reread authoritative state inside that mutex, and dead
 prepared-lock candidates must be reconciled so crash safety does not create hidden residue.
+The in-lock reread applies to reconcile, acquire, renew, and checkpoint as well as input
+adoption; mutex ownership does not make a snapshot captured before the mutex authoritative.
 
 ## Correction
 

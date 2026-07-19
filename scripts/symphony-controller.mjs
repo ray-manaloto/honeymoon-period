@@ -411,7 +411,13 @@ function fenceLease(root, goal, now, reason) {
 }
 
 function reconcile(root, goal, now) {
-  const locked = withMutationLock(root, () => reconcileLocked(root, goal, now));
+  if (process.env.SYMPHONY_CONTROLLER_TEST_MODE === "1") {
+    const pause = Number(process.env.SYMPHONY_CONTROLLER_TEST_RECONCILE_PRELOCK_PAUSE_MS ?? 0);
+    if (pause > 0) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, pause);
+  }
+  const locked = withMutationLock(root, () =>
+    reconcileLocked(root, readJson(paths(root).active, "active-goal-missing"), now),
+  );
   return locked ?? { action: "noop", reason: "mutation-contention", state: goal.state };
 }
 
@@ -522,13 +528,44 @@ function reconcileLocked(root, goal, now) {
   return { action: "reconciled", reason: goal.reason ?? null, state: goal.state };
 }
 
-function acquire(root, goal, now, wakeToken) {
-  const locked = withMutationLock(root, () => acquireLocked(root, goal, now, wakeToken));
+function acquire(root, _goal, now, wakeToken) {
+  const locked = withMutationLock(root, () =>
+    acquireLocked(root, readJson(paths(root).active, "active-goal-missing"), now, wakeToken),
+  );
   return locked ?? null;
 }
 
 function acquireLocked(root, goal, now, wakeToken) {
   const controllerPaths = paths(root);
+  if (goal.lastWakeToken === wakeToken) {
+    return { action: "noop", reason: "duplicate-wakeup", state: goal.state };
+  }
+  if (goal.state === "complete") {
+    return { action: "noop", reason: "goal-complete", state: goal.state };
+  }
+  if (goal.state === "blocked" || goal.state === "running") {
+    return { action: "noop", reason: goal.reason ?? "not-admissible", state: goal.state };
+  }
+  if (goal.state === "waiting" && goal.waiting?.dueAt) {
+    if (Date.parse(goal.waiting.dueAt) > now.valueOf()) {
+      return { action: "noop", reason: "waiting-not-due", state: goal.state };
+    }
+    goal.waiting = null;
+  }
+  if (goal.state === "failed") {
+    if (goal.reason === "unchanged-failure" || goal.reason === "repair-budget-exhausted") {
+      return { action: "noop", reason: goal.reason, state: goal.state };
+    }
+    if (goal.budgets.retriesUsed >= goal.policy.maxRetries) {
+      goal.reason = "retry-budget-exhausted";
+      atomicJson(controllerPaths.active, goal);
+      return { action: "noop", reason: goal.reason, state: goal.state };
+    }
+    if (goal.retryDueAt && Date.parse(goal.retryDueAt) > now.valueOf()) {
+      return { action: "noop", reason: "retry-not-due", state: goal.state };
+    }
+    goal.budgets.retriesUsed += 1;
+  }
   try {
     mkdirSync(controllerPaths.lease, { mode: 0o700 });
   } catch {
@@ -640,8 +677,10 @@ function reconcileCheckpointJournal(root, goal) {
   return true;
 }
 
-function renew(root, goal, options, now) {
-  const locked = withMutationLock(root, () => renewLocked(root, goal, options, now));
+function renew(root, _goal, options, now) {
+  const locked = withMutationLock(root, () =>
+    renewLocked(root, readJson(paths(root).active, "active-goal-missing"), options, now),
+  );
   if (!locked) fail("mutation-contention");
   return locked;
 }
@@ -744,25 +783,29 @@ function adoptInput(root, goal, options, now) {
     const pause = Number(process.env.SYMPHONY_CONTROLLER_TEST_ADOPT_PRELOCK_PAUSE_MS ?? 0);
     if (pause > 0) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, pause);
   }
-  const locked = withMutationLock(root, () => {
-    goal = readJson(paths(root).active, "active-goal-missing");
-    if (goal.state !== "ready" || existsSync(paths(root).lease)) fail("goal-not-ready");
-    const input = safeOwnedInput(options.ownedInput);
-    if (goal.revision.ownedInputs.includes(input)) {
-      return { action: "noop", reason: "owned-input-already-adopted", state: goal.state };
-    }
-    const ownedInputs = [...goal.revision.ownedInputs, input];
-    manifest(root, ownedInputs);
-    goal.revision.ownedInputs = ownedInputs;
-    goal.revision = revision(root, goal);
-    goal.evidence.current = [];
-    atomicJson(paths(root).active, goal);
-    appendEvent(
-      paths(root).history,
-      event(goal, now, "owned-input-adopted", { input: hash(input) }),
-    );
-    return { action: "owned-input-adopted", state: goal.state };
-  });
+  let locked = null;
+  for (let attempt = 0; attempt < 20 && locked === null; attempt += 1) {
+    locked = withMutationLock(root, () => {
+      goal = readJson(paths(root).active, "active-goal-missing");
+      if (goal.state !== "ready" || existsSync(paths(root).lease)) fail("goal-not-ready");
+      const input = safeOwnedInput(options.ownedInput);
+      if (goal.revision.ownedInputs.includes(input)) {
+        return { action: "noop", reason: "owned-input-already-adopted", state: goal.state };
+      }
+      const ownedInputs = [...goal.revision.ownedInputs, input];
+      manifest(root, ownedInputs);
+      goal.revision.ownedInputs = ownedInputs;
+      goal.revision = revision(root, goal);
+      goal.evidence.current = [];
+      atomicJson(paths(root).active, goal);
+      appendEvent(
+        paths(root).history,
+        event(goal, now, "owned-input-adopted", { input: hash(input) }),
+      );
+      return { action: "owned-input-adopted", state: goal.state };
+    });
+    if (locked === null) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 25);
+  }
   if (!locked) fail("mutation-contention");
   return locked;
 }
@@ -832,26 +875,6 @@ function wake(root, goal, options, now) {
     return { action: "ask", question: runtimeQuestion.text, state: goal.state };
   }
   if (result.reason === "lease-held") return result;
-  if (goal.state === "waiting" && goal.waiting?.dueAt) {
-    if (Date.parse(goal.waiting.dueAt) > now.valueOf()) {
-      return { action: "noop", reason: "waiting-not-due", state: goal.state };
-    }
-    goal.waiting = null;
-  }
-  if (goal.state === "failed") {
-    if (goal.reason === "unchanged-failure" || goal.reason === "repair-budget-exhausted") {
-      return { action: "noop", reason: goal.reason, state: goal.state };
-    }
-    if (goal.budgets.retriesUsed >= goal.policy.maxRetries) {
-      goal.reason = "retry-budget-exhausted";
-      atomicJson(paths(root).active, goal);
-      return { action: "noop", reason: goal.reason, state: goal.state };
-    }
-    if (goal.retryDueAt && Date.parse(goal.retryDueAt) > now.valueOf()) {
-      return { action: "noop", reason: "retry-not-due", state: goal.state };
-    }
-    goal.budgets.retriesUsed += 1;
-  }
   const acquired = acquire(root, goal, now, wakeToken);
   return acquired ?? { action: "noop", reason: "lease-contention", state: goal.state };
 }
@@ -913,8 +936,10 @@ function loadAgentEvidenceRecord(root, recordPath, expected, goal, now) {
   return evidence;
 }
 
-function checkpoint(root, goal, options, now) {
-  const locked = withMutationLock(root, () => checkpointLocked(root, goal, options, now));
+function checkpoint(root, _goal, options, now) {
+  const locked = withMutationLock(root, () =>
+    checkpointLocked(root, readJson(paths(root).active, "active-goal-missing"), options, now),
+  );
   if (!locked) fail("mutation-contention");
   return locked;
 }

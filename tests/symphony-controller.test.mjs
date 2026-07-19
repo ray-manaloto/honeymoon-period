@@ -173,6 +173,7 @@ function runAsync(root, action, options = {}) {
     testAdoptPrelockPauseMs,
     testMutationInitCrash,
     testMutationInitPauseMs,
+    testReconcilePrelockPauseMs,
     ...commandOptions
   } = options;
   return new Promise((resolveResult) => {
@@ -186,6 +187,13 @@ function runAsync(root, action, options = {}) {
         ...(testMutationInitCrash ? { SYMPHONY_CONTROLLER_TEST_MUTATION_INIT_CRASH: "1" } : {}),
         ...(testAdoptPrelockPauseMs
           ? { SYMPHONY_CONTROLLER_TEST_ADOPT_PRELOCK_PAUSE_MS: String(testAdoptPrelockPauseMs) }
+          : {}),
+        ...(testReconcilePrelockPauseMs
+          ? {
+              SYMPHONY_CONTROLLER_TEST_RECONCILE_PRELOCK_PAUSE_MS: String(
+                testReconcilePrelockPauseMs,
+              ),
+            }
           : {}),
       },
       stdio: ["ignore", "pipe", "pipe"],
@@ -516,6 +524,27 @@ test("completed current revisions never run again", () => {
   const result = run(root, "wake", { wakeToken: "two", now: "2026-07-19T10:00:02.000Z" });
   assert.equal(result.action, "noop");
   assert.equal(result.reason, "goal-complete");
+});
+
+test("reconcile queued before completion cannot reopen the completed goal", async () => {
+  const root = createFixture();
+  const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
+  const delayed = runAsync(root, "reconcile", {
+    now: "2026-07-19T10:00:00.200Z",
+    testReconcilePrelockPauseMs: 5_000,
+  });
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 100));
+  run(root, "checkpoint", {
+    ownerToken: lease.ownerToken,
+    state: "complete",
+    ...evidenceRecords(root, "2026-07-19T10:00:00.050Z"),
+    retrospectiveCode: "no-new-lesson",
+    now: "2026-07-19T10:00:00.100Z",
+  });
+  const reconciled = await delayed;
+  assert.equal(reconciled.status, 0, reconciled.stderr);
+  assert.equal(reconciled.result.state, "complete");
+  assert.equal(active(root).state, "complete");
 });
 
 test("stolen lease authority is fenced and running state recovers", () => {
