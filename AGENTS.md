@@ -116,6 +116,11 @@ authority.
 - Prefer `web-specialist` for React-admin/Vite/Browser/Playwright work after a ticket and owned path are explicit.
 - Keep the root on GPT-5.6 Sol. Prefer the lower-model `verifier` for independent acceptance/evidence checks and `validator` for reproducible mechanical checks; use both after material integration when their work is independent.
 - Verification agents must be fresh, independent from implementers and from each other, and must not edit source or documentation. Verifiers return `ACCEPT`/`REJECT`; validators return `PASS`/`FAIL`. Both report exact commands or inspected evidence, paths and lines, failures, residual risks, and unverified behavior.
+- Final agents evaluate the current running candidate revision; their reports are inputs to
+  the root's subsequent controller completion checkpoint. They must not reject solely
+  because the active goal is not already `complete` or their current report has not yet
+  been integrated. The root verifies report provenance from collaboration output; the
+  controller provides revision/integrity binding, not cryptographic process identity.
 - When either rejects or fails, give a bounded correction to a worker. Re-run the affected pass with a fresh agent; re-run both when the correction changes shared integration or evidence used by both passes.
 - Escalate to the Sol `ios-specialist` only for difficult Apple-platform behavior and to the Sol `reviewer` only for material security, privacy, data-loss, concurrency, architecture, disagreement, or persistent-failure risk. Keep routine implementation, source extraction, formatting, and mechanical validation on Terra unless Terra is unavailable or has failed to converge.
 - Require concise summaries with paths, commands, failures, evidence, and unresolved decisions.

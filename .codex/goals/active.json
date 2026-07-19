@@ -3,8 +3,8 @@
   "goalId": "self-learning-autonomy-loop",
   "objectiveFingerprint": "429b78ea87394d1341c81bed3aae6f0cd0bbb4a413d011126295fad8013ef5f2",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "ready",
-  "reason": "revision-changed",
+  "state": "running",
+  "reason": null,
   "revision": {
     "fingerprint": "eac0f4fd41c61894a6c2b0755271bc42f32ea3a4847f79dd68607ba48d9a61bf",
     "head": "3abb0dfcd2c5f16e3a8e4fdbe6fa85048d85393d",
@@ -31,17 +31,22 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 4,
-  "lastWakeToken": "manual-20260719T162500-self-learning-semantic-repair",
+  "leaseEpoch": 5,
+  "lastWakeToken": "manual-20260719T163500-self-learning-report-binding",
   "question": null,
-  "run": null,
+  "run": {
+    "deadlineAt": "2026-07-19T21:54:10.860Z",
+    "directChildrenUsed": 0,
+    "ownerToken": "55fcd42e-ce3d-408e-b978-d5de2b64746d",
+    "startedAt": "2026-07-19T21:24:10.860Z"
+  },
   "evidence": {
     "current": []
   },
   "budgets": {
     "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 4
+    "runsUsed": 5
   },
   "policy": {
     "maxDirectChildren": 3,

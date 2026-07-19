@@ -94,12 +94,14 @@ function evidenceRecords(root, completedAt) {
   const directory = join(root, ".codex/goals/.evidence");
   mkdirSync(directory, { recursive: true });
   const revision = active(root).revision.fingerprint;
+  const head = git(root, "rev-parse", "HEAD");
   const records = {
     aggregateRecord: {
       kind: "aggregate-check",
       status: "PASS",
       revision,
       completedAt,
+      head,
       command: "npm run check",
     },
     protectedArtifactRecord: {
@@ -107,6 +109,7 @@ function evidenceRecords(root, completedAt) {
       status: "PASS",
       revision,
       completedAt,
+      head,
       command: "git diff --exit-code -- shortcut dist",
     },
     reviewerRecord: {
@@ -114,6 +117,7 @@ function evidenceRecords(root, completedAt) {
       verdict: "PASS",
       revision,
       completedAt,
+      head,
       agentId: "fresh-reviewer-fixture",
       fresh: true,
     },
@@ -122,6 +126,7 @@ function evidenceRecords(root, completedAt) {
       outcome: "no-new-lesson",
       revision,
       completedAt,
+      head,
       evidenceRef: "docs/agents/adaptive-orchestration.md#goal-change-log",
       reasonCode: "routine-green-no-new-pattern",
     },
@@ -130,6 +135,7 @@ function evidenceRecords(root, completedAt) {
       verdict: "PASS",
       revision,
       completedAt,
+      head,
       agentId: "fresh-validator-fixture",
       fresh: true,
     },
@@ -138,6 +144,7 @@ function evidenceRecords(root, completedAt) {
       verdict: "ACCEPT",
       revision,
       completedAt,
+      head,
       agentId: "fresh-verifier-fixture",
       fresh: true,
     },
@@ -672,6 +679,21 @@ test("completion rejects colliding or report-mismatched independent verdict reco
   });
   assert.notEqual(mismatched.status, 0);
   assert.match(mismatched.stderr, /agent-report-mismatch/);
+
+  writeFileSync(
+    join(root, records.reviewerRecord.replace(/\.json$/, ".report.txt")),
+    "PASS\nIndependent fixture evidence.\n",
+  );
+  writeFileSync(validatorPath, `${JSON.stringify({ ...validator, head: "0".repeat(40) })}\n`);
+  const staleHead = command(root, "checkpoint", {
+    ownerToken: lease.ownerToken,
+    state: "complete",
+    ...records,
+    retrospectiveCode: "no-new-lesson",
+    now: "2026-07-19T10:00:00.100Z",
+  });
+  assert.notEqual(staleHead.status, 0);
+  assert.match(staleHead.stderr, /evidence-record-mismatch/);
 });
 
 test("owned inputs must be readable in-root files and budgets have hard maxima", () => {

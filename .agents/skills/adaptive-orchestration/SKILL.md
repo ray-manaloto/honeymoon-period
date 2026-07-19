@@ -83,6 +83,8 @@ postcondition read before the next write. Re-read before retrying an uncertain r
 
 Run focused checks, the repository aggregate, and fresh semantic `ACCEPT` plus
 mechanical `PASS` gates. Publish only after both gates and a final dirty-tree audit.
+Final agents inspect the running candidate revision; the root verifies their collaboration
+output provenance and only then checkpoints completion with controller-bound report hashes.
 Use `docs/agents/handoff-template.md` whenever the lifecycle policy requires a new task.
 For an authorized root-authored goal pull request, apply the exact-remote-HEAD autonomous
 merge gate in `docs/agents/issue-tracker.md`; any remote-head change invalidates the gate.

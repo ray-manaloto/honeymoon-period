@@ -828,7 +828,8 @@ function loadEvidenceRecord(root, recordPath, expected, goal, now) {
   if (
     record.kind !== expected.kind ||
     record[expected.field] !== expected.value ||
-    record.revision !== goal.revision.fingerprint
+    record.revision !== goal.revision.fingerprint ||
+    record.head !== git(root, ["rev-parse", "HEAD"])
   ) {
     fail("evidence-record-mismatch");
   }

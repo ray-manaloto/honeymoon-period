@@ -77,6 +77,14 @@ checkpoint. For every material iteration:
    `linked`, or `no-new-lesson`. Routine success may use `no-new-lesson` with a concrete
    reason; do not manufacture documentation for a non-recurring event.
 
+Agent evidence has two separate controls. The root verifies provenance by copying the
+fresh collaboration-agent output exactly and recording its task reference; the controller
+then validates its report path, hash, leading verdict, revision, timestamp, and distinct
+agent identity. This is an integrity and process boundary, not cryptographic proof of which
+cooperating local process authored a caller-writable file. Model reports remain acceptance
+evidence alongside deterministic aggregate and artifact checks; they never become execution
+authority.
+
 Only request a human interview after local diagnosis, repository evidence, relevant
 primary research, and bounded independent agents cannot resolve genuine ambiguity. Ask
 one deduplicated question. Credentials, consent, paid services, private data, signing,
@@ -148,6 +156,8 @@ This initial rollout log is append-only.
 | 25 | 2026-07-19 | The parallel standards reviewer confirmed that removing automatic exhaustion-to-question also removes its stale-writer/double-emission race, and found that `adopt-input` reused an identifier validator that rejected leading-dot repository paths such as `.agents/` and `.codex/`. | Retrospective: `promoted` into the controller regression suite. Add a path-specific validator that permits safe relative dot-prefixed files while rejecting absolute paths and parent traversal; prove adoption and revision invalidation with a `.agents/` fixture. Invalidate all gates. |
 | 26 | 2026-07-19 | The next fresh verifier found that completion records still reduced independent gate results to caller-asserted agent IDs, freshness booleans, and verdict strings. Although the root had real subagent reports, the controller did not bind those reports as inspectable artifacts. | Retrospective: `promoted`. Require every reviewer/verifier/validator record to name a collaboration-agent source, task reference, in-root report path, and SHA-256 report hash; verify the report file hash and leading verdict before completion. Keep root-owned integration and acknowledge that repository-local controls prevent accidental self-certification but cannot create a cryptographic OS trust boundary between cooperating Codex processes. Invalidate all gates. |
 | 27 | 2026-07-19 | The focused Biome preflight for the report-binding repair rejected two newly long single-line expressions before commit or fresh gates. | Retrospective: `linked` to entry 22 and the zero-debt formatter guard. Apply only Biome's canonical wrapping, rerun the focused behavioral tests, and keep all prior gates invalidated. |
+| 28 | 2026-07-19 | The next verifier correctly observed that local report hashing proves integrity after integration, not cryptographic producer identity, and incorrectly required the active goal to be complete before supplying the verdict that completion itself consumes. | Retrospective: `promoted` into the trust-boundary and verifier instructions. State the achievable split explicitly: the root verifies collaboration-output provenance, the controller binds its artifact and revision, and deterministic checks remain independent. Final agents evaluate a running candidate revision and must not reject merely because their not-yet-recorded verdict is an input to the subsequent complete checkpoint. Invalidate all gates for the clarified revision. |
+| 29 | 2026-07-19 | The parallel standards reviewer found that evidence records were bound to the controller's authority revision, whose intentional state-only-commit filtering differs from the exact Git/remote head required by the merge gate. The live example had actual HEAD `a28a313…` while the revision's authority head remained `3abb0df…`. | Retrospective: `promoted`. Require every completion evidence record to carry the exact current Git HEAD in addition to the controller revision fingerprint, reject any mismatch, and retain the lease's existing exact-HEAD fence. Add a stale-head record regression and invalidate all gates. |
 
 ## Initial tracker reconciliation evidence
 
