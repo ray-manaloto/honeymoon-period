@@ -6,8 +6,8 @@
   "state": "running",
   "reason": null,
   "revision": {
-    "fingerprint": "1a39c71f663aa78e02863418bf6f8f907cf5078095b78e37407536104e7575f9",
-    "head": "162b7e91d7779d76cdee44c78d234c5dafb818a1",
+    "fingerprint": "9e69af8510cb5b0d211f0d08708705fe54706a55e52081d8aa811d05d1fa208c",
+    "head": "210d622ef245ba975a722e01cfba2c2aae1fb4fd",
     "ownedManifest": "52713d6685e758d2563b518f6649e0058322523ae24d1a533ba28d9147c43134",
     "ownedInputs": [
       "docs/agents/adaptive-orchestration.md",
@@ -23,14 +23,14 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 7,
-  "lastWakeToken": "root-20260719T163000-issue23-gates",
+  "leaseEpoch": 8,
+  "lastWakeToken": "root-20260719T164500-issue23-zero-debt-final",
   "question": null,
   "run": {
-    "deadlineAt": "2026-07-19T15:59:33.742Z",
+    "deadlineAt": "2026-07-19T16:06:44.099Z",
     "directChildrenUsed": 0,
-    "ownerToken": "10e16164-fe95-4233-9e1b-c81d74643e92",
-    "startedAt": "2026-07-19T15:29:33.742Z"
+    "ownerToken": "5db273fe-9350-40ac-8554-0b716cd6c558",
+    "startedAt": "2026-07-19T15:36:44.099Z"
   },
   "evidence": {
     "current": []
@@ -47,7 +47,7 @@
   "budgets": {
     "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 7
+    "runsUsed": 8
   },
   "policy": {
     "maxDirectChildren": 3,

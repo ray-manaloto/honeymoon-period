@@ -34,12 +34,12 @@ beforeEach(async () => {
     env.DB.prepare("INSERT INTO actors (id, display_name, token_digest) VALUES (?, ?, ?)").bind(
       "actor-a",
       "Participant A",
-      "26d76b2b0027aca73507f6904bbd1e1736016612a3cba49ef7b36edbfa75e448",
+      "3c22d41a0f3a0de6ce4b4a41351bdcf7dedba531b80f0aa994c6a224c2a2d0c9",
     ),
     env.DB.prepare("INSERT INTO actors (id, display_name, token_digest) VALUES (?, ?, ?)").bind(
       "actor-b",
       "Participant B",
-      "0783c205225b2e9b8be6bbded0dcbd3a83ff60aa0e52a680386765d6a4a474b1",
+      "56b7725c3accbd63b596380e3e46d0ec345b1b5d3cdfb2e8294db1e4c6a22cd1",
     ),
   ]);
 });
