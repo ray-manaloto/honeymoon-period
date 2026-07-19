@@ -3,12 +3,12 @@
   "goalId": "self-learning-autonomy-loop",
   "objectiveFingerprint": "429b78ea87394d1341c81bed3aae6f0cd0bbb4a413d011126295fad8013ef5f2",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "running",
-  "reason": null,
+  "state": "ready",
+  "reason": "revision-changed",
   "revision": {
-    "fingerprint": "413b4ad7f66e38cc74546206ae140f4963905cb05d8b3aca310346471af5d879",
-    "head": "e9fc2f9a4cfb28d346de7711069fb8de969a7a8e",
-    "ownedManifest": "a0fa00652d858d667d8a580dc704de77213048b567300f1b2a1bf5156301da1a",
+    "fingerprint": "6fbac10f59753d7fe98e7ef59312e0f0b8bcc0c5a640240f31ed402a0a0723d9",
+    "head": "15aec103be733713fafc4e7e0ddd9b36c6e35941",
+    "ownedManifest": "eaae6cd7b7ad1c3d5649592b9c7d3a0e936d5aee3710a67a5ed934341a8a0e70",
     "ownedInputs": [
       "AGENTS.md",
       "docs/agents/adaptive-orchestration.md",
@@ -34,12 +34,7 @@
   "leaseEpoch": 7,
   "lastWakeToken": "manual-20260719T165500-self-learning-mutex-repair",
   "question": null,
-  "run": {
-    "deadlineAt": "2026-07-19T22:04:38.028Z",
-    "directChildrenUsed": 0,
-    "ownerToken": "445f9446-1a40-4163-a909-cc21435a636d",
-    "startedAt": "2026-07-19T21:34:38.028Z"
-  },
+  "run": null,
   "evidence": {
     "current": []
   },
