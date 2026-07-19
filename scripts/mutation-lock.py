@@ -17,7 +17,7 @@ def main() -> int:
         return 64
     lock_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     lock = lock_path.open("a+", encoding="utf-8")
-    deadline = time.monotonic() + 0.5
+    deadline = time.monotonic() + 1.0
     while True:
         try:
             fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)

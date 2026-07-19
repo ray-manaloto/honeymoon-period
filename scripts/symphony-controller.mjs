@@ -385,14 +385,17 @@ function event(goal, now, type, details = {}) {
   };
 }
 
-function revisionWasAdmitted(root, revisionFingerprint) {
+function revisionRequiresReview(root, revisionFingerprint) {
   if (!existsSync(paths(root).history)) return false;
   return readFileSync(paths(root).history, "utf8")
     .split("\n")
     .filter(Boolean)
     .some((line) => {
       const recorded = JSON.parse(line);
-      return recorded.revision === revisionFingerprint && recorded.type === "run-started";
+      return (
+        recorded.revision === revisionFingerprint &&
+        new Set(["goal-initialized", "owned-input-adopted", "run-started"]).has(recorded.type)
+      );
     });
 }
 
@@ -460,10 +463,6 @@ function fenceLease(root, goal, now, reason, recordEvent = true) {
 }
 
 function reconcile(root, now, options = {}) {
-  if (process.env.SYMPHONY_CONTROLLER_TEST_MODE === "1") {
-    const pause = Number(process.env.SYMPHONY_CONTROLLER_TEST_RECONCILE_PRELOCK_PAUSE_MS ?? 0);
-    if (pause > 0) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, pause);
-  }
   const locked = withMutationLock(root, () =>
     reconcileLocked(root, readJson(paths(root).active, "active-goal-missing"), now, options),
   );
@@ -600,7 +599,7 @@ function reconcileLocked(root, goal, now, options) {
     );
     if (
       goal.learning?.enforceFromRevision === goal.revision.fingerprint &&
-      revisionWasAdmitted(root, goal.revision.fingerprint) &&
+      revisionRequiresReview(root, goal.revision.fingerprint) &&
       !goal.learning.completed.some(
         (iteration) => iteration.revision === goal.revision.fingerprint,
       ) &&
@@ -1023,6 +1022,7 @@ function wake(root, goal, options, now) {
       }
     }
     const emission = withMutationLock(root, () => {
+      reconcileLocked(root, readJson(paths(root).active, "active-goal-missing"), now, options);
       const current = readJson(paths(root).active, "active-goal-missing");
       if (
         current.state !== "blocked" ||

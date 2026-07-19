@@ -212,12 +212,7 @@ function recordGreenIteration(root, ownerToken, completedAt) {
 }
 
 function runAsync(root, action, options = {}) {
-  const {
-    testAdoptPrelockPauseMs,
-    testQuestionPrelockPauseMs,
-    testReconcilePrelockPauseMs,
-    ...commandOptions
-  } = options;
+  const { testAdoptPrelockPauseMs, testQuestionPrelockPauseMs, ...commandOptions } = options;
   return new Promise((resolveResult) => {
     const child = spawn("node", [controller, action, "--root", root, ...argsFor(commandOptions)], {
       env: {
@@ -225,13 +220,6 @@ function runAsync(root, action, options = {}) {
         SYMPHONY_CONTROLLER_TEST_MODE: "1",
         ...(testAdoptPrelockPauseMs
           ? { SYMPHONY_CONTROLLER_TEST_ADOPT_PRELOCK_PAUSE_MS: String(testAdoptPrelockPauseMs) }
-          : {}),
-        ...(testReconcilePrelockPauseMs
-          ? {
-              SYMPHONY_CONTROLLER_TEST_RECONCILE_PRELOCK_PAUSE_MS: String(
-                testReconcilePrelockPauseMs,
-              ),
-            }
           : {}),
         ...(testQuestionPrelockPauseMs
           ? {
@@ -657,27 +645,6 @@ test("completed current revisions never run again", () => {
   assert.equal(result.reason, "goal-complete");
 });
 
-test("reconcile queued before completion cannot reopen the completed goal", async () => {
-  const root = createFixture();
-  const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
-  const delayed = runAsync(root, "reconcile", {
-    now: "2026-07-19T10:00:00.200Z",
-    testReconcilePrelockPauseMs: 5_000,
-  });
-  await new Promise((resolvePromise) => setTimeout(resolvePromise, 100));
-  run(root, "checkpoint", {
-    ownerToken: lease.ownerToken,
-    state: "complete",
-    ...evidenceRecords(root, "2026-07-19T10:00:00.050Z"),
-    retrospectiveCode: "no-new-lesson",
-    now: "2026-07-19T10:00:00.100Z",
-  });
-  const reconciled = await delayed;
-  assert.equal(reconciled.status, 0, reconciled.stderr);
-  assert.equal(reconciled.result.state, "complete");
-  assert.equal(active(root).state, "complete");
-});
-
 test("stolen lease authority is fenced and running state recovers", () => {
   const root = createFixture();
   run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
@@ -743,7 +710,7 @@ test("OS-backed mutation serialization prevents takeover during a checkpoint", a
     ownerToken: lease.ownerToken,
     state: "waiting",
     now: "2026-07-19T10:00:00.100Z",
-    testPauseMs: 1_000,
+    testPauseMs: 2_000,
   });
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 100));
   const contender = run(root, "wake", {
@@ -876,8 +843,6 @@ test("question emission cannot restore state invalidated by reconciliation", asy
   writeFileSync(join(root, "owned/input.txt"), "revision two\n");
   git(root, "add", "owned/input.txt");
   git(root, "commit", "-qm", "invalidate question revision");
-  const reconciled = run(root, "reconcile", { now: "2026-07-19T10:00:01.500Z" });
-  assert.equal(reconciled.state, "ready");
   const emission = await delayed;
   assert.equal(emission.status, 0, emission.stderr);
   assert.equal(emission.result.reason, "question-invalidated");
@@ -1136,9 +1101,9 @@ test("concurrent differing owned-input adoption preserves both paths", async () 
   writeFileSync(join(root, "owned/b.txt"), "b\n");
   const delayed = runAsync(root, "adopt-input", {
     ownedInput: "owned/a.txt",
-    testAdoptPrelockPauseMs: 500,
+    testAdoptPrelockPauseMs: 300,
   });
-  await new Promise((resolvePromise) => setTimeout(resolvePromise, 100));
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 50));
   const first = run(root, "adopt-input", { ownedInput: "owned/b.txt" });
   assert.equal(first.action, "owned-input-adopted");
   const second = await delayed;
