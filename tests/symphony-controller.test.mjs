@@ -660,3 +660,31 @@ test("owned inputs must be readable in-root files and budgets have hard maxima",
   assert.notEqual(unbounded.status, 0);
   assert.match(unbounded.stderr, /invalid-max-runtime-ms/);
 });
+
+test("an explicit transition replaces only a completed goal and preserves history", () => {
+  const root = createFixture();
+  const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
+  run(root, "checkpoint", {
+    ownerToken: lease.ownerToken,
+    state: "complete",
+    ...evidenceRecords(root, "2026-07-19T10:00:00.050Z"),
+    retrospectiveCode: "completed",
+    now: "2026-07-19T10:00:00.100Z",
+  });
+  const previousHistoryLength = history(root).length;
+  const initialized = run(root, "init", {
+    goal: "replacement-goal",
+    objective: "Exercise the next bounded goal",
+    objectiveRef: "issues/23",
+    ownedInput: "owned/input.txt",
+    replaceComplete: true,
+    now: "2026-07-19T10:00:01.000Z",
+  });
+  assert.equal(initialized.action, "initialized");
+  assert.equal(active(root).goalId, "replacement-goal");
+  const records = history(root);
+  assert.equal(records.length, previousHistoryLength + 2);
+  assert.equal(records.at(-2).type, "completed-goal-replaced");
+  assert.equal(records.at(-2).previousGoalId, "fixture-goal");
+  assert.equal(records.at(-1).type, "goal-initialized");
+});

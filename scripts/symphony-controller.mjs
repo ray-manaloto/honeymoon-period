@@ -614,8 +614,22 @@ function renewLocked(root, goal, options, now) {
 
 function initialize(root, options, now) {
   const controllerPaths = paths(root);
-  if (existsSync(controllerPaths.active)) fail("active-goal-already-exists");
   mkdirSync(controllerPaths.directory, { recursive: true });
+  const locked = withMutationLock(root, () => initializeLocked(root, options, now));
+  if (!locked) fail("mutation-contention");
+  return locked;
+}
+
+function initializeLocked(root, options, now) {
+  const controllerPaths = paths(root);
+  let previousGoal = null;
+  if (existsSync(controllerPaths.active)) {
+    previousGoal = readJson(controllerPaths.active, "active-goal-invalid");
+    if (options.replaceComplete !== "true" || previousGoal.state !== "complete") {
+      fail("active-goal-already-exists");
+    }
+    if (existsSync(controllerPaths.lease)) fail("completed-goal-lease-present");
+  }
   const ownedInputs = options.ownedInput ?? [];
   if (ownedInputs.length === 0) fail("owned-input-required");
   if (!/^[a-z0-9][a-z0-9-]{0,79}$/.test(options.goal ?? "")) fail("invalid-goal-id");
@@ -658,6 +672,16 @@ function initialize(root, options, now) {
   };
   goal.revision = revision(root, goal);
   atomicJson(controllerPaths.active, goal);
+  if (previousGoal) {
+    appendEvent(controllerPaths.history, {
+      at: now.toISOString(),
+      goalId: goal.goalId,
+      previousGoalId: previousGoal.goalId,
+      previousRevision: previousGoal.revision.fingerprint,
+      revision: goal.revision.fingerprint,
+      type: "completed-goal-replaced",
+    });
+  }
   appendEvent(controllerPaths.history, event(goal, now, "goal-initialized"));
   return { action: "initialized", state: goal.state };
 }
