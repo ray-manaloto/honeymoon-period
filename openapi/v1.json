@@ -181,6 +181,35 @@
         }
       }
     },
+    "/honeymoon-periods/{id}/ranking": {
+      "parameters": [{ "$ref": "#/components/parameters/Id" }],
+      "get": {
+        "operationId": "getHistoricalRanking",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "through_sequence",
+            "required": true,
+            "schema": { "type": "integer", "minimum": 1 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Versioned ranking replayed through an inclusive household sequence",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HistoricalRanking" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Error" },
+          "401": { "$ref": "#/components/responses/Error" },
+          "404": { "$ref": "#/components/responses/Error" },
+          "429": { "$ref": "#/components/responses/Error" },
+          "500": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
     "/honeymoon-periods/{id}/notes": {
       "parameters": [{ "$ref": "#/components/parameters/Id" }],
       "post": {
@@ -288,13 +317,25 @@
       },
       "Rank": {
         "type": "object",
-        "required": ["score", "votes", "boost", "total"],
+        "required": ["policy_version", "planning_eligible", "score", "votes", "boost", "total"],
         "additionalProperties": false,
         "properties": {
+          "policy_version": { "type": "integer", "enum": [1] },
+          "planning_eligible": { "type": "boolean" },
           "score": { "type": "number" },
           "votes": { "type": "number" },
           "boost": { "type": "number" },
           "total": { "type": "number" }
+        }
+      },
+      "HistoricalRanking": {
+        "type": "object",
+        "required": ["honeymoon_period_id", "through_sequence", "rank"],
+        "additionalProperties": false,
+        "properties": {
+          "honeymoon_period_id": { "type": "string", "format": "uuid" },
+          "through_sequence": { "type": "integer", "minimum": 1 },
+          "rank": { "$ref": "#/components/schemas/Rank" }
         }
       },
       "HoneymoonPeriod": {

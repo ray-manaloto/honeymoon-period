@@ -57,6 +57,8 @@ CREATE TABLE preference_events (
   before_score REAL CHECK (before_score BETWEEN 0 AND 5 OR before_score IS NULL),
   after_score REAL CHECK (after_score BETWEEN 0 AND 5 OR after_score IS NULL),
   reason TEXT,
+  policy_version INTEGER NOT NULL CHECK (policy_version = 1),
+  rank_boost REAL NOT NULL,
   accepted_at TEXT NOT NULL
 );
 CREATE TABLE notes (

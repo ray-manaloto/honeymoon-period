@@ -123,6 +123,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/honeymoon-periods/{id}/ranking": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get: operations["getHistoricalRanking"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -159,6 +177,12 @@ export interface components {
                 };
                 message: string;
             };
+        };
+        HistoricalRanking: {
+            /** Format: uuid */
+            honeymoon_period_id: string;
+            rank: components["schemas"]["Rank"];
+            through_sequence: number;
         };
         HistoryEvent: {
             /** Format: date-time */
@@ -275,6 +299,9 @@ export interface components {
         };
         Rank: {
             boost: number;
+            planning_eligible: boolean;
+            /** @enum {integer} */
+            policy_version: 1;
             score: number;
             total: number;
             votes: number;
@@ -558,6 +585,35 @@ export interface operations {
             401: components["responses"]["Error"];
             404: components["responses"]["Error"];
             409: components["responses"]["Error"];
+            429: components["responses"]["Error"];
+            500: components["responses"]["Error"];
+        };
+    };
+    getHistoricalRanking: {
+        parameters: {
+            query: {
+                through_sequence: number;
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Versioned ranking replayed through an inclusive household sequence */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoricalRanking"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            404: components["responses"]["Error"];
             429: components["responses"]["Error"];
             500: components["responses"]["Error"];
         };

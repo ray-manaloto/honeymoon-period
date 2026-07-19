@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { DomainError, idempotencyKey, normalizeUrl, ownedPreference, rank } from "../src";
+import {
+  DomainError,
+  idempotencyKey,
+  normalizeUrl,
+  ownedPreference,
+  rank,
+  rankForPolicy,
+  replayRank,
+} from "../src";
 
 describe("normalizeUrl", () => {
   it("preserves the source semantics while removing fragments and tracking parameters", () => {
@@ -42,6 +50,12 @@ describe("ownedPreference", () => {
 });
 
 describe("rank", () => {
+  it("dispatches policy v1 through its durable policy implementation", () => {
+    expect(rankForPolicy(1, [{ vote: "interested", score: 4 }], 1)).toEqual(
+      rank([{ vote: "interested", score: 4 }], 1),
+    );
+  });
+
   it("uses average available score plus visible vote weights and boost", () => {
     expect(
       rank(
@@ -51,7 +65,14 @@ describe("rank", () => {
         ],
         2,
       ),
-    ).toEqual({ score: 4, votes: 3, boost: 2, total: 9 });
+    ).toEqual({
+      policyVersion: 1,
+      planningEligible: true,
+      score: 4,
+      votes: 3,
+      boost: 2,
+      total: 9,
+    });
   });
   it("treats missing values as neutral and decline as minus two", () => {
     expect(
@@ -63,6 +84,8 @@ describe("rank", () => {
         0,
       ),
     ).toEqual({
+      policyVersion: 1,
+      planningEligible: false,
       score: 0,
       votes: -2,
       boost: 0,
@@ -70,6 +93,114 @@ describe("rank", () => {
     });
   });
   it("supports an empty preference list", () => {
-    expect(rank([], 1.5)).toEqual({ score: 0, votes: 0, boost: 1.5, total: 1.5 });
+    expect(rank([], 1.5)).toEqual({
+      policyVersion: 1,
+      planningEligible: true,
+      score: 0,
+      votes: 0,
+      boost: 1.5,
+      total: 1.5,
+    });
+  });
+});
+
+describe("replayRank", () => {
+  it("replays accepted changes through an inclusive household sequence", () => {
+    const events = [
+      {
+        sequence: 3,
+        actorId: "actor-a",
+        policyVersion: 1,
+        rankBoost: 1,
+        after: { vote: "maybe" as const, score: 3 },
+      },
+      {
+        sequence: 1,
+        actorId: "actor-a",
+        policyVersion: 1,
+        rankBoost: 1,
+        after: { vote: "decline" as const, score: null },
+      },
+      {
+        sequence: 2,
+        actorId: "actor-b",
+        policyVersion: 1,
+        rankBoost: 1,
+        after: { vote: "interested" as const, score: 5 },
+      },
+    ];
+
+    expect(replayRank(events, 2)).toEqual({
+      throughSequence: 2,
+      policyVersion: 1,
+      planningEligible: false,
+      score: 5,
+      votes: 0,
+      boost: 1,
+      total: 6,
+    });
+    expect(replayRank(events, 3)).toEqual({
+      throughSequence: 3,
+      policyVersion: 1,
+      planningEligible: true,
+      score: 4,
+      votes: 3,
+      boost: 1,
+      total: 8,
+    });
+  });
+
+  it.each([0, 1.5, Number.MAX_SAFE_INTEGER + 1])(
+    "rejects invalid replay sequence %s",
+    (throughSequence) => {
+      expect(() => replayRank([], throughSequence)).toThrow(
+        "through sequence must be a positive safe integer",
+      );
+    },
+  );
+
+  it("rejects a sequence without an accepted preference snapshot", () => {
+    expect(() => replayRank([], 1)).toThrow("no preference snapshot at sequence");
+  });
+
+  it("rejects events recorded by an unsupported ranking policy", () => {
+    expect(() =>
+      replayRank(
+        [
+          {
+            sequence: 1,
+            actorId: "actor-a",
+            policyVersion: 2,
+            rankBoost: 0,
+            after: { vote: "maybe", score: 3 },
+          },
+        ],
+        1,
+      ),
+    ).toThrow("unsupported ranking policy version 2");
+  });
+
+  it("selects the policy recorded by the snapshot event", () => {
+    expect(() =>
+      replayRank(
+        [
+          {
+            sequence: 1,
+            actorId: "actor-a",
+            policyVersion: 1,
+            rankBoost: 0,
+            after: { vote: "interested", score: 4 },
+          },
+          {
+            sequence: 2,
+            actorId: "actor-b",
+            policyVersion: 2,
+            rankBoost: 1,
+            after: { vote: "maybe", score: 2 },
+          },
+        ],
+        2,
+      ),
+    ).toThrow("unsupported ranking policy version 2");
   });
 });

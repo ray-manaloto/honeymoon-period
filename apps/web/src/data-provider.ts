@@ -2,6 +2,7 @@ import {
   type ApiClientOptions,
   createApiClient,
   createReactAdminTransport,
+  type HistoricalRanking,
   type HistoryPage,
   type HoneymoonPeriod,
   type HoneymoonPeriodDetail,
@@ -27,6 +28,10 @@ export interface HoneymoonDataProvider extends DataProvider {
     id: Identifier,
     input: PreferenceChangeInput,
   ) => Promise<{ data: PreferenceChangeResult }>;
+  getHistoricalRanking: (
+    id: Identifier,
+    throughSequence: number,
+  ) => Promise<{ data: HistoricalRanking }>;
   addNote: (id: Identifier, input: NoteInput) => Promise<{ data: Note }>;
   updateNote: (id: Identifier, noteId: Identifier, input: NoteInput) => Promise<{ data: Note }>;
 }

@@ -13,6 +13,7 @@ export type PreferenceChangeInput = components["schemas"]["PreferenceChangeInput
 export type PreferenceChangeResult = components["schemas"]["PreferenceChangeResult"];
 export type HistoryEvent = components["schemas"]["HistoryEvent"];
 export type HistoryPage = components["schemas"]["HistoryPage"];
+export type HistoricalRanking = components["schemas"]["HistoricalRanking"];
 export type NoteInput = components["schemas"]["NoteInput"];
 export type Note = components["schemas"]["Note"];
 export type ErrorEnvelope = components["schemas"]["ErrorEnvelope"];
@@ -42,6 +43,7 @@ export function createApiClient(options: ApiClientOptions) {
     update: (id: string, input: HoneymoonPeriodUpdate) => request<HoneymoonPeriodDetail>(`/honeymoon-periods/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(input) }),
     preferenceChange: (id: string, input: PreferenceChangeInput) => request<PreferenceChangeResult>(`/honeymoon-periods/${encodeURIComponent(id)}/preference-changes`, { method: "POST", body: JSON.stringify(input) }),
     history: (id: string) => request<HistoryPage>(`/honeymoon-periods/${encodeURIComponent(id)}/history`),
+    historicalRanking: (id: string, throughSequence: number) => request<HistoricalRanking>(`/honeymoon-periods/${encodeURIComponent(id)}/ranking?through_sequence=${encodeURIComponent(String(throughSequence))}`),
     note: (id: string, input: NoteInput) => request<Note>(`/honeymoon-periods/${encodeURIComponent(id)}/notes`, { method: "POST", body: JSON.stringify(input) }),
     updateNote: (id: string, noteId: string, input: NoteInput) => request<Note>(`/honeymoon-periods/${encodeURIComponent(id)}/notes/${encodeURIComponent(noteId)}`, { method: "PATCH", body: JSON.stringify(input) }),
   };

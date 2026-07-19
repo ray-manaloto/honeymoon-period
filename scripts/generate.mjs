@@ -27,11 +27,12 @@ const compiledValidators = Object.fromEntries(
 const validatorNames = Object.keys(compiledValidators);
 const validators = `${header}// @ts-nocheck -- Ajv standalone output is generated JavaScript.\n${standaloneCode(ajv, compiledValidators)}\nexport const contractValidators = { ${validatorNames.join(", ")} };\n`;
 const metadata = `${header}export const uiMetadata = ${JSON.stringify(ui, null, 2)} as const;\n`;
-const fixtures = `${header}import type { CaptureInput, ErrorEnvelope, HoneymoonPeriodUpdate, NoteInput, PreferenceChangeInput } from "./client";
+const fixtures = `${header}import type { CaptureInput, ErrorEnvelope, HistoricalRanking, HoneymoonPeriodUpdate, NoteInput, PreferenceChangeInput } from "./client";
 export const contractFixtures = {
   CaptureInput: { source_url: "https://example.com/fixture", client_request_id: "fixture-request" } satisfies CaptureInput,
   HoneymoonPeriodUpdate: { title: "Fixture update", metadata: { cuisine: "Fixture cuisine" } } satisfies HoneymoonPeriodUpdate,
   PreferenceChangeInput: { vote: "interested", score: 4, client_request_id: "preference-fixture", reason: "Fixture reason" } satisfies PreferenceChangeInput,
+  HistoricalRanking: { honeymoon_period_id: "00000000-0000-4000-8000-000000000101", through_sequence: 1, rank: { policy_version: 1, planning_eligible: true, score: 4, votes: 2, boost: 1, total: 7 } } satisfies HistoricalRanking,
   NoteInput: { body: "Fixture note" } satisfies NoteInput,
   ErrorEnvelope: { error: { code: "fixture_error", message: "Fixture error" } } satisfies ErrorEnvelope,
 } as const;
@@ -65,6 +66,7 @@ export function createReactAdminTransport(client: ApiClient) {
     async create(_resource: string, params: { data: { source_url: string; client_request_id: string } }) { const result = await client.createCapture(params.data); return { data: result.honeymoon_period }; },
     async update(_resource: string, params: { id: string | number; data: HoneymoonPeriodUpdate }) { const id = String(params.id); const [detail, history] = await Promise.all([client.update(id, params.data), client.history(id)]); return { data: { ...detail.item, detail: { ...detail, history } } }; },
     async createPreferenceChange(id: string | number, input: Parameters<ApiClient["preferenceChange"]>[1]) { return { data: await client.preferenceChange(String(id), input) }; },
+    async getHistoricalRanking(id: string | number, throughSequence: number) { return { data: await client.historicalRanking(String(id), throughSequence) }; },
     async addNote(id: string | number, input: Parameters<ApiClient["note"]>[1]) { return { data: await client.note(String(id), input) }; },
     async updateNote(id: string | number, noteId: string | number, input: Parameters<ApiClient["updateNote"]>[2]) { return { data: await client.updateNote(String(id), String(noteId), input) }; },
   };
@@ -84,6 +86,7 @@ export type PreferenceChangeInput = components["schemas"]["PreferenceChangeInput
 export type PreferenceChangeResult = components["schemas"]["PreferenceChangeResult"];
 export type HistoryEvent = components["schemas"]["HistoryEvent"];
 export type HistoryPage = components["schemas"]["HistoryPage"];
+export type HistoricalRanking = components["schemas"]["HistoricalRanking"];
 export type NoteInput = components["schemas"]["NoteInput"];
 export type Note = components["schemas"]["Note"];
 export type ErrorEnvelope = components["schemas"]["ErrorEnvelope"];
@@ -113,6 +116,7 @@ export function createApiClient(options: ApiClientOptions) {
     update: (id: string, input: HoneymoonPeriodUpdate) => request<HoneymoonPeriodDetail>(\`/honeymoon-periods/\${encodeURIComponent(id)}\`, { method: "PATCH", body: JSON.stringify(input) }),
     preferenceChange: (id: string, input: PreferenceChangeInput) => request<PreferenceChangeResult>(\`/honeymoon-periods/\${encodeURIComponent(id)}/preference-changes\`, { method: "POST", body: JSON.stringify(input) }),
     history: (id: string) => request<HistoryPage>(\`/honeymoon-periods/\${encodeURIComponent(id)}/history\`),
+    historicalRanking: (id: string, throughSequence: number) => request<HistoricalRanking>(\`/honeymoon-periods/\${encodeURIComponent(id)}/ranking?through_sequence=\${encodeURIComponent(String(throughSequence))}\`),
     note: (id: string, input: NoteInput) => request<Note>(\`/honeymoon-periods/\${encodeURIComponent(id)}/notes\`, { method: "POST", body: JSON.stringify(input) }),
     updateNote: (id: string, noteId: string, input: NoteInput) => request<Note>(\`/honeymoon-periods/\${encodeURIComponent(id)}/notes/\${encodeURIComponent(noteId)}\`, { method: "PATCH", body: JSON.stringify(input) }),
   };
@@ -123,7 +127,7 @@ const mocks = `${header}import type { HoneymoonPeriod } from "./client";
 export const mockHoneymoonPeriod: HoneymoonPeriod = {
   id: "00000000-0000-4000-8000-000000000101", status: "active", title: "Fixture Bistro", kind: "restaurant",
   normalized_url: "https://example.com/fixture-bistro", metadata: { cuisine: "Fixture cuisine" }, metadata_updated_by_actor_id: null, rank_boost: 1,
-  rank: { score: 4, votes: 3, boost: 1, total: 8 }, created_at: "2026-01-01T00:00:00.000Z", updated_at: "2026-01-01T00:00:00.000Z"
+  rank: { policy_version: 1, planning_eligible: true, score: 4, votes: 3, boost: 1, total: 8 }, created_at: "2026-01-01T00:00:00.000Z", updated_at: "2026-01-01T00:00:00.000Z"
 };
 `;
 const index = `${header}export * from "./client";\nexport * from "./fixtures";\nexport * from "./mocks";\nexport * from "./react-admin";\nexport * from "./schemas";\nexport * from "./ui-metadata";\n`;

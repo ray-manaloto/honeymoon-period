@@ -10,7 +10,14 @@ const item = {
   normalized_url: "https://example.com/bistro",
   metadata: {},
   rank_boost: 1,
-  rank: { score: 4, votes: 3, boost: 1, total: 8 },
+  rank: {
+    policy_version: 1 as const,
+    planning_eligible: true,
+    score: 4,
+    votes: 3,
+    boost: 1,
+    total: 8,
+  },
   created_at: "2026-01-01T00:00:00.000Z",
   updated_at: "2026-01-01T00:00:00.000Z",
 };
@@ -82,6 +89,16 @@ describe("honeymoon-period data provider", () => {
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
+            honeymoon_period_id: item.id,
+            through_sequence: 1,
+            rank: item.rank,
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
             id: "note-1",
             actor_id: "actor-a",
             honeymoon_period_id: item.id,
@@ -132,17 +149,20 @@ describe("honeymoon-period data provider", () => {
         })
       ).data.status,
     ).toBe("changed");
+    expect((await provider.getHistoricalRanking(item.id, 1)).data.through_sequence).toBe(1);
     expect((await provider.addNote(item.id, { body: "Try the patio" })).data.body).toBe(
       "Try the patio",
     );
     expect(
       (await provider.updateNote(item.id, "note-1", { body: "Edited patio note" })).data.body,
     ).toBe("Edited patio note");
+    expect(String(fetch.mock.calls[4]?.[0])).toContain("/ranking?through_sequence=1");
     expect(fetch.mock.calls.map(([, init]) => init?.method)).toEqual([
       "POST",
       "PATCH",
       undefined,
       "POST",
+      undefined,
       "POST",
       "PATCH",
     ]);

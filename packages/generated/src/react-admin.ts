@@ -28,6 +28,7 @@ export function createReactAdminTransport(client: ApiClient) {
     async create(_resource: string, params: { data: { source_url: string; client_request_id: string } }) { const result = await client.createCapture(params.data); return { data: result.honeymoon_period }; },
     async update(_resource: string, params: { id: string | number; data: HoneymoonPeriodUpdate }) { const id = String(params.id); const [detail, history] = await Promise.all([client.update(id, params.data), client.history(id)]); return { data: { ...detail.item, detail: { ...detail, history } } }; },
     async createPreferenceChange(id: string | number, input: Parameters<ApiClient["preferenceChange"]>[1]) { return { data: await client.preferenceChange(String(id), input) }; },
+    async getHistoricalRanking(id: string | number, throughSequence: number) { return { data: await client.historicalRanking(String(id), throughSequence) }; },
     async addNote(id: string | number, input: Parameters<ApiClient["note"]>[1]) { return { data: await client.note(String(id), input) }; },
     async updateNote(id: string | number, noteId: string | number, input: Parameters<ApiClient["updateNote"]>[2]) { return { data: await client.updateNote(String(id), String(noteId), input) }; },
   };

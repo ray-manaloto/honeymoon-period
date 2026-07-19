@@ -24,10 +24,11 @@ local fixture tokens, not production identities. `npm run db:reset` deletes
 only the disposable local Wrangler state before applying migrations and the
 deterministic synthetic seed.
 
-For local development while only one participant is voting, set the Worker
-binding `SINGLE_PARTICIPANT_RANKING_ACTOR_ID` to `actor-a` or `actor-b`. When
-unset (the default), ranking includes both participants. This provider-local
-flag does not change the `/v1` contract.
+Ranking always uses the fixed household policy exposed as preference policy v1.
+Both participants contribute to the total, and any current decline makes the
+candidate ineligible for planning without changing its shared status. The
+detail screen can replay the same policy inclusively through an accepted change
+sequence.
 
 Run `npm run check` for generation drift, Biome, strict types, unit/component,
 contract, Worker/D1 integration, coverage, production builds, and Playwright
