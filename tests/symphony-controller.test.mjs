@@ -116,6 +116,14 @@ function evidenceRecords(root, completedAt) {
       agentId: "fresh-reviewer-fixture",
       fresh: true,
     },
+    retrospectiveRecord: {
+      kind: "retrospective",
+      outcome: "no-new-lesson",
+      revision,
+      completedAt,
+      evidenceRef: "docs/agents/adaptive-orchestration.md#goal-change-log",
+      reasonCode: "routine-green-no-new-pattern",
+    },
     validatorRecord: {
       kind: "validator",
       verdict: "PASS",
@@ -428,7 +436,7 @@ test("time retry repair and direct-child budgets are bounded", () => {
   assert.equal(timedOut.reason, "time-budget-exhausted");
 });
 
-test("retry and repair exhaustion emits one operator interview", () => {
+test("retry and repair exhaustion stops without manufacturing ambiguity", () => {
   const root = createFixture({ maxRepairCycles: 0, maxRetries: 0 });
   const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
   const failed = run(root, "checkpoint", {
@@ -443,9 +451,10 @@ test("retry and repair exhaustion emits one operator interview", () => {
     wakeToken: "two",
     now: "2026-07-19T10:00:02.000Z",
   });
-  assert.equal(exhausted.action, "ask");
-  assert.equal(exhausted.state, "blocked");
-  assert.match(exhausted.question, /exhausted its bounded approaches/);
+  assert.equal(exhausted.action, "noop");
+  assert.equal(exhausted.state, "failed");
+  assert.equal(exhausted.reason, "repair-budget-exhausted");
+  assert.equal(active(root).question, null);
 });
 
 test("completed current revisions never run again", () => {
@@ -723,21 +732,35 @@ test("completion requires a fresh independent standards review and enumerated re
   });
   assert.notEqual(invalidRetrospective.status, 0);
   assert.match(invalidRetrospective.stderr, /invalid-retrospective-code/);
+
+  const retrospectivePath = join(root, records.retrospectiveRecord);
+  const retrospective = JSON.parse(readFileSync(retrospectivePath, "utf8"));
+  writeFileSync(retrospectivePath, `${JSON.stringify({ ...retrospective, reasonCode: "" })}\n`);
+  const missingReason = command(root, "checkpoint", {
+    ownerToken: lease.ownerToken,
+    state: "complete",
+    ...records,
+    retrospectiveCode: "no-new-lesson",
+    now: "2026-07-19T10:00:00.100Z",
+  });
+  assert.notEqual(missingReason.status, 0);
+  assert.match(missingReason.stderr, /invalid-retrospective-record/);
 });
 
 test("an admitted goal can adopt a new material owned input before evidence", () => {
   const root = createFixture();
-  writeFileSync(join(root, "owned/lesson.md"), "new lesson\n");
+  mkdirSync(join(root, ".agents"));
+  writeFileSync(join(root, ".agents/lesson.md"), "new lesson\n");
   const adopted = run(root, "adopt-input", {
-    ownedInput: "owned/lesson.md",
+    ownedInput: ".agents/lesson.md",
     now: "2026-07-19T10:00:00.000Z",
   });
   assert.equal(adopted.action, "owned-input-adopted");
-  assert.ok(active(root).revision.ownedInputs.includes("owned/lesson.md"));
-  git(root, "add", "owned/lesson.md");
+  assert.ok(active(root).revision.ownedInputs.includes(".agents/lesson.md"));
+  git(root, "add", ".agents/lesson.md");
   git(root, "commit", "-qm", "track lesson");
-  writeFileSync(join(root, "owned/lesson.md"), "changed lesson\n");
-  git(root, "add", "owned/lesson.md");
+  writeFileSync(join(root, ".agents/lesson.md"), "changed lesson\n");
+  git(root, "add", ".agents/lesson.md");
   git(root, "commit", "-qm", "change lesson");
   const reconciled = run(root, "reconcile", { now: "2026-07-19T10:00:01.000Z" });
   assert.equal(reconciled.reason, "revision-changed");

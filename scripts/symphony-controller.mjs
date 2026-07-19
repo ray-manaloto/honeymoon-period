@@ -141,6 +141,19 @@ function safeReference(value, name) {
   return reference;
 }
 
+function safeOwnedInput(value) {
+  const input = String(value ?? "");
+  if (
+    !/^[A-Za-z0-9._/-]{1,200}$/.test(input) ||
+    input.startsWith("/") ||
+    input.endsWith("/") ||
+    input.split("/").includes("..")
+  ) {
+    fail("invalid-owned-input");
+  }
+  return input;
+}
+
 function boundedNumber(value, name, { maximum = 100, minimum = 0 } = {}) {
   const number = Number(value);
   if (
@@ -690,7 +703,7 @@ function initializeLocked(root, options, now) {
 function adoptInput(root, goal, options, now) {
   const locked = withMutationLock(root, () => {
     if (goal.state !== "ready" || existsSync(paths(root).lease)) fail("goal-not-ready");
-    const input = safeReference(options.ownedInput, "owned-input");
+    const input = safeOwnedInput(options.ownedInput);
     if (goal.revision.ownedInputs.includes(input)) {
       return { action: "noop", reason: "owned-input-already-adopted", state: goal.state };
     }
@@ -708,21 +721,6 @@ function adoptInput(root, goal, options, now) {
   });
   if (!locked) fail("mutation-contention");
   return locked;
-}
-
-function blockForInterview(root, goal, now) {
-  const text =
-    "The goal exhausted its bounded approaches without completing. What new evidence or authority should guide the next attempt?";
-  const fingerprint = hash(text.toLowerCase().replace(/\s+/g, " ").trim());
-  const directory = questionDirectory(root, fingerprint);
-  mkdirSync(directory, { mode: 0o700, recursive: true });
-  atomicJson(join(directory, "question.json"), { fingerprint, text });
-  goal.state = "blocked";
-  goal.question = { emitted: false, fingerprint };
-  goal.reason = "human-interview-required";
-  goal.run = null;
-  atomicJson(paths(root).active, goal);
-  appendEvent(paths(root).history, event(goal, now, "operator-question", { fingerprint }));
 }
 
 function wake(root, goal, options, now) {
@@ -798,12 +796,12 @@ function wake(root, goal, options, now) {
   }
   if (goal.state === "failed") {
     if (goal.reason === "unchanged-failure" || goal.reason === "repair-budget-exhausted") {
-      blockForInterview(root, goal, now);
-      return wake(root, goal, options, now);
+      return { action: "noop", reason: goal.reason, state: goal.state };
     }
     if (goal.budgets.retriesUsed >= goal.policy.maxRetries) {
-      blockForInterview(root, goal, now);
-      return wake(root, goal, options, now);
+      goal.reason = "retry-budget-exhausted";
+      atomicJson(paths(root).active, goal);
+      return { action: "noop", reason: goal.reason, state: goal.state };
     }
     if (goal.retryDueAt && Date.parse(goal.retryDueAt) > now.valueOf()) {
       return { action: "noop", reason: "retry-not-due", state: goal.state };
@@ -866,6 +864,21 @@ function checkpointLocked(root, goal, options, now) {
 
   if (options.state === "complete") {
     if (!retrospectiveCodes.has(options.retrospectiveCode)) fail("invalid-retrospective-code");
+    const retrospective = loadEvidenceRecord(
+      root,
+      options.retrospectiveRecord,
+      { field: "outcome", kind: "retrospective", value: options.retrospectiveCode },
+      goal,
+      now,
+    );
+    try {
+      safeReference(retrospective.record.evidenceRef, "retrospective-record");
+      if (options.retrospectiveCode === "no-new-lesson") {
+        safeReference(retrospective.record.reasonCode, "retrospective-record");
+      }
+    } catch {
+      fail("invalid-retrospective-record");
+    }
     const reviewer = loadEvidenceRecord(
       root,
       options.reviewerRecord,
@@ -919,6 +932,7 @@ function checkpointLocked(root, goal, options, now) {
       at: now.toISOString(),
       protectedArtifactRecordHash: protectedArtifacts.contentHash,
       retrospectiveCode: options.retrospectiveCode,
+      retrospectiveRecordHash: retrospective.contentHash,
       revision: goal.revision.fingerprint,
       reviewerAgent: hash(reviewer.record.agentId),
       reviewerRecordHash: reviewer.contentHash,

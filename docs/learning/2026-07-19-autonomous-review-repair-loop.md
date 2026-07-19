@@ -21,6 +21,12 @@ review evidence could not safely be reused for the repaired revision.
 The first application of this lesson also found that prose-only markers did not make the
 controller require a standards-review record or classified retrospective, and that a
 pre-merge status read did not atomically bind the merge mutation to the reviewed SHA.
+Its next semantic gate found that budget exhaustion alone is not genuine ambiguity and
+must not manufacture a human-interview question.
+It also found that an enum alone is not a retrospective: the outcome must bind a durable
+evidence reference, and `no-new-lesson` must include a concrete reason.
+The standards pass additionally showed that repository input adoption needs path semantics,
+not identifier semantics, because leading-dot project paths are intentional authority.
 
 ## Correction
 

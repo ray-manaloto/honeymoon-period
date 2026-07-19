@@ -38,6 +38,7 @@ node scripts/symphony-controller.mjs checkpoint --root . \
   --validator-record <revision-bound-validator-json> \
   --aggregate-record <revision-bound-aggregate-json> \
   --protected-artifact-record <revision-bound-audit-json> \
+  --retrospective-record <revision-bound-retrospective-json> \
   --retrospective-code <promoted|linked|no-new-lesson>
 ```
 

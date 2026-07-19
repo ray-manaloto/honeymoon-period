@@ -124,8 +124,9 @@ authority.
 ## Learning loop
 
 - Run the autonomous learning loop until the active `/goal` reaches its completion
-  contract. Exhausted bounded approaches must produce the controller's one deduplicated
-  human-interview question; a failed or exhausted attempt is not goal completion.
+  contract. A failed or exhausted attempt is not goal completion and must not manufacture
+  ambiguity. When exhaustion exposes genuine ambiguity after diagnosis, current research,
+  and bounded agents, checkpoint `blocked` with the controller's one deduplicated question.
 - Record durable, repository-specific lessons under `docs/learning/` using its template.
 - Every accepted lesson names the observed failure, evidence, correction, and the regression test or automated guard that now enforces it.
 - Before downstream state changes, record every material iteration as `promoted`,
