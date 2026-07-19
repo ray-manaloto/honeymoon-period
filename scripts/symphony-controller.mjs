@@ -385,6 +385,17 @@ function event(goal, now, type, details = {}) {
   };
 }
 
+function revisionWasAdmitted(root, revisionFingerprint) {
+  if (!existsSync(paths(root).history)) return false;
+  return readFileSync(paths(root).history, "utf8")
+    .split("\n")
+    .filter(Boolean)
+    .some((line) => {
+      const recorded = JSON.parse(line);
+      return recorded.revision === revisionFingerprint && recorded.type === "run-started";
+    });
+}
+
 function delegateUnderMutationLock(root, action) {
   if (process.env.SYMPHONY_MUTATION_LOCK_HELD === "1") return;
   const gitLock = git(root, ["rev-parse", "--git-path", "symphony-controller.lock"]);
@@ -563,6 +574,24 @@ function reconcileLocked(root, goal, now, options) {
     );
   }
 
+  const conflicts = dirtyConflicts(root);
+  if (conflicts.length > 0) {
+    goal.state = "blocked";
+    goal.reason = "dirty-tree-conflict";
+    goal.question = null;
+    commitTransition(
+      root,
+      [{ target: "active.json", value: goal }],
+      [
+        event(goal, now, "dirty-tree-conflict", {
+          pathFingerprints: conflicts.map((path) => hash(path)).slice(0, 20),
+        }),
+      ],
+      options,
+    );
+    return { action: "noop", reason: goal.reason, state: goal.state };
+  }
+
   const current = revision(root, goal);
   if (goal.revision.fingerprint !== current.fingerprint) {
     const finalReviewRecorded = goal.evidence.current.some(
@@ -571,6 +600,7 @@ function reconcileLocked(root, goal, now, options) {
     );
     if (
       goal.learning?.enforceFromRevision === goal.revision.fingerprint &&
+      revisionWasAdmitted(root, goal.revision.fingerprint) &&
       !goal.learning.completed.some(
         (iteration) => iteration.revision === goal.revision.fingerprint,
       ) &&
@@ -601,24 +631,6 @@ function reconcileLocked(root, goal, now, options) {
       [event(goal, now, "evidence-invalidated", { count: invalidated })],
       options,
     );
-  }
-
-  const conflicts = dirtyConflicts(root);
-  if (conflicts.length > 0) {
-    goal.state = "blocked";
-    goal.reason = "dirty-tree-conflict";
-    goal.question = null;
-    commitTransition(
-      root,
-      [{ target: "active.json", value: goal }],
-      [
-        event(goal, now, "dirty-tree-conflict", {
-          pathFingerprints: conflicts.map((path) => hash(path)).slice(0, 20),
-        }),
-      ],
-      options,
-    );
-    return { action: "noop", reason: goal.reason, state: goal.state };
   }
 
   return { action: "reconciled", reason: goal.reason ?? null, state: goal.state };

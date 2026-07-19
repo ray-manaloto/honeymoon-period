@@ -44,6 +44,9 @@ while an in-mutex active-state reread decides whether that question is still val
 The final hardening pass replaced recoverable directory ownership with an OS-backed
 worktree-local file lock, journals every state/history transition, stores capability hashes
 instead of raw tokens, and retries an unacknowledged ambiguity delivery after its TTL.
+The lock descriptor is inherited by the mutating controller process itself, and dirty
+intermediate worktrees are rejected before revision adoption so scheduled wakes cannot
+manufacture a review iteration from root-owned in-progress edits.
 
 ## Correction
 

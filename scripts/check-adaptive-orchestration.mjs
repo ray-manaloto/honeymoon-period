@@ -127,6 +127,7 @@ requireMatch(
 );
 
 const controller = read("scripts/symphony-controller.mjs");
+const mutationLock = read("scripts/mutation-lock.py");
 requireMatch(
   controller,
   /kind: "standards-review"/,
@@ -142,6 +143,11 @@ for (const invariant of [
 ]) {
   requireMatch(controller, new RegExp(invariant[0]), invariant[1]);
 }
+requireMatch(
+  mutationLock,
+  /os\.execvpe/,
+  "OS mutex ownership must be inherited by the mutating controller process",
+);
 for (const outcome of ["promoted", "linked", "no-new-lesson"]) {
   requireMatch(
     controller,

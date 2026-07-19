@@ -398,12 +398,14 @@ test("startup replays a crashed reconciliation transition once", () => {
 
 test("owned-input changes fence a live lease even when HEAD is unchanged", () => {
   const root = createFixture();
+  const priorRevision = active(root).revision.fingerprint;
   const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
   recordGreenIteration(root, lease.ownerToken, "2026-07-19T10:00:00.050Z");
   writeFileSync(join(root, "owned/input.txt"), "uncommitted revision\n");
   const reconciled = run(root, "reconcile", { now: "2026-07-19T10:00:00.100Z" });
   assert.equal(reconciled.state, "blocked");
   assert.equal(reconciled.reason, "dirty-tree-conflict");
+  assert.equal(active(root).revision.fingerprint, priorRevision);
   const lost = command(root, "checkpoint", {
     dueAt: "2026-07-19T10:00:05.000Z",
     ownerToken: lease.ownerToken,
@@ -1113,10 +1115,17 @@ test("owned-input adoption advances the mandatory iteration-review baseline", ()
 test("a material revision cannot advance without a durable iteration review", () => {
   const root = createFixture();
   const priorRevision = active(root).revision.fingerprint;
+  const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
+  run(root, "checkpoint", {
+    dueAt: "2026-07-19T10:00:01.000Z",
+    ownerToken: lease.ownerToken,
+    state: "waiting",
+    now: "2026-07-19T10:00:00.100Z",
+  });
   writeFileSync(join(root, "owned/input.txt"), "revision two\n");
   git(root, "add", "owned/input.txt");
   git(root, "commit", "-qm", "unreviewed revision");
-  const blocked = run(root, "reconcile", { now: "2026-07-19T10:00:00.000Z" });
+  const blocked = run(root, "reconcile", { now: "2026-07-19T10:00:02.000Z" });
   assert.equal(blocked.reason, "iteration-review-required");
   assert.equal(active(root).revision.fingerprint, priorRevision);
 });
