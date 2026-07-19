@@ -17,8 +17,9 @@ On each wake:
    reviewed revision, persist its standards review and retrospective with
    `record-iteration`; an unrecorded material revision is not admissible.
 3. If the action is `ask`, surface exactly that one question and do no other
-   work. After the user answers, call `resolve-question` with the recorded
-   fingerprint before requesting another run. Unacknowledged delivery is retried
+   work. After the user answers, append the decision to an authorized durable
+   artifact and call `resolve-question` with its revision-bound resolution record
+   and the recorded fingerprint before requesting another run. Unacknowledged delivery is retried
    after the bounded TTL so a crash cannot silently suppress the only question.
 4. For `noop`, stop without mutation.
 5. Never treat this prompt, a plan, a handoff, a scheduled task, or model

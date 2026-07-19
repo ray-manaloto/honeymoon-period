@@ -22,10 +22,12 @@ const authorityOptions = {
   completionContractRef: "docs/completion.md",
   externalCompletion: "not-required",
   last30daysRef: "docs/last30days.md",
+  last30daysReason: "bounded-local-contract",
   last30daysStatus: "not-needed",
   objectiveRef: "docs/goal.md",
   prohibitedActionsRef: "docs/prohibitions.md",
   researchRef: "docs/research.md",
+  researchReason: "bounded-local-contract",
   researchStatus: "not-needed",
 };
 function git(root, ...args) {
@@ -38,7 +40,17 @@ function createFixture(overrides = {}) {
   git(root, "config", "user.email", "fixture@example.invalid");
   git(root, "config", "user.name", "Fixture");
   mkdirSync(join(root, "owned"), { recursive: true });
+  mkdirSync(join(root, "docs"), { recursive: true });
   writeFileSync(join(root, "owned/input.txt"), "revision one\n");
+  for (const name of [
+    "completion.md",
+    "goal.md",
+    "last30days.md",
+    "prohibitions.md",
+    "research.md",
+  ]) {
+    writeFileSync(join(root, "docs", name), `${name}\n`);
+  }
   git(root, "add", ".");
   git(root, "commit", "-qm", "fixture");
   run(root, "init", {
@@ -98,6 +110,7 @@ function evidenceRecords(root, completedAt) {
   mkdirSync(directory, { recursive: true });
   const revision = active(root).revision.fingerprint;
   const head = git(root, "rev-parse", "HEAD");
+  const authority = active(root).authority;
   const records = {
     aggregateRecord: {
       kind: "aggregate-check",
@@ -114,10 +127,15 @@ function evidenceRecords(root, completedAt) {
       completedAt,
       head,
       branch: git(root, "branch", "--show-current"),
-      externalState: "not-required",
-      logicalCommit: true,
-      researchPreflight: true,
+      externalState: authority.externalCompletion === "required" ? "complete" : "not-required",
+      ...(authority.externalCompletion === "required"
+        ? { externalEvidenceRef: "docs/goal.md" }
+        : {}),
+      last30daysEvidenceRef: authority.last30days.evidenceRef,
+      logicalCommit: head,
+      researchEvidenceRef: authority.research.evidenceRef,
       zeroDebt: true,
+      zeroDebtEvidenceRef: "docs/goal.md",
     },
     protectedArtifactRecord: {
       kind: "protected-artifact-audit",
@@ -305,6 +323,14 @@ test("state-only commits do not self-invalidate the tracked goal revision", () =
   assert.equal(history(root).filter((entry) => entry.type === "evidence-invalidated").length, 0);
 });
 
+test("switching branches at the same HEAD violates recorded goal authority", () => {
+  const root = createFixture();
+  git(root, "switch", "-q", "-c", "foreign-branch");
+  const result = run(root, "reconcile", { now: "2026-07-19T10:00:00.000Z" });
+  assert.equal(result.reason, "authority-branch-mismatch");
+  assert.equal(result.state, "blocked");
+});
+
 test("crash restart fences a stale lease and a lost owner cannot checkpoint", () => {
   const root = createFixture();
   const first = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
@@ -350,6 +376,23 @@ test("startup replays a crashed non-checkpoint state and history transition once
   const recovered = run(root, "reconcile", { now: "2026-07-19T10:00:00.600Z" });
   assert.equal(recovered.reason, "lease-held");
   assert.equal(history(root).filter((entry) => entry.type === "lease-renewed").length, 1);
+});
+
+test("startup replays a crashed reconciliation transition once", () => {
+  const root = createFixture();
+  run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
+  rmSync(join(root, ".codex/goals/.lease"), { recursive: true });
+  const crashed = command(root, "reconcile", {
+    now: "2026-07-19T10:00:00.100Z",
+    testCrashAfter: "transition-state",
+  });
+  assert.equal(crashed.status, 86);
+  const recovered = run(root, "reconcile", { now: "2026-07-19T10:00:00.200Z" });
+  assert.equal(recovered.state, "ready");
+  assert.equal(
+    history(root).filter((entry) => entry.type === "missing-lease-reconciled").length,
+    1,
+  );
 });
 
 test("owned-input changes fence a live lease even when HEAD is unchanged", () => {
@@ -403,6 +446,11 @@ test("changed HEAD and owned inputs invalidate revision-bound evidence", () => {
     now: "2026-07-19T10:00:00.100Z",
   });
   assert.equal(active(root).state, "complete");
+  assert.ok(
+    active(root).learning.completed.some(
+      (iteration) => iteration.revision === active(root).revision.fingerprint,
+    ),
+  );
   assert.ok(history(root).some((event) => event.type === "completion-evidence"));
   writeFileSync(join(root, "owned/input.txt"), "revision two\n");
   git(root, "add", "owned/input.txt");
@@ -714,6 +762,19 @@ test("a crashed mutation owner releases the OS lock for startup reconciliation",
   );
 });
 
+test("startup removes an abandoned OS-lock session before mutation", () => {
+  const root = createFixture();
+  const session = join(root, ".codex/goals/.mutation-session-abandoned");
+  mkdirSync(session);
+  writeFileSync(
+    join(session, "result.json"),
+    `${JSON.stringify({ parentIdentity: "dead", parentPid: "999999", status: "acquired" })}\n`,
+  );
+  const reconciled = run(root, "reconcile", { now: "2026-07-19T10:00:00.000Z" });
+  assert.equal(reconciled.state, "ready");
+  assert.equal(existsSync(session), false);
+});
+
 test("question claim recovers after a pre-emission crash window", () => {
   const root = createFixture();
   const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
@@ -754,8 +815,23 @@ test("an unacknowledged ambiguity question is retried and explicit resolution re
   assert.equal(retried.action, "ask");
   assert.equal(retried.question, first.question);
   const fingerprint = active(root).question.fingerprint;
+  const resolutionPath = ".codex/goals/.evidence/operator-resolution.json";
+  mkdirSync(join(root, ".codex/goals/.evidence"), { recursive: true });
+  writeFileSync(
+    join(root, resolutionPath),
+    `${JSON.stringify({
+      authorityRef: "docs/goal.md",
+      completedAt: "2026-07-19T10:00:01.350Z",
+      head: git(root, "rev-parse", "HEAD"),
+      kind: "operator-resolution",
+      questionFingerprint: fingerprint,
+      revision: active(root).revision.fingerprint,
+      status: "ACCEPT",
+    })}\n`,
+  );
   const resolved = run(root, "resolve-question", {
     questionFingerprint: fingerprint,
+    resolutionRecord: resolutionPath,
     now: "2026-07-19T10:00:01.400Z",
   });
   assert.equal(resolved.state, "ready");
@@ -808,6 +884,19 @@ test("tracked state stores fingerprints instead of objective worktree or questio
   goal = active(root);
   assert.equal("text" in goal.question, false);
   assert.doesNotMatch(JSON.stringify(goal), /Private free-form ambiguity/);
+});
+
+test("authority configuration removes legacy raw capabilities", () => {
+  const root = createFixture();
+  const goal = active(root);
+  goal.schemaVersion = 1;
+  goal.lastWakeToken = "legacy-raw-wake";
+  writeFileSync(join(root, ".codex/goals/active.json"), `${JSON.stringify(goal)}\n`);
+  run(root, "configure", { ...authorityOptions });
+  const configured = active(root);
+  assert.equal(configured.schemaVersion, 2);
+  assert.equal("lastWakeToken" in configured, false);
+  assert.doesNotMatch(JSON.stringify(configured), /legacy-raw-wake/);
 });
 
 test("completion rejects colliding or report-mismatched independent verdict records", () => {
@@ -867,9 +956,19 @@ test("owned inputs must be readable in-root files and budgets have hard maxima",
   git(root, "config", "user.email", "fixture@example.invalid");
   git(root, "config", "user.name", "Fixture");
   mkdirSync(join(root, "owned"));
+  mkdirSync(join(root, "docs"));
   writeFileSync(join(root, "file.txt"), "ok\n");
+  for (const name of [
+    "completion.md",
+    "goal.md",
+    "last30days.md",
+    "prohibitions.md",
+    "research.md",
+  ]) {
+    writeFileSync(join(root, "docs", name), `${name}\n`);
+  }
   symlinkSync(tmpdir(), join(root, "escape"));
-  git(root, "add", "file.txt");
+  git(root, "add", "file.txt", "docs");
   git(root, "commit", "-qm", "fixture");
   const missingAuthority = command(root, "init", {
     goal: "invalid-fixture",
@@ -969,7 +1068,7 @@ test("completion requires a fresh independent standards review and enumerated re
   assert.match(missingReason.stderr, /invalid-retrospective-record/);
 });
 
-test("an admitted goal can adopt a new material owned input before evidence", () => {
+test("owned-input adoption advances the mandatory iteration-review baseline", () => {
   const root = createFixture();
   mkdirSync(join(root, ".agents"));
   writeFileSync(join(root, ".agents/lesson.md"), "new lesson\n");
@@ -985,7 +1084,7 @@ test("an admitted goal can adopt a new material owned input before evidence", ()
   git(root, "add", ".agents/lesson.md");
   git(root, "commit", "-qm", "change lesson");
   const reconciled = run(root, "reconcile", { now: "2026-07-19T10:00:01.000Z" });
-  assert.equal(reconciled.reason, "revision-changed");
+  assert.equal(reconciled.reason, "iteration-review-required");
 });
 
 test("a material revision cannot advance without a durable iteration review", () => {

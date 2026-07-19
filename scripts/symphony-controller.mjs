@@ -227,17 +227,39 @@ function authorityFromOptions(root, options) {
   if (!new Set(["not-required", "required"]).has(externalCompletion)) {
     fail("invalid-external-completion");
   }
+  const reference = (value, name) => {
+    const checked = safeReference(value, name);
+    const path = checked.split("#", 1)[0];
+    try {
+      if (!lstatSync(resolve(root, path)).isFile()) fail(`invalid-${name}`);
+    } catch {
+      fail(`invalid-${name}`);
+    }
+    return checked;
+  };
+  if (researchStatus === "not-needed") safeReference(options.researchReason, "research-reason");
+  if (last30daysStatus === "not-needed") {
+    safeReference(options.last30daysReason, "last30days-reason");
+  }
   return {
     branch: git(root, ["branch", "--show-current"]),
-    completionContractRef: safeReference(options.completionContractRef, "completion-contract-ref"),
+    completionContractRef: reference(options.completionContractRef, "completion-contract-ref"),
     externalCompletion,
     last30days: {
-      evidenceRef: safeReference(options.last30daysRef, "last30days-ref"),
+      evidenceRef: reference(options.last30daysRef, "last30days-ref"),
+      reasonCode:
+        last30daysStatus === "not-needed"
+          ? safeReference(options.last30daysReason, "last30days-reason")
+          : null,
       status: last30daysStatus,
     },
-    prohibitedActionsRef: safeReference(options.prohibitedActionsRef, "prohibited-actions-ref"),
+    prohibitedActionsRef: reference(options.prohibitedActionsRef, "prohibited-actions-ref"),
     research: {
-      evidenceRef: safeReference(options.researchRef, "research-ref"),
+      evidenceRef: reference(options.researchRef, "research-ref"),
+      reasonCode:
+        researchStatus === "not-needed"
+          ? safeReference(options.researchReason, "research-reason")
+          : null,
       status: researchStatus,
     },
   };
@@ -288,10 +310,12 @@ function authorityHead(root) {
 
 function revision(root, goal) {
   const head = authorityHead(root);
+  const branch = git(root, ["branch", "--show-current"]);
   const worktree = realpathSync(root);
   const ownedManifest = manifest(root, goal.revision.ownedInputs);
   return {
-    fingerprint: hash(`${hash(worktree)}\0${head}\0${ownedManifest}`),
+    branch,
+    fingerprint: hash(`${hash(worktree)}\0${branch}\0${head}\0${ownedManifest}`),
     head,
     ownedManifest,
     ownedInputs: goal.revision.ownedInputs,
@@ -363,6 +387,27 @@ function processIdentity(pid) {
   }
 }
 
+function sweepMutationSessions(root) {
+  const directory = paths(root).directory;
+  for (const name of readdirSync(directory).filter((entry) =>
+    entry.startsWith(".mutation-session-"),
+  )) {
+    const session = join(directory, name);
+    let remove = false;
+    try {
+      const result = readJson(join(session, "result.json"), "invalid-mutation-session");
+      remove = processIdentity(Number(result.parentPid)) !== result.parentIdentity;
+    } catch {
+      try {
+        remove = Date.now() - statSync(session).mtimeMs > 30_000;
+      } catch {
+        remove = false;
+      }
+    }
+    if (remove) rmSync(session, { recursive: true, force: true });
+  }
+}
+
 function withMutationLock(root, callback) {
   const directory = paths(root).directory;
   const gitLock = git(root, ["rev-parse", "--git-path", "symphony-controller.lock"]);
@@ -371,6 +416,7 @@ function withMutationLock(root, callback) {
   const selfIdentity = processIdentity(process.pid);
   if (!selfIdentity) fail("process-identity-unavailable");
   mkdirSync(directory, { recursive: true });
+  sweepMutationSessions(root);
   const holder = spawn(
     "python3",
     [
@@ -388,13 +434,19 @@ function withMutationLock(root, callback) {
   while (!existsSync(resultPath) && Date.now() < waitUntil) {
     Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 10);
   }
-  if (!existsSync(resultPath)) fail("mutation-lock-unavailable");
+  if (!existsSync(resultPath)) {
+    rmSync(session, { recursive: true, force: true });
+    fail("mutation-lock-unavailable");
+  }
   const result = readJson(resultPath, "mutation-lock-unavailable");
   if (result.status === "contention") {
     rmSync(session, { recursive: true, force: true });
     return null;
   }
-  if (result.status !== "acquired") fail("mutation-lock-unavailable");
+  if (result.status !== "acquired") {
+    rmSync(session, { recursive: true, force: true });
+    fail("mutation-lock-unavailable");
+  }
   try {
     replayTransition(root);
     return callback();
@@ -422,7 +474,7 @@ function leaseExpiry(root, lease) {
   return lease.expiresAt;
 }
 
-function fenceLease(root, goal, now, reason) {
+function fenceLease(root, goal, now, reason, recordEvent = true) {
   const controllerPaths = paths(root);
   if (!existsSync(controllerPaths.lease)) return false;
   const fenced = `${controllerPaths.lease}.stale-${randomUUID()}`;
@@ -432,24 +484,26 @@ function fenceLease(root, goal, now, reason) {
   } catch {
     return false;
   }
-  appendEvent(controllerPaths.history, event(goal, now, "stale-lease-reconciled", { reason }));
+  if (recordEvent) {
+    appendEvent(controllerPaths.history, event(goal, now, "stale-lease-reconciled", { reason }));
+  }
   rmSync(fenced, { recursive: true });
   fsyncParent(fenced);
   return true;
 }
 
-function reconcile(root, goal, now) {
+function reconcile(root, goal, now, options = {}) {
   if (process.env.SYMPHONY_CONTROLLER_TEST_MODE === "1") {
     const pause = Number(process.env.SYMPHONY_CONTROLLER_TEST_RECONCILE_PRELOCK_PAUSE_MS ?? 0);
     if (pause > 0) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, pause);
   }
   const locked = withMutationLock(root, () =>
-    reconcileLocked(root, readJson(paths(root).active, "active-goal-missing"), now),
+    reconcileLocked(root, readJson(paths(root).active, "active-goal-missing"), now, options),
   );
   return locked ?? { action: "noop", reason: "mutation-contention", state: goal.state };
 }
 
-function reconcileLocked(root, goal, now) {
+function reconcileLocked(root, goal, now, options) {
   const controllerPaths = paths(root);
   const residues = readdirSync(controllerPaths.directory).filter(
     (name) => name.startsWith(".lease.stale-") || name.startsWith(".lease.released-"),
@@ -462,6 +516,24 @@ function reconcileLocked(root, goal, now) {
       event(goal, now, "lease-residue-reconciled", { count: residues.length }),
     );
   }
+  if (goal.authority?.branch && git(root, ["branch", "--show-current"]) !== goal.authority.branch) {
+    const fenced = fenceLease(root, goal, now, "authority-branch-mismatch", false);
+    goal.state = "blocked";
+    goal.reason = "authority-branch-mismatch";
+    goal.run = null;
+    commitTransition(
+      root,
+      [{ target: "active.json", value: goal }],
+      [
+        ...(fenced
+          ? [event(goal, now, "stale-lease-reconciled", { reason: "authority-branch-mismatch" })]
+          : []),
+        event(goal, now, "authority-branch-mismatch"),
+      ],
+      options,
+    );
+    return { action: "noop", reason: goal.reason, state: goal.state };
+  }
   if (existsSync(controllerPaths.lease)) reconcileCheckpointJournal(root, goal);
   if (existsSync(controllerPaths.lease)) {
     let lease;
@@ -469,8 +541,19 @@ function reconcileLocked(root, goal, now) {
       lease = JSON.parse(readFileSync(join(controllerPaths.lease, "owner.json"), "utf8"));
     } catch {
       const age = now.valueOf() - statSync(controllerPaths.lease).mtimeMs;
-      if (age > goal.policy.ttlMs) fenceLease(root, goal, now, "incomplete-lease");
-      else return { action: "noop", reason: "lease-initializing", state: goal.state };
+      if (age > goal.policy.ttlMs) {
+        fenceLease(root, goal, now, "incomplete-lease", false);
+        if (goal.state === "running") {
+          goal.state = "ready";
+          goal.run = null;
+        }
+        commitTransition(
+          root,
+          [{ target: "active.json", value: goal }],
+          [event(goal, now, "stale-lease-reconciled", { reason: "incomplete-lease" })],
+          options,
+        );
+      } else return { action: "noop", reason: "lease-initializing", state: goal.state };
     }
     if (lease) {
       const expired = Date.parse(leaseExpiry(root, lease)) <= now.valueOf();
@@ -484,28 +567,28 @@ function reconcileLocked(root, goal, now) {
         lease.epoch !== goal.leaseEpoch ||
         hash(lease.ownerToken) !== goal.run?.ownerTokenHash;
       if (expired || timedOut || foreign || authorityLost) {
-        fenceLease(
-          root,
-          goal,
-          now,
-          timedOut
-            ? "time-budget-exhausted"
-            : expired
-              ? "ttl-expired"
-              : foreign
-                ? "revision-lost"
-                : "run-authority-lost",
-        );
+        const fenceReason = timedOut
+          ? "time-budget-exhausted"
+          : expired
+            ? "ttl-expired"
+            : foreign
+              ? "revision-lost"
+              : "run-authority-lost";
+        fenceLease(root, goal, now, fenceReason, false);
         if (timedOut) {
           goal.state = "failed";
           goal.reason = "time-budget-exhausted";
           goal.run = null;
-          atomicJson(controllerPaths.active, goal);
         } else if (goal.state === "running") {
           goal.state = "ready";
           goal.run = null;
-          atomicJson(controllerPaths.active, goal);
         }
+        commitTransition(
+          root,
+          [{ target: "active.json", value: goal }],
+          [event(goal, now, "stale-lease-reconciled", { reason: fenceReason })],
+          options,
+        );
       } else {
         return { action: "noop", reason: "lease-held", state: goal.state };
       }
@@ -514,8 +597,12 @@ function reconcileLocked(root, goal, now) {
     goal.state = "ready";
     goal.reason = "lease-missing-after-restart";
     goal.run = null;
-    atomicJson(controllerPaths.active, goal);
-    appendEvent(controllerPaths.history, event(goal, now, "missing-lease-reconciled"));
+    commitTransition(
+      root,
+      [{ target: "active.json", value: goal }],
+      [event(goal, now, "missing-lease-reconciled")],
+      options,
+    );
   }
 
   const current = revision(root, goal);
@@ -534,7 +621,12 @@ function reconcileLocked(root, goal, now) {
       goal.state = "blocked";
       goal.reason = "iteration-review-required";
       goal.question = null;
-      atomicJson(controllerPaths.active, goal);
+      commitTransition(
+        root,
+        [{ target: "active.json", value: goal }],
+        [event(goal, now, "iteration-review-required")],
+        options,
+      );
       return { action: "noop", reason: goal.reason, state: goal.state };
     }
     const invalidated = goal.evidence.current.length;
@@ -545,11 +637,12 @@ function reconcileLocked(root, goal, now) {
     goal.run = null;
     goal.state = "ready";
     goal.reason = "revision-changed";
-    appendEvent(
-      controllerPaths.history,
-      event(goal, now, "evidence-invalidated", { count: invalidated }),
+    commitTransition(
+      root,
+      [{ target: "active.json", value: goal }],
+      [event(goal, now, "evidence-invalidated", { count: invalidated })],
+      options,
     );
-    atomicJson(controllerPaths.active, goal);
   }
 
   const conflicts = dirtyConflicts(root);
@@ -557,12 +650,15 @@ function reconcileLocked(root, goal, now) {
     goal.state = "blocked";
     goal.reason = "dirty-tree-conflict";
     goal.question = null;
-    atomicJson(controllerPaths.active, goal);
-    appendEvent(
-      controllerPaths.history,
-      event(goal, now, "dirty-tree-conflict", {
-        pathFingerprints: conflicts.map((path) => hash(path)).slice(0, 20),
-      }),
+    commitTransition(
+      root,
+      [{ target: "active.json", value: goal }],
+      [
+        event(goal, now, "dirty-tree-conflict", {
+          pathFingerprints: conflicts.map((path) => hash(path)).slice(0, 20),
+        }),
+      ],
+      options,
     );
     return { action: "noop", reason: goal.reason, state: goal.state };
   }
@@ -835,6 +931,8 @@ function configure(root, options, now) {
     const goal = readJson(paths(root).active, "active-goal-missing");
     if (existsSync(paths(root).lease) || goal.state === "running") fail("goal-not-ready");
     goal.schemaVersion = 2;
+    delete goal.lastWakeToken;
+    if (goal.run) delete goal.run.ownerToken;
     goal.authority = authorityFromOptions(root, options);
     goal.objectiveRef = safeReference(options.objectiveRef, "objective-ref");
     goal.learning = {
@@ -871,6 +969,7 @@ function adoptInput(root, goal, options, now) {
       manifest(root, ownedInputs);
       goal.revision.ownedInputs = ownedInputs;
       goal.revision = revision(root, goal);
+      goal.learning.enforceFromRevision = goal.revision.fingerprint;
       goal.evidence.current = [];
       commitTransition(
         root,
@@ -889,7 +988,7 @@ function adoptInput(root, goal, options, now) {
 function wake(root, goal, options, now) {
   const wakeToken = options.wakeToken;
   if (!wakeToken) fail("wake-token-required");
-  const result = reconcile(root, goal, now);
+  const result = reconcile(root, goal, now, options);
   goal = readJson(paths(root).active, "active-goal-missing");
   if (
     result.reason === "dirty-tree-conflict" ||
@@ -1029,9 +1128,10 @@ function loadEvidenceRecord(root, recordPath, expected, goal, now) {
     fail("evidence-record-mismatch");
   }
   const completedAt = Date.parse(record.completedAt);
+  const evidenceStartedAt = Date.parse(goal.run?.startedAt ?? goal.question?.createdAt ?? 0);
   if (
     !Number.isFinite(completedAt) ||
-    completedAt < Date.parse(goal.run.startedAt) ||
+    completedAt < evidenceStartedAt ||
     completedAt > now.valueOf()
   ) {
     fail("stale-evidence-record");
@@ -1126,13 +1226,29 @@ function resolveQuestion(root, options, now) {
       fail("question-resolution-mismatch");
     }
     const fingerprint = goal.question.fingerprint;
+    const resolution = loadEvidenceRecord(
+      root,
+      options.resolutionRecord,
+      { field: "status", kind: "operator-resolution", value: "ACCEPT" },
+      goal,
+      now,
+    );
+    if (resolution.record.questionFingerprint !== fingerprint) {
+      fail("question-resolution-mismatch");
+    }
+    safeReference(resolution.record.authorityRef, "operator-authority-ref");
     goal.question = null;
     goal.reason = "operator-input-received";
     goal.state = "ready";
     commitTransition(
       root,
       [{ target: "active.json", value: goal }],
-      [event(goal, now, "operator-question-resolved", { fingerprint })],
+      [
+        event(goal, now, "operator-question-resolved", {
+          fingerprint,
+          resolutionRecordHash: resolution.contentHash,
+        }),
+      ],
       options,
     );
     rmSync(questionDirectory(root, fingerprint), { recursive: true, force: true });
@@ -1235,14 +1351,38 @@ function checkpointLocked(root, goal, options, now) {
       goal,
       now,
     );
+    const expectedExternalState =
+      goal.authority.externalCompletion === "required" ? "complete" : "not-required";
+    const zeroDebtPath = safeReference(completion.record.zeroDebtEvidenceRef, "zero-debt-ref");
+    try {
+      if (!lstatSync(resolve(root, zeroDebtPath.split("#", 1)[0])).isFile()) {
+        fail("completion-contract-mismatch");
+      }
+    } catch {
+      fail("completion-contract-mismatch");
+    }
     if (
       completion.record.branch !== goal.authority.branch ||
-      completion.record.externalState !== goal.authority.externalCompletion ||
-      completion.record.logicalCommit !== true ||
-      completion.record.researchPreflight !== true ||
+      completion.record.externalState !== expectedExternalState ||
+      completion.record.logicalCommit !== completion.record.head ||
+      completion.record.researchEvidenceRef !== goal.authority.research.evidenceRef ||
+      completion.record.last30daysEvidenceRef !== goal.authority.last30days.evidenceRef ||
       completion.record.zeroDebt !== true
     ) {
       fail("completion-contract-mismatch");
+    }
+    if (goal.authority.externalCompletion === "required") {
+      const externalRef = safeReference(
+        completion.record.externalEvidenceRef,
+        "external-evidence-ref",
+      );
+      try {
+        if (!lstatSync(resolve(root, externalRef.split("#", 1)[0])).isFile()) {
+          fail("completion-contract-mismatch");
+        }
+      } catch {
+        fail("completion-contract-mismatch");
+      }
     }
     const evidence = {
       aggregateRecordHash: aggregate.contentHash,
@@ -1263,6 +1403,19 @@ function checkpointLocked(root, goal, options, now) {
       verifierVerdict: "ACCEPT",
     };
     goal.evidence.current.push(evidence);
+    if (
+      !goal.learning.completed.some((iteration) => iteration.revision === goal.revision.fingerprint)
+    ) {
+      goal.learning.completed.push({
+        at: now.toISOString(),
+        retrospectiveCode: options.retrospectiveCode,
+        retrospectiveRecordHash: retrospective.contentHash,
+        reviewerAgent: hash(reviewer.record.agentId),
+        reviewerRecordHash: reviewer.contentHash,
+        reviewerVerdict: "PASS",
+        revision: goal.revision.fingerprint,
+      });
+    }
     details.retrospectiveCode = options.retrospectiveCode;
     extraEvents.push(event(goal, now, "completion-evidence", evidence));
   }
@@ -1275,7 +1428,12 @@ function checkpointLocked(root, goal, options, now) {
       const directory = questionDirectory(root, fingerprint);
       mkdirSync(directory, { mode: 0o700, recursive: true });
       atomicJson(join(directory, "question.json"), { fingerprint, text });
-      goal.question = { emitted: false, emittedAt: null, fingerprint };
+      goal.question = {
+        createdAt: now.toISOString(),
+        emitted: false,
+        emittedAt: null,
+        fingerprint,
+      };
       extraEvents.push(event(goal, now, "operator-question", { fingerprint }));
     }
   } else {
@@ -1349,7 +1507,7 @@ try {
     result = initialize(root, options, now);
   } else {
     const goal = readJson(paths(root).active, "active-goal-missing");
-    if (action === "reconcile") result = reconcile(root, goal, now);
+    if (action === "reconcile") result = reconcile(root, goal, now, options);
     else if (action === "wake") result = wake(root, goal, options, now);
     else if (action === "renew") result = renew(root, goal, options, now);
     else if (action === "checkpoint") result = checkpoint(root, goal, options, now);

@@ -53,9 +53,23 @@ def main() -> int:
         try:
             fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
-            write_json(session / "result.json", {"status": "contention"})
+            write_json(
+                session / "result.json",
+                {
+                    "parentIdentity": parent_identity,
+                    "parentPid": str(parent_pid),
+                    "status": "contention",
+                },
+            )
             return 0
-        write_json(session / "result.json", {"status": "acquired"})
+        write_json(
+            session / "result.json",
+            {
+                "parentIdentity": parent_identity,
+                "parentPid": str(parent_pid),
+                "status": "acquired",
+            },
+        )
         try:
             while not (session / "stop").exists():
                 if process_identity(parent_pid) != parent_identity:
