@@ -3,8 +3,8 @@
   "goalId": "symphony-conformance-controller",
   "objectiveFingerprint": "455f7a3cf6bf7fe4992f177c46d333c14fdb7af6cf0ab7423dee1805d341305b",
   "objectiveRef": "delegated-goal-and-docs/agents/adaptive-orchestration.md",
-  "state": "ready",
-  "reason": "revision-changed",
+  "state": "failed",
+  "reason": null,
   "revision": {
     "fingerprint": "cabcae3d7236f0dfc697a3ea84572878adabfcbc18a411a5b4cc3206f20a79e1",
     "head": "3f228936baf2f1b226c9d17ff1bf7b17314a9e99",
@@ -19,8 +19,8 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 1,
-  "lastWakeToken": "heartbeat-20260719T101600-native-continuation",
+  "leaseEpoch": 2,
+  "lastWakeToken": "root-20260719T101800-final-gates",
   "question": null,
   "run": null,
   "evidence": {
@@ -38,9 +38,9 @@
     "status": "ACTIVE"
   },
   "budgets": {
-    "repairCyclesUsed": 0,
+    "repairCyclesUsed": 1,
     "retriesUsed": 0,
-    "runsUsed": 1
+    "runsUsed": 2
   },
   "policy": {
     "maxDirectChildren": 3,
@@ -49,8 +49,7 @@
     "maxRuntimeMs": 1800000,
     "ttlMs": 300000
   },
-  "waiting": {
-    "dueAt": "2026-07-19T15:30:00.000Z",
-    "reason": "observed-heartbeat-recording"
-  }
+  "waiting": null,
+  "retryDueAt": "2026-07-19T10:23:58.426Z",
+  "failureFingerprint": "473e6c9a6949a8a8de9ca350bdb51faa14d295d714a8233a23fdaab17a1fccb1"
 }

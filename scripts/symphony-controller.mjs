@@ -128,6 +128,18 @@ function redact(value) {
     .slice(0, 1_000);
 }
 
+function safeReference(value, name) {
+  const reference = String(value ?? "");
+  if (
+    !/^[A-Za-z0-9][A-Za-z0-9._/#-]{0,199}$/.test(reference) ||
+    reference.startsWith("/") ||
+    reference.includes("..")
+  ) {
+    fail(`invalid-${name}`);
+  }
+  return reference;
+}
+
 function boundedNumber(value, name, { maximum = 100, minimum = 0 } = {}) {
   const number = Number(value);
   if (
@@ -230,6 +242,12 @@ function testPause(options) {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, duration);
 }
 
+function testCrash(options, phase) {
+  if (process.env.SYMPHONY_CONTROLLER_TEST_MODE === "1" && options.testCrashAfter === phase) {
+    process.exit(86);
+  }
+}
+
 function event(goal, now, type, details = {}) {
   return {
     at: now.toISOString(),
@@ -261,7 +279,17 @@ function withMutationLock(root, callback) {
           return acquire();
         }
       } catch {
-        // An initializing lock is treated as live for its short creation window.
+        try {
+          if (Date.now() - statSync(lock).mtimeMs > 30_000) {
+            const stale = `${lock}.stale-${randomUUID()}`;
+            renameSync(lock, stale);
+            fsyncParent(lock);
+            rmSync(stale, { recursive: true });
+            return acquire();
+          }
+        } catch {
+          // A concurrent reconciler may already have recovered it.
+        }
       }
       return false;
     }
@@ -311,7 +339,10 @@ function reconcile(root, goal, now) {
 function reconcileLocked(root, goal, now) {
   const controllerPaths = paths(root);
   const residues = readdirSync(controllerPaths.directory).filter(
-    (name) => name.startsWith(".lease.stale-") || name.startsWith(".lease.released-"),
+    (name) =>
+      name.startsWith(".lease.stale-") ||
+      name.startsWith(".lease.released-") ||
+      name.startsWith(".mutation.stale-"),
   );
   for (const residue of residues)
     rmSync(join(controllerPaths.directory, residue), { recursive: true });
@@ -321,6 +352,7 @@ function reconcileLocked(root, goal, now) {
       event(goal, now, "lease-residue-reconciled", { count: residues.length }),
     );
   }
+  if (existsSync(controllerPaths.lease)) reconcileCheckpointJournal(root, goal);
   if (existsSync(controllerPaths.lease)) {
     let lease;
     try {
@@ -401,7 +433,7 @@ function reconcileLocked(root, goal, now) {
     appendEvent(
       controllerPaths.history,
       event(goal, now, "dirty-tree-conflict", {
-        paths: conflicts.map((path) => redact(path)).slice(0, 20),
+        pathFingerprints: conflicts.map((path) => hash(path)).slice(0, 20),
       }),
     );
     return { action: "noop", reason: goal.reason, state: goal.state };
@@ -491,6 +523,43 @@ function release(root, ownerToken) {
   fsyncParent(released);
 }
 
+function replayCheckpointHistory(root, journal) {
+  const historyPath = paths(root).history;
+  const existing = new Set();
+  if (existsSync(historyPath)) {
+    for (const line of readFileSync(historyPath, "utf8").split("\n").filter(Boolean)) {
+      try {
+        const recorded = JSON.parse(line);
+        if (recorded.checkpointId === journal.checkpointId) existing.add(recorded.eventIndex);
+      } catch {
+        fail("invalid-history-record");
+      }
+    }
+  }
+  journal.events.forEach((recorded, eventIndex) => {
+    if (!existing.has(eventIndex)) {
+      appendEvent(historyPath, { ...recorded, checkpointId: journal.checkpointId, eventIndex });
+    }
+  });
+}
+
+function reconcileCheckpointJournal(root, goal) {
+  const journalPath = join(paths(root).lease, "checkpoint.json");
+  if (!existsSync(journalPath)) return false;
+  const journal = readJson(journalPath, "invalid-checkpoint-journal");
+  const lease = readJson(join(paths(root).lease, "owner.json"), "lease-lost");
+  if (
+    goal.lastCheckpointId !== journal.checkpointId ||
+    journal.ownerToken !== lease.ownerToken ||
+    journal.epoch !== lease.epoch
+  ) {
+    return false;
+  }
+  replayCheckpointHistory(root, journal);
+  release(root, lease.ownerToken);
+  return true;
+}
+
 function renew(root, goal, options, now) {
   const locked = withMutationLock(root, () => renewLocked(root, goal, options, now));
   if (!locked) fail("mutation-contention");
@@ -528,7 +597,7 @@ function initialize(root, options, now) {
     schemaVersion: 1,
     goalId: options.goal,
     objectiveFingerprint: hash(objective),
-    objectiveRef: redact(options.objectiveRef ?? "delegated-goal"),
+    objectiveRef: safeReference(options.objectiveRef ?? "delegated-goal", "objective-ref"),
     state: "ready",
     reason: null,
     revision: { ownedInputs },
@@ -696,7 +765,7 @@ function checkpointLocked(root, goal, options, now) {
   if (!states.has(options.state) || options.state === "ready" || options.state === "running") {
     fail("invalid-checkpoint-state");
   }
-  assertLease(root, goal, options.ownerToken, now);
+  const lease = assertLease(root, goal, options.ownerToken, now);
   testPause(options);
   const directChildren = boundedNumber(options.directChildren ?? 0, "direct-children");
   if (directChildren > goal.policy.maxDirectChildren) fail("direct-child-budget-exhausted");
@@ -781,7 +850,10 @@ function checkpointLocked(root, goal, options, now) {
     if (Number.isNaN(dueAt.valueOf()) || dueAt.valueOf() <= now.valueOf()) {
       fail("invalid-waiting-due-at");
     }
-    goal.waiting = { dueAt: dueAt.toISOString(), reason: redact(options.waitReason ?? "backoff") };
+    goal.waiting = {
+      dueAt: dueAt.toISOString(),
+      reasonCode: safeReference(options.waitReason ?? "backoff", "wait-reason"),
+    };
     details.dueAt = goal.waiting.dueAt;
   } else {
     goal.waiting = null;
@@ -812,9 +884,20 @@ function checkpointLocked(root, goal, options, now) {
   goal.reason = reason;
   goal.run = null;
   assertLease(root, readJson(paths(root).active, "active-goal-missing"), options.ownerToken, now);
-  for (const recorded of extraEvents) appendEvent(paths(root).history, recorded);
-  appendEvent(paths(root).history, event(goal, now, "checkpoint", { ...details, reason }));
+  const checkpointId = randomUUID();
+  goal.lastCheckpointId = checkpointId;
+  const journal = {
+    checkpointId,
+    epoch: lease.epoch,
+    events: [...extraEvents, event(goal, now, "checkpoint", { ...details, reason })],
+    ownerToken: lease.ownerToken,
+  };
+  atomicJson(join(paths(root).lease, "checkpoint.json"), journal);
+  testCrash(options, "journal");
   atomicJson(paths(root).active, goal);
+  testCrash(options, "active");
+  replayCheckpointHistory(root, journal);
+  testCrash(options, "history");
   release(root, options.ownerToken);
   return { action: "checkpointed", reason, state: goal.state };
 }

@@ -9,7 +9,9 @@ publication?
 **Accessed:** 2026-07-19
 **Research:** new primary-source lane; no existing Symphony/Cookbook report was
 listed in `docs/research/README.md`.
-**Last30Days:** root-owned; not rerun by this lane.
+**Last30Days:** reused the matching retained raw report at
+[`../../.build/research/last30days/openai-symphony-codex-orchestration-release-adoption-reliability-limitations-raw.md`](../../.build/research/last30days/openai-symphony-codex-orchestration-release-adoption-reliability-limitations-raw.md);
+no new search or quota use was needed.
 
 ## Sources and evidence boundary
 

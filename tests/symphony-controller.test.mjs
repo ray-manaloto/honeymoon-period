@@ -80,6 +80,15 @@ function history(root) {
     .map((line) => JSON.parse(line));
 }
 
+function expireMutation(root) {
+  const ownerPath = join(root, ".codex/goals/.mutation/owner.json");
+  const owner = JSON.parse(readFileSync(ownerPath, "utf8"));
+  writeFileSync(
+    ownerPath,
+    `${JSON.stringify({ ...owner, expiresAt: "2000-01-01T00:00:00.000Z" })}\n`,
+  );
+}
+
 function evidenceRecords(root, completedAt) {
   const directory = join(root, ".codex/goals/.evidence");
   mkdirSync(directory, { recursive: true });
@@ -455,6 +464,54 @@ test("startup sweeps fenced lease residue and clears abandoned running state", (
   assert.equal(result.state, "ready");
   assert.equal(existsSync(join(root, ".codex/goals/.lease.stale-crash")), false);
   assert.ok(history(root).some((entry) => entry.type === "lease-residue-reconciled"));
+});
+
+test("startup recovers an ownerless crashed mutation lock by bounded age", () => {
+  const root = createFixture();
+  const mutation = join(root, ".codex/goals/.mutation");
+  mkdirSync(mutation);
+  utimesSync(mutation, new Date(0), new Date(0));
+  const result = run(root, "reconcile", { now: "2026-07-19T10:00:00.000Z" });
+  assert.equal(result.state, "ready");
+  assert.equal(existsSync(mutation), false);
+});
+
+test("startup replays a checkpoint journal committed to active state", () => {
+  const root = createFixture();
+  const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
+  const crashed = command(root, "checkpoint", {
+    dueAt: "2026-07-19T10:00:05.000Z",
+    ownerToken: lease.ownerToken,
+    state: "waiting",
+    now: "2026-07-19T10:00:00.100Z",
+    testCrashAfter: "active",
+  });
+  assert.equal(crashed.status, 86);
+  assert.equal(active(root).state, "waiting");
+  assert.equal(history(root).filter((entry) => entry.type === "checkpoint").length, 0);
+  expireMutation(root);
+  const recovered = run(root, "reconcile", { now: "2026-07-19T10:00:00.200Z" });
+  assert.equal(recovered.state, "waiting");
+  assert.equal(existsSync(join(root, ".codex/goals/.lease")), false);
+  assert.equal(history(root).filter((entry) => entry.type === "checkpoint").length, 1);
+});
+
+test("startup discards an uncommitted checkpoint journal without false history", () => {
+  const root = createFixture();
+  const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
+  const crashed = command(root, "checkpoint", {
+    dueAt: "2026-07-19T10:00:05.000Z",
+    ownerToken: lease.ownerToken,
+    state: "waiting",
+    now: "2026-07-19T10:00:00.100Z",
+    testCrashAfter: "journal",
+  });
+  assert.equal(crashed.status, 86);
+  assert.equal(active(root).state, "running");
+  expireMutation(root);
+  const recovered = run(root, "reconcile", { now: "2026-07-19T10:00:02.000Z" });
+  assert.equal(recovered.state, "ready");
+  assert.equal(history(root).filter((entry) => entry.type === "checkpoint").length, 0);
 });
 
 test("mutation serialization prevents takeover during a checkpoint", async () => {
