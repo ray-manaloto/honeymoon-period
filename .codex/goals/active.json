@@ -3,12 +3,12 @@
   "goalId": "symphony-conformance-controller",
   "objectiveFingerprint": "455f7a3cf6bf7fe4992f177c46d333c14fdb7af6cf0ab7423dee1805d341305b",
   "objectiveRef": "delegated-goal-and-docs/agents/adaptive-orchestration.md",
-  "state": "running",
-  "reason": null,
+  "state": "ready",
+  "reason": "revision-changed",
   "revision": {
-    "fingerprint": "f665a71ab6a6e3e422a658e86b54d4fb5b35ae25092cee79549f1a6fd6fa57ad",
-    "head": "ac7aa15922f0120350de16b95b1f92e27093b188",
-    "ownedManifest": "b1ec1200273beca92a138ba8349a03fdb735f18518d646308f0a4435f6baef08",
+    "fingerprint": "3801a8096e63586cebfab7a6335a4c2f5de7591562e377a459c8278c3a639d5f",
+    "head": "0d38cf77dd04f3685cfe213a458443345e6abcdc",
+    "ownedManifest": "abc149d458213c2636be4b3bda6560bb641cf3c27febb49333073706e733ae12",
     "ownedInputs": [
       "docs/agents/adaptive-orchestration.md",
       "docs/research/openai-symphony-cookbook-controller.md",
@@ -22,12 +22,7 @@
   "leaseEpoch": 3,
   "lastWakeToken": "root-20260719T102600-crash-recovery-final-gates",
   "question": null,
-  "run": {
-    "deadlineAt": "2026-07-19T10:59:23.850Z",
-    "directChildrenUsed": 0,
-    "ownerToken": "131bffab-1e64-428b-9ac0-f7d63f56f324",
-    "startedAt": "2026-07-19T10:29:23.850Z"
-  },
+  "run": null,
   "evidence": {
     "current": []
   },

@@ -14,3 +14,5 @@
 {"at":"2026-07-19T10:29:23.850Z","goalId":"symphony-conformance-controller","revision":"f665a71ab6a6e3e422a658e86b54d4fb5b35ae25092cee79549f1a6fd6fa57ad","type":"run-started","epoch":3,"wakeToken":"184642d48c6b01ff97e874b77c83d0ff68ce3fe21eafc91c7f8c5dbc13f70298"}
 {"at":"2026-07-19T10:30:21.187Z","goalId":"symphony-conformance-controller","revision":"f665a71ab6a6e3e422a658e86b54d4fb5b35ae25092cee79549f1a6fd6fa57ad","type":"lease-renewed","epoch":3,"expiresAt":"2026-07-19T10:35:21.187Z"}
 {"at":"2026-07-19T10:32:31.928Z","goalId":"symphony-conformance-controller","revision":"f665a71ab6a6e3e422a658e86b54d4fb5b35ae25092cee79549f1a6fd6fa57ad","type":"lease-renewed","epoch":3,"expiresAt":"2026-07-19T10:37:31.928Z"}
+{"at":"2026-07-19T10:38:09.829Z","goalId":"symphony-conformance-controller","revision":"f665a71ab6a6e3e422a658e86b54d4fb5b35ae25092cee79549f1a6fd6fa57ad","type":"stale-lease-reconciled","reason":"ttl-expired"}
+{"at":"2026-07-19T10:38:09.829Z","goalId":"symphony-conformance-controller","revision":"3801a8096e63586cebfab7a6335a4c2f5de7591562e377a459c8278c3a639d5f","type":"evidence-invalidated","count":0}
