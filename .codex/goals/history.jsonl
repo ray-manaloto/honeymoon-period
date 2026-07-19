@@ -87,3 +87,5 @@
 {"at":"2026-07-19T21:12:48.444Z","goalId":"self-learning-autonomy-loop","revision":"0828aa803a0fd3a18df1ba6491a14ff5e090948f5f86552146cfc3b26a225765","type":"evidence-invalidated","count":0}
 {"at":"2026-07-19T21:12:57.587Z","goalId":"self-learning-autonomy-loop","revision":"0828aa803a0fd3a18df1ba6491a14ff5e090948f5f86552146cfc3b26a225765","type":"run-started","epoch":3,"wakeToken":"6fbaf6c00818261683251ecf211269fb5ac1e74ae0524db447b15bdd263cf9de"}
 {"at":"2026-07-19T21:14:28.640Z","goalId":"self-learning-autonomy-loop","revision":"0828aa803a0fd3a18df1ba6491a14ff5e090948f5f86552146cfc3b26a225765","type":"lease-renewed","epoch":3,"expiresAt":"2026-07-19T21:19:28.640Z"}
+{"at":"2026-07-19T21:18:18.558Z","goalId":"self-learning-autonomy-loop","revision":"0828aa803a0fd3a18df1ba6491a14ff5e090948f5f86552146cfc3b26a225765","type":"stale-lease-reconciled","reason":"revision-lost"}
+{"at":"2026-07-19T21:18:18.558Z","goalId":"self-learning-autonomy-loop","revision":"7b2d554142a08e08235539a5847e113526362a7f2d95977e0ffb98dc83d3969e","type":"evidence-invalidated","count":0}
