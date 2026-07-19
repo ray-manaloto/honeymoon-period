@@ -20,6 +20,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
 const states = new Set(["ready", "running", "waiting", "blocked", "failed", "complete"]);
 const retrospectiveCodes = new Set(["promoted", "linked", "no-new-lesson"]);
@@ -373,29 +374,30 @@ function dirtyConflicts(root) {
     );
 }
 
+const productionRuntime = Object.freeze({
+  adoptPrelockPause() {},
+  crash() {},
+  now(options) {
+    if (options.now) fail("injected-time-forbidden");
+    return Date.now();
+  },
+  pause() {},
+  questionPrelockPause() {},
+});
+let runtimeHooks = productionRuntime;
+
 function nowFrom(options) {
-  if (options.now && process.env.SYMPHONY_CONTROLLER_TEST_MODE !== "1")
-    fail("injected-time-forbidden");
-  const now = new Date(
-    process.env.SYMPHONY_CONTROLLER_TEST_MODE === "1" ? (options.now ?? Date.now()) : Date.now(),
-  );
+  const now = new Date(runtimeHooks.now(options));
   if (Number.isNaN(now.valueOf())) fail("invalid-now");
   return now;
 }
 
 function testPause(options) {
-  if (process.env.SYMPHONY_CONTROLLER_TEST_MODE !== "1" || !options.testPauseMs) return;
-  const duration = boundedNumber(options.testPauseMs, "test-pause-ms", {
-    maximum: 5_000,
-    minimum: 1,
-  });
-  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, duration);
+  runtimeHooks.pause(options);
 }
 
 function testCrash(options, phase) {
-  if (process.env.SYMPHONY_CONTROLLER_TEST_MODE === "1" && options.testCrashAfter === phase) {
-    process.exit(86);
-  }
+  runtimeHooks.crash(options, phase);
 }
 
 function event(goal, now, type, details = {}) {
@@ -955,10 +957,7 @@ function initializeLocked(root, options, now) {
 }
 
 function adoptInput(root, goal, options, now) {
-  if (process.env.SYMPHONY_CONTROLLER_TEST_MODE === "1") {
-    const pause = Number(process.env.SYMPHONY_CONTROLLER_TEST_ADOPT_PRELOCK_PAUSE_MS ?? 0);
-    if (pause > 0) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, pause);
-  }
+  runtimeHooks.adoptPrelockPause();
   return withMutationLock(root, () => {
     goal = readJson(paths(root).active, "active-goal-missing");
     if (goal.state !== "ready" || existsSync(paths(root).lease)) fail("goal-not-ready");
@@ -1067,13 +1066,7 @@ function wake(root, goal, options, now) {
       };
     }
     const runtimeQuestion = readJson(join(directory, "question.json"), "question-text-unavailable");
-    if (process.env.SYMPHONY_CONTROLLER_TEST_MODE === "1") {
-      const pause = Number(process.env.SYMPHONY_CONTROLLER_TEST_QUESTION_PRELOCK_PAUSE_MS ?? 0);
-      if (pause > 0) {
-        writeFileSync(join(directory, "test-prelock-paused"), "paused\n");
-        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, pause);
-      }
-    }
+    runtimeHooks.questionPrelockPause(directory);
     const emission = withMutationLock(root, () => {
       reconcileLocked(root, readJson(paths(root).active, "active-goal-missing"), now, options);
       const current = readJson(paths(root).active, "active-goal-missing");
@@ -1243,7 +1236,6 @@ function claimChild(root, options, now) {
     const childClaim = randomUUID();
     const claim = {
       epoch: lease.epoch,
-      expiresAt: leaseExpiry(root, lease),
       head: lease.head,
       manifest: lease.manifest,
       revision: lease.revision,
@@ -1261,7 +1253,7 @@ function claimChild(root, options, now) {
     return {
       action: "child-claimed",
       childClaim,
-      expiresAt: claim.expiresAt,
+      leaseExpiresAt: leaseExpiry(root, lease),
       state: goal.state,
     };
   });
@@ -1526,17 +1518,17 @@ function checkpointLocked(root, goal, options, now) {
 
   if (options.state === "failed") {
     if (!options.failureFingerprint) fail("failure-fingerprint-required");
+    if (options.repair !== undefined) fail("caller-repair-count-forbidden");
     const fingerprint = hash(redact(options.failureFingerprint));
     if (goal.failureFingerprint === fingerprint) {
       reason = "unchanged-failure";
       goal.retryDueAt = null;
     } else {
-      const repair = boundedNumber(options.repair ?? 0, "repair");
-      if (goal.budgets.repairCyclesUsed + repair > goal.policy.maxRepairCycles) {
+      if (goal.budgets.repairCyclesUsed + 1 > goal.policy.maxRepairCycles) {
         reason = "repair-budget-exhausted";
         goal.retryDueAt = null;
       } else {
-        goal.budgets.repairCyclesUsed += repair;
+        goal.budgets.repairCyclesUsed += 1;
         const backoffMs = Math.min(2 ** goal.budgets.retriesUsed * 1_000, 60_000);
         goal.retryDueAt = new Date(now.valueOf() + backoffMs).toISOString();
       }
@@ -1567,35 +1559,48 @@ function checkpointLocked(root, goal, options, now) {
   return { action: "checkpointed", reason, state: goal.state };
 }
 
-try {
-  const { action, options } = parseArguments(process.argv.slice(2));
-  const root = realpathSync(resolve(options.root ?? "."));
-  delegateUnderMutationLock(root, action, options);
-  const now = nowFrom(options);
+export function runController(hooks = productionRuntime) {
+  runtimeHooks = hooks;
+  try {
+    const { action, options } = parseArguments(process.argv.slice(2));
+    if (
+      hooks === productionRuntime &&
+      Object.keys(options).some((name) => name.startsWith("test"))
+    ) {
+      fail("test-control-forbidden");
+    }
+    const root = realpathSync(resolve(options.root ?? "."));
+    delegateUnderMutationLock(root, action, options);
+    const now = nowFrom(options);
 
-  let result;
-  if (action === "init") {
-    result = initialize(root, options, now);
-  } else {
-    const goal = readJson(paths(root).active, "active-goal-missing");
-    if (action === "reconcile") result = reconcile(root, now, options);
-    else if (action === "wake") result = wake(root, goal, options, now);
-    else if (action === "renew") result = renew(root, goal, options, now);
-    else if (action === "checkpoint") result = checkpoint(root, goal, options, now);
-    else if (action === "adopt-input") result = adoptInput(root, goal, options, now);
-    else if (action === "claim-child") result = claimChild(root, options, now);
-    else if (action === "settle-child") result = settleChild(root, options, now);
-    else if (action === "record-iteration") result = recordIteration(root, options, now);
-    else if (action === "resolve-question") result = resolveQuestion(root, options, now);
-    else fail("unknown-action");
-  }
+    let result;
+    if (action === "init") {
+      result = initialize(root, options, now);
+    } else {
+      const goal = readJson(paths(root).active, "active-goal-missing");
+      if (action === "reconcile") result = reconcile(root, now, options);
+      else if (action === "wake") result = wake(root, goal, options, now);
+      else if (action === "renew") result = renew(root, goal, options, now);
+      else if (action === "checkpoint") result = checkpoint(root, goal, options, now);
+      else if (action === "adopt-input") result = adoptInput(root, goal, options, now);
+      else if (action === "claim-child") result = claimChild(root, options, now);
+      else if (action === "settle-child") result = settleChild(root, options, now);
+      else if (action === "record-iteration") result = recordIteration(root, options, now);
+      else if (action === "resolve-question") result = resolveQuestion(root, options, now);
+      else fail("unknown-action");
+    }
 
-  process.stdout.write(`${JSON.stringify(result)}\n`);
-} catch (error) {
-  if (error instanceof ControllerError) {
-    process.stderr.write(`${error.message}\n`);
-    process.exitCode = 1;
-  } else {
-    throw error;
+    process.stdout.write(`${JSON.stringify(result)}\n`);
+  } catch (error) {
+    if (error instanceof ControllerError) {
+      process.stderr.write(`${error.message}\n`);
+      process.exitCode = 1;
+    } else {
+      throw error;
+    }
   }
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  runController();
 }

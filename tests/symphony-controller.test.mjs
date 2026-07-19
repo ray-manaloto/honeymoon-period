@@ -16,7 +16,8 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import test from "node:test";
 
-const controller = resolve(import.meta.dirname, "../scripts/symphony-controller.mjs");
+const controller = resolve(import.meta.dirname, "support/symphony-controller-harness.mjs");
+const productionController = resolve(import.meta.dirname, "../scripts/symphony-controller.mjs");
 const authorityOptions = {
   completionContractRef: "docs/completion.md",
   externalCompletion: "not-required",
@@ -82,7 +83,7 @@ function argsFor(options) {
 function command(root, action, options = {}) {
   return spawnSync("node", [controller, action, "--root", root, ...argsFor(options)], {
     encoding: "utf8",
-    env: { ...process.env, SYMPHONY_CONTROLLER_TEST_MODE: "1" },
+    env: process.env,
   });
 }
 
@@ -230,15 +231,12 @@ function runAsync(root, action, options = {}) {
     const child = spawn("node", [controller, action, "--root", root, ...argsFor(commandOptions)], {
       env: {
         ...process.env,
-        SYMPHONY_CONTROLLER_TEST_MODE: "1",
         ...(testAdoptPrelockPauseMs
-          ? { SYMPHONY_CONTROLLER_TEST_ADOPT_PRELOCK_PAUSE_MS: String(testAdoptPrelockPauseMs) }
+          ? { SYMPHONY_TEST_ADOPT_PRELOCK_PAUSE_MS: String(testAdoptPrelockPauseMs) }
           : {}),
         ...(testQuestionPrelockPauseMs
           ? {
-              SYMPHONY_CONTROLLER_TEST_QUESTION_PRELOCK_PAUSE_MS: String(
-                testQuestionPrelockPauseMs,
-              ),
+              SYMPHONY_TEST_QUESTION_PRELOCK_PAUSE_MS: String(testQuestionPrelockPauseMs),
             }
           : {}),
       },
@@ -551,7 +549,6 @@ test("unchanged failures stop repair while changed failures consume bounded budg
     ownerToken: lease.ownerToken,
     state: "failed",
     failureFingerprint: "test-a",
-    repair: 1,
     now: "2026-07-19T10:00:00.100Z",
   });
   lease = run(root, "wake", { wakeToken: "two", now: "2026-07-19T10:00:02.000Z" });
@@ -559,11 +556,39 @@ test("unchanged failures stop repair while changed failures consume bounded budg
     ownerToken: lease.ownerToken,
     state: "failed",
     failureFingerprint: "test-a",
-    repair: 1,
     now: "2026-07-19T10:00:02.100Z",
   });
   assert.equal(unchanged.state, "failed");
   assert.equal(unchanged.reason, "unchanged-failure");
+  assert.equal(active(root).budgets.repairCyclesUsed, 1);
+});
+
+test("caller-authored repair counts cannot bypass distinct-failure budgets", () => {
+  const root = createFixture({ maxRepairCycles: 1 });
+  let lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
+  const forged = command(root, "checkpoint", {
+    failureFingerprint: "failure-a",
+    ownerToken: lease.ownerToken,
+    repair: 0,
+    state: "failed",
+    now: "2026-07-19T10:00:00.050Z",
+  });
+  assert.notEqual(forged.status, 0);
+  assert.match(forged.stderr, /caller-repair-count-forbidden/);
+  run(root, "checkpoint", {
+    failureFingerprint: "failure-a",
+    ownerToken: lease.ownerToken,
+    state: "failed",
+    now: "2026-07-19T10:00:00.100Z",
+  });
+  lease = run(root, "wake", { wakeToken: "two", now: "2026-07-19T10:00:02.000Z" });
+  const exhausted = run(root, "checkpoint", {
+    failureFingerprint: "failure-b",
+    ownerToken: lease.ownerToken,
+    state: "failed",
+    now: "2026-07-19T10:00:02.100Z",
+  });
+  assert.equal(exhausted.reason, "repair-budget-exhausted");
   assert.equal(active(root).budgets.repairCyclesUsed, 1);
 });
 
@@ -661,11 +686,28 @@ test("production commands reject injected time and checkpoints enforce the run d
   const root = createFixture({ maxRuntimeMs: 100 });
   const injected = spawnSync(
     "node",
-    [controller, "reconcile", "--root", root, "--now", "2026-07-19T10:00:00.000Z"],
-    { encoding: "utf8", env: { ...process.env, SYMPHONY_CONTROLLER_TEST_MODE: "0" } },
+    [productionController, "reconcile", "--root", root, "--now", "2026-07-19T10:00:00.000Z"],
+    { encoding: "utf8", env: process.env },
   );
   assert.notEqual(injected.status, 0);
   assert.match(injected.stderr, /injected-time-forbidden/);
+  const forgedTestMode = spawnSync(
+    "node",
+    [productionController, "reconcile", "--root", root, "--now", "2099-01-01T00:00:00.000Z"],
+    {
+      encoding: "utf8",
+      env: { ...process.env, SYMPHONY_CONTROLLER_TEST_MODE: "1" },
+    },
+  );
+  assert.notEqual(forgedTestMode.status, 0);
+  assert.match(forgedTestMode.stderr, /injected-time-forbidden/);
+  const injectedFault = spawnSync(
+    "node",
+    [productionController, "reconcile", "--root", root, "--test-crash-after", "active"],
+    { encoding: "utf8", env: process.env },
+  );
+  assert.notEqual(injectedFault.status, 0);
+  assert.match(injectedFault.stderr, /test-control-forbidden/);
 
   const lease = run(root, "wake", { wakeToken: "deadline", now: "2026-07-19T10:00:00.000Z" });
   const expired = command(root, "checkpoint", {
@@ -688,7 +730,6 @@ test("retry and repair exhaustion stops without manufacturing ambiguity", () => 
   const failed = run(root, "checkpoint", {
     failureFingerprint: "new-failure",
     ownerToken: lease.ownerToken,
-    repair: 1,
     state: "failed",
     now: "2026-07-19T10:00:00.100Z",
   });
@@ -837,7 +878,6 @@ test("a forged mutation-lock environment flag cannot bypass flock", async () => 
       encoding: "utf8",
       env: {
         ...process.env,
-        SYMPHONY_CONTROLLER_TEST_MODE: "1",
         SYMPHONY_MUTATION_LOCK_HELD: "1",
       },
     },

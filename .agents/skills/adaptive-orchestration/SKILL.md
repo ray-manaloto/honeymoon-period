@@ -75,6 +75,9 @@ state changes, record `promoted`, `linked`, or `no-new-lesson`. Continue through
 bounded repairs while the controller admits work. Request a human interview only after
 local evidence, current primary research, and bounded agents cannot resolve genuine
 ambiguity.
+Treat every new distinct failed repair as one controller-counted cycle; never supply a
+caller-authored repair count. Keep injected clocks, pauses, and crashes in the test-only
+controller harness, never in production arguments or ambient mode flags.
 
 **Completion criterion:** the iteration has a durable retrospective outcome, every
 promoted lesson has an enforcing guard, and no stale review or verdict is reused.

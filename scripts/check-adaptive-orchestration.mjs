@@ -128,6 +128,7 @@ requireMatch(
 
 const controller = read("scripts/symphony-controller.mjs");
 const mutationLock = read("scripts/mutation-lock.py");
+const controllerHarness = read("tests/support/symphony-controller-harness.mjs");
 requireMatch(
   controller,
   /kind: "standards-review"/,
@@ -143,6 +144,7 @@ for (const invariant of [
   ["claim-child", "controller must issue direct-child claims"],
   ["settle-child", "controller must settle direct-child claims"],
   ["caller-child-count-forbidden", "controller must reject caller-authored child counts"],
+  ["caller-repair-count-forbidden", "controller must reject caller-authored repair counts"],
 ]) {
   requireMatch(controller, new RegExp(invariant[0]), invariant[1]);
 }
@@ -160,6 +162,14 @@ requireMatch(
   controller,
   /independent-child-claim-required/,
   "independent agent evidence must bind a completed controller claim",
+);
+if (/SYMPHONY_CONTROLLER_TEST/.test(controller)) {
+  failures.push("production controller must not trust ambient test-mode flags");
+}
+requireMatch(
+  controllerHarness,
+  /runController/,
+  "deterministic controller faults must use the test-only harness",
 );
 for (const outcome of ["promoted", "linked", "no-new-lesson"]) {
   requireMatch(
