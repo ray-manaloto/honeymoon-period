@@ -173,6 +173,7 @@ function runAsync(root, action, options = {}) {
     testAdoptPrelockPauseMs,
     testMutationInitCrash,
     testMutationInitPauseMs,
+    testQuestionPrelockPauseMs,
     testReconcilePrelockPauseMs,
     ...commandOptions
   } = options;
@@ -192,6 +193,13 @@ function runAsync(root, action, options = {}) {
           ? {
               SYMPHONY_CONTROLLER_TEST_RECONCILE_PRELOCK_PAUSE_MS: String(
                 testReconcilePrelockPauseMs,
+              ),
+            }
+          : {}),
+        ...(testQuestionPrelockPauseMs
+          ? {
+              SYMPHONY_CONTROLLER_TEST_QUESTION_PRELOCK_PAUSE_MS: String(
+                testQuestionPrelockPauseMs,
               ),
             }
           : {}),
@@ -711,6 +719,36 @@ test("question claim recovers after a pre-emission crash window", () => {
     now: "2026-07-19T10:00:02.000Z",
   });
   assert.equal(recovered.action, "ask");
+});
+
+test("question emission cannot restore state invalidated by reconciliation", async () => {
+  const root = createFixture();
+  const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
+  run(root, "checkpoint", {
+    ownerToken: lease.ownerToken,
+    question: "Which authorized option should continue?",
+    state: "blocked",
+    now: "2026-07-19T10:00:00.100Z",
+  });
+  const questionFingerprint = active(root).question.fingerprint;
+  const delayed = runAsync(root, "wake", {
+    wakeToken: "two",
+    now: "2026-07-19T10:00:01.000Z",
+    testQuestionPrelockPauseMs: 2_000,
+  });
+  await waitForPath(
+    join(root, `.codex/goals/.question-${questionFingerprint}/test-prelock-paused`),
+  );
+  writeFileSync(join(root, "owned/input.txt"), "revision two\n");
+  git(root, "add", "owned/input.txt");
+  git(root, "commit", "-qm", "invalidate question revision");
+  const reconciled = run(root, "reconcile", { now: "2026-07-19T10:00:01.500Z" });
+  assert.equal(reconciled.state, "ready");
+  const emission = await delayed;
+  assert.equal(emission.status, 0, emission.stderr);
+  assert.equal(emission.result.reason, "question-invalidated");
+  assert.equal(active(root).state, "ready");
+  assert.equal(active(root).question, null);
 });
 
 test("tracked state stores fingerprints instead of objective worktree or question text", () => {

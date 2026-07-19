@@ -870,9 +870,39 @@ function wake(root, goal, options, now) {
       };
     }
     const runtimeQuestion = readJson(join(directory, "question.json"), "question-text-unavailable");
-    goal.question.emitted = true;
-    atomicJson(paths(root).active, goal);
-    return { action: "ask", question: runtimeQuestion.text, state: goal.state };
+    if (process.env.SYMPHONY_CONTROLLER_TEST_MODE === "1") {
+      const pause = Number(process.env.SYMPHONY_CONTROLLER_TEST_QUESTION_PRELOCK_PAUSE_MS ?? 0);
+      if (pause > 0) {
+        writeFileSync(join(directory, "test-prelock-paused"), "paused\n");
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, pause);
+      }
+    }
+    const emission = withMutationLock(root, () => {
+      const current = readJson(paths(root).active, "active-goal-missing");
+      if (
+        current.state !== "blocked" ||
+        !current.question ||
+        current.question.fingerprint !== goal.question.fingerprint
+      ) {
+        return { action: "noop", reason: "question-invalidated", state: current.state };
+      }
+      if (current.question.emitted) {
+        return {
+          action: "noop",
+          reason: "blocked-question-already-emitted",
+          state: current.state,
+        };
+      }
+      current.question.emitted = true;
+      atomicJson(paths(root).active, current);
+      return { action: "ask", question: runtimeQuestion.text, state: current.state };
+    });
+    if (emission === null) {
+      rmSync(claim, { force: true });
+      return { action: "noop", reason: "mutation-contention", state: goal.state };
+    }
+    if (emission.reason === "question-invalidated") rmSync(claim, { force: true });
+    return emission;
   }
   if (result.reason === "lease-held") return result;
   const acquired = acquire(root, goal, now, wakeToken);

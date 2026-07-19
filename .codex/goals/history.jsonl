@@ -110,3 +110,4 @@
 {"at":"2026-07-19T21:42:48.035Z","goalId":"self-learning-autonomy-loop","revision":"6fbac10f59753d7fe98e7ef59312e0f0b8bcc0c5a640240f31ed402a0a0723d9","type":"lease-renewed","epoch":8,"expiresAt":"2026-07-19T21:47:48.035Z"}
 {"at":"2026-07-19T21:47:08.977Z","goalId":"self-learning-autonomy-loop","revision":"6fbac10f59753d7fe98e7ef59312e0f0b8bcc0c5a640240f31ed402a0a0723d9","type":"stale-lease-reconciled","reason":"revision-lost"}
 {"at":"2026-07-19T21:47:08.977Z","goalId":"self-learning-autonomy-loop","revision":"7fa8144423d5743152278aed4ce1bf1ef86ef07739b1a3a78947cc9defcd87bb","type":"evidence-invalidated","count":0}
+{"at":"2026-07-19T21:47:18.855Z","goalId":"self-learning-autonomy-loop","revision":"7fa8144423d5743152278aed4ce1bf1ef86ef07739b1a3a78947cc9defcd87bb","type":"run-started","epoch":9,"wakeToken":"3d683cd9cc2585ac24e472f5bcc68f5e8fc5d3ab3ba2dd5371900dc2501048a1"}

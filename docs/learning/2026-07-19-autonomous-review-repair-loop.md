@@ -39,6 +39,8 @@ All state-changing commands must reread authoritative state inside that mutex, a
 prepared-lock candidates must be reconciled so crash safety does not create hidden residue.
 The in-lock reread applies to reconcile, acquire, renew, and checkpoint as well as input
 adoption; mutex ownership does not make a snapshot captured before the mutex authoritative.
+Blocked-question emission follows the same rule: the filesystem claim deduplicates delivery,
+while an in-mutex active-state reread decides whether that question is still valid.
 
 ## Correction
 
