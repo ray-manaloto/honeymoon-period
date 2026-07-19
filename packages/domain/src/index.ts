@@ -31,11 +31,11 @@ export function idempotencyKey(actorId: string, clientRequestId: string): string
   return `${actorId}\u0000${clientRequestId}`;
 }
 
-export interface PreferenceInput {
+export interface PreferenceValues {
   vote: Vote;
   score: number | null;
 }
-export interface OwnedPreference extends PreferenceInput {
+export interface OwnedPreference extends PreferenceValues {
   actorId: string;
   honeymoonPeriodId: string;
 }
@@ -43,7 +43,7 @@ export interface OwnedPreference extends PreferenceInput {
 export function ownedPreference(
   actorId: string,
   honeymoonPeriodId: string,
-  input: PreferenceInput,
+  input: PreferenceValues,
 ): OwnedPreference {
   if (input.vote !== null && !(input.vote in VOTE_WEIGHTS)) throw new DomainError("invalid vote");
   if (
@@ -62,7 +62,7 @@ export interface RankComponents {
   total: number;
 }
 
-export function rank(preferences: readonly PreferenceInput[], boost: number): RankComponents {
+export function rank(preferences: readonly PreferenceValues[], boost: number): RankComponents {
   let scoreTotal = 0;
   let scoreCount = 0;
   let votes = 0;

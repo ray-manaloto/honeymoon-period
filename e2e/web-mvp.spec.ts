@@ -63,14 +63,19 @@ test("3. records each participant preference without overwriting ownership", asy
   await openDetail(page, item.id);
   await page.getByLabel("Vote").selectOption("interested");
   await page.getByLabel("Score (0–5, optional)").fill("5");
+  await page.getByLabel("Reason (optional)").fill("Great first choice");
   await page.getByRole("button", { name: "Save preference" }).click();
   await expect(page.getByText("interested · 5/5", { exact: false })).toBeVisible();
+  const history = page.getByRole("list", { name: "Chronological preference history" });
+  await expect(history).toContainText("Great first choice");
+  await expect(history.getByRole("listitem")).toHaveCount(1);
   await page.getByLabel("Acting as participant").selectOption("prototype-participant-b");
   await page.getByLabel("Vote").selectOption("maybe");
   await page.getByLabel("Score (0–5, optional)").fill("3");
   await page.getByRole("button", { name: "Save preference" }).click();
   await expect(page.getByText("interested · 5/5", { exact: false })).toBeVisible();
   await expect(page.getByText("maybe · 3/5", { exact: false })).toBeVisible();
+  await expect(history.getByRole("listitem")).toHaveCount(2);
 });
 
 test("4. edits notes and structured metadata", async ({ page, request }) => {

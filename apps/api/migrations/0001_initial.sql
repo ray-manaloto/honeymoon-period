@@ -37,6 +37,28 @@ CREATE TABLE preferences (
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   PRIMARY KEY (honeymoon_period_id, actor_id)
 );
+CREATE TABLE preference_change_requests (
+  id TEXT PRIMARY KEY,
+  actor_id TEXT NOT NULL REFERENCES actors(id),
+  client_request_id TEXT NOT NULL,
+  honeymoon_period_id TEXT NOT NULL REFERENCES honeymoon_periods(id) ON DELETE CASCADE,
+  payload_fingerprint TEXT NOT NULL,
+  UNIQUE (actor_id, client_request_id)
+);
+CREATE TABLE preference_events (
+  sequence INTEGER PRIMARY KEY AUTOINCREMENT,
+  id TEXT NOT NULL UNIQUE,
+  request_id TEXT NOT NULL UNIQUE REFERENCES preference_change_requests(id),
+  honeymoon_period_id TEXT NOT NULL REFERENCES honeymoon_periods(id) ON DELETE CASCADE,
+  actor_id TEXT NOT NULL REFERENCES actors(id),
+  event_type TEXT NOT NULL CHECK (event_type = 'PreferenceChanged'),
+  before_vote TEXT CHECK (before_vote IN ('interested', 'maybe', 'decline') OR before_vote IS NULL),
+  after_vote TEXT CHECK (after_vote IN ('interested', 'maybe', 'decline') OR after_vote IS NULL),
+  before_score REAL CHECK (before_score BETWEEN 0 AND 5 OR before_score IS NULL),
+  after_score REAL CHECK (after_score BETWEEN 0 AND 5 OR after_score IS NULL),
+  reason TEXT,
+  accepted_at TEXT NOT NULL
+);
 CREATE TABLE notes (
   id TEXT PRIMARY KEY,
   honeymoon_period_id TEXT NOT NULL REFERENCES honeymoon_periods(id) ON DELETE CASCADE,
@@ -51,4 +73,6 @@ CREATE TABLE rate_limits (
 );
 CREATE INDEX captures_honeymoon_period_idx ON captures(honeymoon_period_id, captured_at);
 CREATE INDEX notes_honeymoon_period_idx ON notes(honeymoon_period_id, created_at);
+CREATE INDEX preference_events_period_sequence_idx
+  ON preference_events(honeymoon_period_id, sequence);
 CREATE INDEX honeymoon_periods_status_idx ON honeymoon_periods(status, updated_at);

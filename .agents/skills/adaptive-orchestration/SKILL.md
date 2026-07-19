@@ -45,6 +45,12 @@ authorization boundary; escalate when the replacement requires new authority.
 **Completion criterion:** the current plan and tracker intent are derivable from the
 append-only record, with no silent rewrite of an earlier decision.
 
+For greenfield work, apply the repository debt gate after every changed decision: retain
+one canonical path and sweep source, tests, generators, docs, project-local skills, agent
+guidance, examples, and prototypes. Do not create compatibility shims, duplicate
+transports, or artificial migration history without an explicitly approved external
+contract. Clearly label historical evidence instead of letting it prescribe obsolete work.
+
 ## 4. Manage context and agents
 
 Apply the lifecycle zones and non-numeric overrides in

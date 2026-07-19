@@ -3,7 +3,7 @@ import type {
   HoneymoonPeriodDetail,
   Note,
   Preference,
-  PreferenceInput,
+  PreferenceChangeInput,
 } from "@honeymoon-period/generated";
 import { useState } from "react";
 import { useDataProvider, useGetOne, useUpdate } from "react-admin";
@@ -35,8 +35,9 @@ function PreferenceForm({
   done: () => void;
 }) {
   const provider = useDataProvider<HoneymoonDataProvider>();
-  const [vote, setVote] = useState<PreferenceInput["vote"]>(preference?.vote ?? null);
+  const [vote, setVote] = useState<PreferenceChangeInput["vote"]>(preference?.vote ?? null);
   const [score, setScore] = useState(preference?.score?.toString() ?? "");
+  const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>();
   const [saved, setSaved] = useState(false);
@@ -54,7 +55,12 @@ function PreferenceForm({
     setError(undefined);
     setSaved(false);
     try {
-      await provider.setPreference(id, { vote, score: numericScore });
+      await provider.createPreferenceChange(id, {
+        vote,
+        score: numericScore,
+        client_request_id: crypto.randomUUID(),
+        ...(reason.trim() ? { reason: reason.trim() } : {}),
+      });
       setSaved(true);
       done();
     } catch (cause) {
@@ -74,13 +80,24 @@ function PreferenceForm({
           <span>Vote</span>
           <select
             value={vote ?? ""}
-            onChange={(event) => setVote((event.target.value || null) as PreferenceInput["vote"])}
+            onChange={(event) =>
+              setVote((event.target.value || null) as PreferenceChangeInput["vote"])
+            }
           >
             <option value="">No vote</option>
             <option value="interested">Interested</option>
             <option value="maybe">Maybe</option>
             <option value="decline">Decline</option>
           </select>
+        </label>
+        <label className="full-width">
+          <span>Reason (optional)</span>
+          <input
+            type="text"
+            maxLength={1000}
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+          />
         </label>
         <label>
           <span>Score (0–5, optional)</span>
@@ -433,6 +450,31 @@ function DetailContent({ detail, reload }: { detail: HoneymoonPeriodDetail; relo
             preference={ownPreference}
             done={reload}
           />
+        </section>
+        <section className="surface wide" aria-labelledby="preference-history-heading">
+          <h2 id="preference-history-heading">Preference history</h2>
+          {detail.history.items.length ? (
+            <ol className="timeline" aria-label="Chronological preference history">
+              {detail.history.items.map((historyEvent) => (
+                <li key={historyEvent.id}>
+                  <strong>{historyEvent.display_name}</strong>
+                  <span>
+                    {historyEvent.changes.vote.before ?? "No vote"} →{" "}
+                    {historyEvent.changes.vote.after ?? "No vote"};{" "}
+                    {historyEvent.changes.score.before ?? "No score"} →{" "}
+                    {historyEvent.changes.score.after ?? "No score"}
+                  </span>
+                  {historyEvent.reason ? <p>{historyEvent.reason}</p> : null}
+                  <time dateTime={historyEvent.accepted_at}>
+                    Change {historyEvent.sequence} ·{" "}
+                    {new Date(historyEvent.accepted_at).toLocaleString()}
+                  </time>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="muted">No preference changes yet.</p>
+          )}
         </section>
         <section className="surface wide">
           <h2>Details & metadata</h2>

@@ -31,10 +31,10 @@ existing=$(curl -fsS "$base/v1/captures" -H "$auth_a" -H 'content-type: applicat
 invalid=$(curl -sS -o /dev/null -w '%{http_code}' "$base/v1/captures" -H "$auth_a" \
   -H 'content-type: application/json' -d '{"source_url":"file:///private/example","client_request_id":"smoke-invalid"}')
 
-curl -fsS "$base/v1/honeymoon-periods/$item_id/preference" -X PUT -H "$auth_a" \
-  -H 'content-type: application/json' -d '{"vote":"interested","score":5}' >/dev/null
-curl -fsS "$base/v1/honeymoon-periods/$item_id/preference" -X PUT -H "$auth_b" \
-  -H 'content-type: application/json' -d '{"vote":"maybe","score":3}' >/dev/null
+curl -fsS "$base/v1/honeymoon-periods/$item_id/preference-changes" -X POST -H "$auth_a" \
+  -H 'content-type: application/json' -d '{"vote":"interested","score":5,"client_request_id":"smoke-preference-a"}' >/dev/null
+curl -fsS "$base/v1/honeymoon-periods/$item_id/preference-changes" -X POST -H "$auth_b" \
+  -H 'content-type: application/json' -d '{"vote":"maybe","score":3,"client_request_id":"smoke-preference-b"}' >/dev/null
 curl -fsS "$base/v1/honeymoon-periods/$item_id/notes" -H "$auth_b" \
   -H 'content-type: application/json' -d '{"body":"Synthetic smoke note"}' >/dev/null
 curl -fsS "$base/v1/honeymoon-periods/$item_id" -X PATCH -H "$auth_a" \

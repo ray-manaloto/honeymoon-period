@@ -55,7 +55,7 @@ describe("honeymoon-period data provider", () => {
   });
 
   it("maps capture, detail update, preference, and note mutations through provider methods", async () => {
-    const detail = { item, captures: [], preferences: [], notes: [] };
+    const detail = { item, captures: [], preferences: [], notes: [], history: { items: [] } };
     const fetch = vi
       .fn<typeof globalThis.fetch>()
       .mockResolvedValueOnce(
@@ -72,14 +72,10 @@ describe("honeymoon-period data provider", () => {
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
-            actor_id: "actor-a",
-            honeymoon_period_id: item.id,
-            display_name: "Participant A",
-            vote: "interested",
-            score: 5,
-            updated_at: item.updated_at,
+            status: "changed",
+            event: null,
           }),
-          { status: 200 },
+          { status: 201 },
         ),
       )
       .mockResolvedValueOnce(
@@ -127,8 +123,14 @@ describe("honeymoon-period data provider", () => {
       ).data.title,
     ).toBe(item.title);
     expect(
-      (await provider.setPreference(item.id, { vote: "interested", score: 5 })).data.score,
-    ).toBe(5);
+      (
+        await provider.createPreferenceChange(item.id, {
+          vote: "interested",
+          score: 5,
+          client_request_id: "preference-1",
+        })
+      ).data.status,
+    ).toBe("changed");
     expect((await provider.addNote(item.id, { body: "Try the patio" })).data.body).toBe(
       "Try the patio",
     );
@@ -138,14 +140,14 @@ describe("honeymoon-period data provider", () => {
     expect(fetch.mock.calls.map(([, init]) => init?.method)).toEqual([
       "POST",
       "PATCH",
-      "PUT",
+      "POST",
       "POST",
       "PATCH",
     ]);
   });
 
   it("maps detail reads and explicitly rejects unsupported collection mutations", async () => {
-    const detail = { item, captures: [], preferences: [], notes: [] };
+    const detail = { item, captures: [], preferences: [], notes: [], history: { items: [] } };
     const fetch = vi
       .fn<typeof globalThis.fetch>()
       .mockImplementation(async () => new Response(JSON.stringify(detail), { status: 200 }));

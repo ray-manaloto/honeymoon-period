@@ -6,8 +6,8 @@ import {
   type HoneymoonPeriodDetail,
   type Note,
   type NoteInput,
-  type Preference,
-  type PreferenceInput,
+  type PreferenceChangeInput,
+  type PreferenceChangeResult,
 } from "@honeymoon-period/generated";
 import type { DataProvider, Identifier } from "react-admin";
 
@@ -21,7 +21,10 @@ export const ACTORS = [
 export type HoneymoonRecord = HoneymoonPeriod & { detail?: HoneymoonPeriodDetail };
 
 export interface HoneymoonDataProvider extends DataProvider {
-  setPreference: (id: Identifier, input: PreferenceInput) => Promise<{ data: Preference }>;
+  createPreferenceChange: (
+    id: Identifier,
+    input: PreferenceChangeInput,
+  ) => Promise<{ data: PreferenceChangeResult }>;
   addNote: (id: Identifier, input: NoteInput) => Promise<{ data: Note }>;
   updateNote: (id: Identifier, noteId: Identifier, input: NoteInput) => Promise<{ data: Note }>;
 }

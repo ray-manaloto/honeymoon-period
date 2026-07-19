@@ -36,7 +36,16 @@ describe("OpenAPI runtime contract", () => {
 
   it.each([
     ["CaptureInput", {}, "/source_url"],
-    ["PreferenceInput", { vote: "yes", score: 9 }, "/vote"],
+    [
+      "PreferenceChangeInput",
+      { vote: "yes", score: 9, client_request_id: "invalid-preference" },
+      "/vote",
+    ],
+    [
+      "PreferenceChangeInput",
+      { vote: "maybe", score: 3, client_request_id: "", reason: "why" },
+      "/client_request_id",
+    ],
     ["NoteInput", { body: "" }, "/body"],
     ["HoneymoonPeriodUpdate", { unsupported: true }, "/unsupported"],
   ] as const)("rejects invalid %s payloads", (schema, value, field) => {

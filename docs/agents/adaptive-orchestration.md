@@ -70,6 +70,17 @@ For an authorized reconciliation:
 
 Mutate only the authorized delta. Preserve historical items and unrelated issues.
 
+## Greenfield debt gate
+
+Treat the repository as greenfield unless an approved external contract proves otherwise.
+Keep one canonical implementation path; do not preserve compatibility shims, aliases,
+duplicate transports, artificial migration history, or transitional code for hypothetical
+consumers. When a decision changes, sweep source, tests, generators, documentation,
+project-local skills, agent guidance, examples, and prototypes in the same controlled
+slice. Historical research and this append-only log may retain superseded facts only when
+they are clearly labeled as such. Known avoidable debt blocks completion unless the user
+explicitly accepts that debt as a product decision.
+
 ## Completion contract
 
 Completion requires reconciled local and external state, focused and aggregate checks,
@@ -99,6 +110,7 @@ This initial rollout log is append-only.
 | 15 | 2026-07-19 | Fresh final verifier and validator gates rejected revision `cabcae3d…79e1`: a crash between mutation-directory creation and owner-file persistence strands an ownerless lock, while checkpoint history is durable before the corresponding active-state commit. The verifier also found that the reused matching Last30Days raw report was retained but not linked from the synthesis. | Keep the implementation objective and acceptance contract unchanged. Before new final gates, recover ownerless mutation locks by bounded age, commit checkpoints through a lease-local journal with startup replay, add crash-point fault injection, and link the reused Last30Days artifact. The rejected verdicts remain evidence and do not authorize completion or publication. |
 | 16 | 2026-07-19 | The replacement semantic gate rejected revision `f665a71…fa57ad`: the 30-second mutation mutex could be recovered from a paused-but-live owner, and the former owner's unconditional cleanup could delete a successor lock. The replacement validator's separate `FAIL` was an instruction error that treated the controller fingerprint as a Git object and ran no validation. | Preserve the TTL on the work lease, but bind the short local mutation mutex to a PID start identity and token-checked release so only a dead/reused process or an aged ownerless initialization can be recovered. Add a live-owner stale-time fault test, rerun the aggregate, and obtain fresh gates with both the authority fingerprint and Git commit identified explicitly. |
 | 17 | 2026-07-19 | The user approved the recommended next sequence. PR #27 merged cleanly to `origin/main` as `c2302c7`; issue #23 remains open, `ready-for-agent`, and unblocked under the approved #19 contract. The clean branch `codex/preference-history-23` was created from that merge. | Close the Symphony-controller publication phase and start a fresh controlled goal for #23. Reuse the approved specification and existing research before either research lane is rerun; implement only #23's immutable preference-change tracer bullet, retain #24/#25 dependencies, and keep deployment, production data/credentials, paid services, native distribution, and Shortcut rebuild/signing outside authority. |
+| 18 | 2026-07-19 | The user explicitly rejected retaining legacy code because this is a new project and required zero avoidable technical debt across source, tests, generated surfaces, project documentation, and Codex guidance. This supersedes #19/#23's earlier compatibility requirement for `PUT /v1/honeymoon-periods/{id}/preference`; append-only historical records remain intact as evidence rather than being rewritten. | Deliver one canonical client-request-ID preference-change mutation and remove the obsolete endpoint, schemas, provider methods, tests, and prescriptive documentation. Update the GitHub issue contracts and repository authority before integration; do not preserve shims, aliases, dual-write paths, or stale Codex instructions. All other #23 scope limits and prohibitions remain unchanged. |
 
 ## Initial tracker reconciliation evidence
 

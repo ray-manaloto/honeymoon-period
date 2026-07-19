@@ -66,9 +66,7 @@ approved specification. Its settled semantics are:
   shared candidate status;
 - every accepted state-changing write becomes one immutable `PreferenceChanged` event
   while the last accepted event per actor owns the current projection;
-- the compatible legacy preference write follows the same atomic event/projection path;
-  an identical current-value retry is a successful no-op with no event, while the new
-  client-request-ID mutation supplies exact replay and conflict guarantees;
+- one canonical client-request-ID mutation supplies exact replay and conflict guarantees;
 - a server-assigned monotonic sequence, rather than timestamp alone, totally orders
   accepted events, and historical snapshots replay inclusively through a requested sequence;
 - exact idempotent replay creates no duplicate event, and differing-payload key reuse

@@ -357,7 +357,8 @@ export const componentSchemas = {
       "item",
       "preferences",
       "notes",
-      "captures"
+      "captures",
+      "history"
     ],
     "additionalProperties": false,
     "properties": {
@@ -381,6 +382,9 @@ export const componentSchemas = {
         "items": {
           "$ref": "#/components/schemas/Capture"
         }
+      },
+      "history": {
+        "$ref": "#/components/schemas/HistoryPage"
       }
     }
   },
@@ -414,11 +418,12 @@ export const componentSchemas = {
       }
     }
   },
-  "PreferenceInput": {
+  "PreferenceChangeInput": {
     "type": "object",
     "required": [
       "vote",
-      "score"
+      "score",
+      "client_request_id"
     ],
     "additionalProperties": false,
     "properties": {
@@ -432,6 +437,165 @@ export const componentSchemas = {
         ],
         "minimum": 0,
         "maximum": 5
+      },
+      "client_request_id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "reason": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1000,
+        "pattern": ".*\\S.*"
+      }
+    }
+  },
+  "PreferenceChangedData": {
+    "type": "object",
+    "required": [
+      "vote",
+      "score"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "vote": {
+        "type": "object",
+        "required": [
+          "before",
+          "after"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "before": {
+            "$ref": "#/components/schemas/Vote"
+          },
+          "after": {
+            "$ref": "#/components/schemas/Vote"
+          }
+        }
+      },
+      "score": {
+        "type": "object",
+        "required": [
+          "before",
+          "after"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "before": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 5
+          },
+          "after": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 5
+          }
+        }
+      }
+    }
+  },
+  "HistoryEvent": {
+    "type": "object",
+    "required": [
+      "sequence",
+      "id",
+      "type",
+      "honeymoon_period_id",
+      "actor_id",
+      "display_name",
+      "accepted_at",
+      "reason",
+      "changes"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "sequence": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "type": {
+        "type": "string",
+        "enum": [
+          "PreferenceChanged"
+        ]
+      },
+      "honeymoon_period_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "actor_id": {
+        "type": "string"
+      },
+      "display_name": {
+        "type": "string"
+      },
+      "accepted_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "reason": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "changes": {
+        "$ref": "#/components/schemas/PreferenceChangedData"
+      }
+    }
+  },
+  "HistoryPage": {
+    "type": "object",
+    "required": [
+      "items"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/HistoryEvent"
+        }
+      }
+    }
+  },
+  "PreferenceChangeResult": {
+    "type": "object",
+    "required": [
+      "status",
+      "event"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "status": {
+        "type": "string",
+        "enum": [
+          "changed",
+          "unchanged"
+        ]
+      },
+      "event": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/HistoryEvent"
+          },
+          {
+            "type": "null"
+          }
+        ]
       }
     }
   },

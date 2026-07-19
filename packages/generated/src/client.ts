@@ -8,8 +8,11 @@ export type CaptureInput = components["schemas"]["CaptureInput"];
 export type CaptureResult = components["schemas"]["CaptureResult"];
 export type Capture = components["schemas"]["Capture"];
 export type HoneymoonPeriodUpdate = components["schemas"]["HoneymoonPeriodUpdate"];
-export type PreferenceInput = components["schemas"]["PreferenceInput"];
 export type Preference = components["schemas"]["Preference"];
+export type PreferenceChangeInput = components["schemas"]["PreferenceChangeInput"];
+export type PreferenceChangeResult = components["schemas"]["PreferenceChangeResult"];
+export type HistoryEvent = components["schemas"]["HistoryEvent"];
+export type HistoryPage = components["schemas"]["HistoryPage"];
 export type NoteInput = components["schemas"]["NoteInput"];
 export type Note = components["schemas"]["Note"];
 export type ErrorEnvelope = components["schemas"]["ErrorEnvelope"];
@@ -37,7 +40,8 @@ export function createApiClient(options: ApiClientOptions) {
     list: (query = "") => request<HoneymoonPeriodPage>(`/honeymoon-periods${query ? `?${query}` : ""}`),
     detail: (id: string) => request<HoneymoonPeriodDetail>(`/honeymoon-periods/${encodeURIComponent(id)}`),
     update: (id: string, input: HoneymoonPeriodUpdate) => request<HoneymoonPeriodDetail>(`/honeymoon-periods/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(input) }),
-    preference: (id: string, input: PreferenceInput) => request<Preference>(`/honeymoon-periods/${encodeURIComponent(id)}/preference`, { method: "PUT", body: JSON.stringify(input) }),
+    preferenceChange: (id: string, input: PreferenceChangeInput) => request<PreferenceChangeResult>(`/honeymoon-periods/${encodeURIComponent(id)}/preference-changes`, { method: "POST", body: JSON.stringify(input) }),
+    history: (id: string) => request<HistoryPage>(`/honeymoon-periods/${encodeURIComponent(id)}/history`),
     note: (id: string, input: NoteInput) => request<Note>(`/honeymoon-periods/${encodeURIComponent(id)}/notes`, { method: "POST", body: JSON.stringify(input) }),
     updateNote: (id: string, noteId: string, input: NoteInput) => request<Note>(`/honeymoon-periods/${encodeURIComponent(id)}/notes/${encodeURIComponent(noteId)}`, { method: "PATCH", body: JSON.stringify(input) }),
   };
