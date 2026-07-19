@@ -74,6 +74,11 @@ authority.
 
 ## Project workflow
 
+- Use the repository `adaptive-orchestration` skill for long, multi-phase goals.
+  Reconcile the bootstrap and complete dirty tree before editing, maintain the
+  append-only goal change log in `docs/agents/adaptive-orchestration.md` or the
+  governing durable artifact, and apply the context-lifecycle and tracker
+  ceremonies linked there.
 - Complete the two-lane research preflight, then use Grilling to resolve
   remaining preference or design uncertainty, then To Spec and To Tickets after
   approval.
@@ -83,6 +88,10 @@ authority.
 - Handoffs follow `docs/agents/handoff-template.md`, including dirty-tree and artifact hashes, mutating-command labels, reserved final-agent slots, and Browser runtime evidence.
 - GitHub publication requires a configured remote. External pull requests are not an automated triage surface.
 - Implement the approved web MVP as vertical tracer bullets. Each slice begins with failing tests, includes the smallest API-to-UI behavior, and leaves all checks green.
+- Prefer maintained stable dependencies only when an evidence-gated deletion
+  test proves they remove meaningful repository ownership without weakening
+  canonical contracts, privacy, provider neutrality, deterministic offline
+  verification, licensing, or rollback.
 
 ## Parallel agents
 

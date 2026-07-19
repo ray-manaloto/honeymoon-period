@@ -11,6 +11,7 @@
 | [`docs/conventions/lab-identities.md`](conventions/lab-identities.md) | Approved lab identity architecture, autonomy boundary, and human-only ceremonies |
 | [`docs/agents/`](agents/domain.md) | Matt Pocock skill integrations for tracker, labels, and domain docs |
 | [`docs/agents/research-workflow.md`](agents/research-workflow.md) | Mandatory Research + Last30Days routing, reuse, authorization, and review contract |
+| [`docs/agents/adaptive-orchestration.md`](agents/adaptive-orchestration.md) | Adaptive goals, context lifecycle, dependency deletion tests, agent allocation, tracker ceremony, and append-only change history |
 | [`docs/agents/handoff-template.md`](agents/handoff-template.md) | Context-boundary handoff contract for dirty trees, artifacts, commands, and agent reservations |
 | [`docs/learning/`](learning/README.md) | Durable repository lessons and their enforcing regression guards |
 | [`docs/SETUP.md`](SETUP.md) | Baseline prototype installation |

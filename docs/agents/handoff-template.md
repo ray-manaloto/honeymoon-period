@@ -7,6 +7,7 @@ of copying their full contents.
 
 - Objective:
 - Governing plan/ADR/spec:
+- Goal change log and latest sequence:
 - Authorized local actions:
 - Separately authorized or human-only actions:
 - Explicitly prohibited actions, including Git publication or artifact signing:
@@ -33,6 +34,8 @@ files. State explicitly that normal `git diff` omits untracked files.
 
 ## Implementation and evidence
 
+- Context lifecycle: observed active usage/window from one event (when available),
+  zone, compaction count/triggers, and resume/fork/new-task decision:
 - Completed behavior:
 - Remaining behavior:
 - Generated-code provenance and last clean regeneration:
@@ -41,6 +44,8 @@ files. State explicitly that normal `git diff` omits untracked files.
 - Browser runtime/version, target URL, viewports, and evidence:
 - Known console diagnostics and whether they are expected:
 - Residual risks:
+- Tracker reconciliation: before snapshot, ordered writes, returned identifiers,
+  and postcondition reads:
 
 Label every command as one of:
 

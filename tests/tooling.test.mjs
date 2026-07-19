@@ -1,15 +1,35 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import test from "node:test";
 
 const root = resolve(import.meta.dirname, "..");
 
 function run(command, args) {
   return execFileSync(command, args, { cwd: root, encoding: "utf8" });
+}
+
+const orchestrationPolicyPaths = [
+  ".agents/skills/adaptive-orchestration/SKILL.md",
+  ".codex/config.toml",
+  ".codex/hooks.json",
+  "AGENTS.md",
+  "docs/agents/adaptive-orchestration.md",
+  "docs/agents/handoff-template.md",
+  "docs/research/codex-context-lifecycle.md",
+];
+
+function createOrchestrationFixture() {
+  const directory = mkdtempSync(join(tmpdir(), "honeymoon-orchestration-"));
+  for (const path of orchestrationPolicyPaths) {
+    const destination = join(directory, path);
+    mkdirSync(dirname(destination), { recursive: true });
+    cpSync(join(root, path), destination);
+  }
+  return directory;
 }
 
 const protectedShortcutPaths = [
@@ -94,6 +114,46 @@ function deterministicBytes(length) {
 
 test("OpenAPI response audit accepts the canonical contract", () => {
   assert.match(run("node", ["scripts/check-openapi-responses.mjs"]), /7 operations/);
+});
+
+test("adaptive orchestration policy accepts the canonical repository", () => {
+  assert.match(
+    run("node", ["scripts/check-adaptive-orchestration.mjs"]),
+    /Adaptive orchestration policy passed/,
+  );
+});
+
+test("adaptive orchestration policy rejects unsafe agent fan-out", () => {
+  const directory = createOrchestrationFixture();
+  const configPath = join(directory, ".codex/config.toml");
+  writeFileSync(
+    configPath,
+    readFileSync(configPath, "utf8").replace("max_depth = 1", "max_depth = 2"),
+  );
+  const result = spawnSync("node", ["scripts/check-adaptive-orchestration.mjs", directory], {
+    cwd: root,
+    encoding: "utf8",
+  });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /max_depth must remain 1/);
+});
+
+test("adaptive orchestration policy rejects the unstable fan-out feature", () => {
+  const directory = createOrchestrationFixture();
+  const configPath = join(directory, ".codex/config.toml");
+  writeFileSync(
+    configPath,
+    readFileSync(configPath, "utf8").replace(
+      "unified_exec = true",
+      "unified_exec = true\nenable_fanout = true",
+    ),
+  );
+  const result = spawnSync("node", ["scripts/check-adaptive-orchestration.mjs", directory], {
+    cwd: root,
+    encoding: "utf8",
+  });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /enable_fanout must remain unset/);
 });
 
 test("OpenAPI response audit rejects an operation with an undocumented emitted error", () => {

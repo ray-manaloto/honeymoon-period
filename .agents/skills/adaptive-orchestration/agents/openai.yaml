@@ -1,0 +1,4 @@
+interface:
+  display_name: "Adaptive Orchestration"
+  short_description: "Adapt long-running goals using evidence and safe handoffs"
+  default_prompt: "Use $adaptive-orchestration to reconcile this goal, route evidence, adapt the plan, and preserve a durable change history."
