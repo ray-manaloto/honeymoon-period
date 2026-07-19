@@ -843,6 +843,31 @@ function loadEvidenceRecord(root, recordPath, expected, goal, now) {
   return { contentHash: hash(content), record };
 }
 
+function loadAgentEvidenceRecord(root, recordPath, expected, goal, now) {
+  const evidence = loadEvidenceRecord(root, recordPath, expected, goal, now);
+  const { record } = evidence;
+  if (record.source !== "collaboration-agent-output" || !record.agentId || record.fresh !== true) {
+    fail("independent-verdicts-required");
+  }
+  safeReference(record.taskRef, "agent-task-ref");
+  const reportPath = resolve(root, String(record.reportPath ?? ""));
+  if (!reportPath.startsWith(`${root}/`)) fail("agent-report-outside-root");
+  let report;
+  try {
+    if (!lstatSync(reportPath).isFile()) fail("invalid-agent-report");
+    report = readFileSync(reportPath, "utf8");
+  } catch {
+    fail("invalid-agent-report");
+  }
+  if (
+    record.reportHash !== hash(report) ||
+    report.trimStart().split(/\r?\n/, 1)[0] !== expected.value
+  ) {
+    fail("agent-report-mismatch");
+  }
+  return evidence;
+}
+
 function checkpoint(root, goal, options, now) {
   const locked = withMutationLock(root, () => checkpointLocked(root, goal, options, now));
   if (!locked) fail("mutation-contention");
@@ -879,21 +904,21 @@ function checkpointLocked(root, goal, options, now) {
     } catch {
       fail("invalid-retrospective-record");
     }
-    const reviewer = loadEvidenceRecord(
+    const reviewer = loadAgentEvidenceRecord(
       root,
       options.reviewerRecord,
       { field: "verdict", kind: "standards-review", value: "PASS" },
       goal,
       now,
     );
-    const verifier = loadEvidenceRecord(
+    const verifier = loadAgentEvidenceRecord(
       root,
       options.verifierRecord,
       { field: "verdict", kind: "verifier", value: "ACCEPT" },
       goal,
       now,
     );
-    const validator = loadEvidenceRecord(
+    const validator = loadAgentEvidenceRecord(
       root,
       options.validatorRecord,
       { field: "verdict", kind: "validator", value: "PASS" },

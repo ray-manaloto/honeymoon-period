@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawn, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
   existsSync,
   mkdirSync,
@@ -143,6 +144,15 @@ function evidenceRecords(root, completedAt) {
   };
   const options = {};
   for (const [name, record] of Object.entries(records)) {
+    if (record.agentId) {
+      const report = `${record.verdict}\nIndependent fixture evidence.\n`;
+      const reportRelative = `.codex/goals/.evidence/${name}.report.txt`;
+      writeFileSync(join(root, reportRelative), report);
+      record.source = "collaboration-agent-output";
+      record.taskRef = name;
+      record.reportPath = reportRelative;
+      record.reportHash = createHash("sha256").update(report).digest("hex");
+    }
     const relative = `.codex/goals/.evidence/${name}.json`;
     writeFileSync(join(root, relative), `${JSON.stringify(record)}\n`);
     options[name] = relative;
@@ -628,7 +638,7 @@ test("tracked state stores fingerprints instead of objective worktree or questio
   assert.doesNotMatch(JSON.stringify(goal), /Private free-form ambiguity/);
 });
 
-test("completion rejects self-attested or revision-mismatched verdict records", () => {
+test("completion rejects colliding or report-mismatched independent verdict records", () => {
   const root = createFixture();
   const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
   const records = evidenceRecords(root, "2026-07-19T10:00:00.050Z");
@@ -647,6 +657,21 @@ test("completion rejects self-attested or revision-mismatched verdict records", 
   });
   assert.notEqual(rejected.status, 0);
   assert.match(rejected.stderr, /independent-verdicts-required/);
+
+  writeFileSync(validatorPath, `${JSON.stringify(validator)}\n`);
+  writeFileSync(
+    join(root, records.reviewerRecord.replace(/\.json$/, ".report.txt")),
+    "PASS\ntampered\n",
+  );
+  const mismatched = command(root, "checkpoint", {
+    ownerToken: lease.ownerToken,
+    state: "complete",
+    ...records,
+    retrospectiveCode: "no-new-lesson",
+    now: "2026-07-19T10:00:00.100Z",
+  });
+  assert.notEqual(mismatched.status, 0);
+  assert.match(mismatched.stderr, /agent-report-mismatch/);
 });
 
 test("owned inputs must be readable in-root files and budgets have hard maxima", () => {

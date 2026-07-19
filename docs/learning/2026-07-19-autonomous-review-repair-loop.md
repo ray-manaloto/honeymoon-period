@@ -27,6 +27,8 @@ It also found that an enum alone is not a retrospective: the outcome must bind a
 evidence reference, and `no-new-lesson` must include a concrete reason.
 The standards pass additionally showed that repository input adoption needs path semantics,
 not identifier semantics, because leading-dot project paths are intentional authority.
+The next verifier required gate records to bind the actual collaboration-agent report
+artifact and hash, not merely caller-asserted IDs, freshness flags, and verdict strings.
 
 ## Correction
 
