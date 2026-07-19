@@ -50,6 +50,13 @@
     "role": "wake-trigger-only",
     "status": "PAUSED"
   },
+  "publication": {
+    "branch": "codex/symphony-conformance-controller",
+    "initialPrHead": "3e4736c07bb11f1bce28990a9bff3f092d6287ab",
+    "prNumber": 27,
+    "repository": "ray-manaloto/honeymoon-period",
+    "state": "OPEN_READY"
+  },
   "budgets": {
     "repairCyclesUsed": 1,
     "retriesUsed": 0,
