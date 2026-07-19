@@ -51,3 +51,6 @@
 {"at":"2026-07-19T15:27:14.955Z","goalId":"preference-history-23","revision":"e41f6daec833b0ad2f279e5bc9d143957299dfa6cf4238ce9d561d932857b06d","type":"stale-lease-reconciled","reason":"ttl-expired"}
 {"at":"2026-07-19T15:27:14.955Z","goalId":"preference-history-23","revision":"db39be78d3b01f463872920493d0dea475226f5b6ebab7fbddeb0cabb3c7f376","type":"evidence-invalidated","count":0}
 {"at":"2026-07-19T15:27:15.500Z","goalId":"preference-history-23","revision":"db39be78d3b01f463872920493d0dea475226f5b6ebab7fbddeb0cabb3c7f376","type":"run-started","epoch":6,"wakeToken":"330504b4ed24893a5c9cb383d5e8a7194c8850131df3f45a1a6d7bb3e5b92a81"}
+{"at":"2026-07-19T15:29:33.095Z","goalId":"preference-history-23","revision":"db39be78d3b01f463872920493d0dea475226f5b6ebab7fbddeb0cabb3c7f376","type":"stale-lease-reconciled","reason":"revision-lost"}
+{"at":"2026-07-19T15:29:33.095Z","goalId":"preference-history-23","revision":"1a39c71f663aa78e02863418bf6f8f907cf5078095b78e37407536104e7575f9","type":"evidence-invalidated","count":0}
+{"at":"2026-07-19T15:29:33.742Z","goalId":"preference-history-23","revision":"1a39c71f663aa78e02863418bf6f8f907cf5078095b78e37407536104e7575f9","type":"run-started","epoch":7,"wakeToken":"38191a565f9389f948ffd23cea1d461ea47c8b5fae6299d34b5ea7713dfb4bc8"}
