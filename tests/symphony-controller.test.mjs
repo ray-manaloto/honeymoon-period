@@ -154,6 +154,14 @@ function runAsync(root, action, options = {}) {
   });
 }
 
+async function waitForPath(path) {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    if (existsSync(path)) return;
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 25));
+  }
+  assert.fail(`timed out waiting for ${path}`);
+}
+
 test("atomic lease contention admits exactly one concurrent writer", async () => {
   const root = createFixture();
   run(root, "reconcile", { now: "2026-07-19T09:59:59.000Z" });
@@ -524,8 +532,8 @@ test("mutation serialization prevents takeover during a checkpoint", async () =>
     now: "2026-07-19T10:00:00.100Z",
     testPauseMs: 500,
   });
-  await new Promise((resolvePromise) => setTimeout(resolvePromise, 100));
   const mutexOwnerPath = join(root, ".codex/goals/.mutation/owner.json");
+  await waitForPath(mutexOwnerPath);
   const mutexOwner = JSON.parse(readFileSync(mutexOwnerPath, "utf8"));
   writeFileSync(
     mutexOwnerPath,
@@ -552,8 +560,8 @@ test("a former mutation owner cannot remove a differently-tokened successor lock
     now: "2026-07-19T10:00:00.100Z",
     testPauseMs: 500,
   });
-  await new Promise((resolvePromise) => setTimeout(resolvePromise, 100));
   const mutexOwnerPath = join(root, ".codex/goals/.mutation/owner.json");
+  await waitForPath(mutexOwnerPath);
   const mutexOwner = JSON.parse(readFileSync(mutexOwnerPath, "utf8"));
   writeFileSync(mutexOwnerPath, `${JSON.stringify({ ...mutexOwner, token: "successor" })}\n`);
   const completed = await checkpointing;

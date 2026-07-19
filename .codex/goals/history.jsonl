@@ -16,3 +16,4 @@
 {"at":"2026-07-19T10:32:31.928Z","goalId":"symphony-conformance-controller","revision":"f665a71ab6a6e3e422a658e86b54d4fb5b35ae25092cee79549f1a6fd6fa57ad","type":"lease-renewed","epoch":3,"expiresAt":"2026-07-19T10:37:31.928Z"}
 {"at":"2026-07-19T10:38:09.829Z","goalId":"symphony-conformance-controller","revision":"f665a71ab6a6e3e422a658e86b54d4fb5b35ae25092cee79549f1a6fd6fa57ad","type":"stale-lease-reconciled","reason":"ttl-expired"}
 {"at":"2026-07-19T10:38:09.829Z","goalId":"symphony-conformance-controller","revision":"3801a8096e63586cebfab7a6335a4c2f5de7591562e377a459c8278c3a639d5f","type":"evidence-invalidated","count":0}
+{"at":"2026-07-19T10:38:22.523Z","goalId":"symphony-conformance-controller","revision":"3801a8096e63586cebfab7a6335a4c2f5de7591562e377a459c8278c3a639d5f","type":"run-started","epoch":4,"wakeToken":"fd8cb3d7b3847753b5ad3b41da119d99226b990489ebc2d0134e328bcbed937b"}
