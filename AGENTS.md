@@ -106,6 +106,9 @@ authority.
 ## Parallel agents
 
 - Delegate only independent, bounded work when explicitly requested or required by a skill.
+- Standing goal authorization includes one fresh read-only standards/spec review after
+  material integration on every material iteration; preserve the separate final verifier
+  and validator slots.
 - Run at most three child agents concurrently; children do not recursively delegate.
 - For material integration, reserve two fresh direct-child slots for the final independent verifier and validator. Adapt optional review fan-out rather than consuming those slots.
 - Give writing agents exclusive, disjoint paths. The root owns shared files, integration, Git, publication, and final verification.
@@ -120,9 +123,17 @@ authority.
 
 ## Learning loop
 
+- Run the autonomous learning loop until the active `/goal` reaches its completion
+  contract. Exhausted bounded approaches must produce the controller's one deduplicated
+  human-interview question; a failed or exhausted attempt is not goal completion.
 - Record durable, repository-specific lessons under `docs/learning/` using its template.
 - Every accepted lesson names the observed failure, evidence, correction, and the regression test or automated guard that now enforces it.
+- Before downstream state changes, record every material iteration as `promoted`,
+  `linked`, or `no-new-lesson`; routine green work should use a concrete
+  `no-new-lesson` reason instead of creating documentation sediment.
 - Promote recurring stable lessons into `AGENTS.md`, conventions, skills, agent briefs, generators, or checks; retire entries when their guard or underlying constraint becomes obsolete.
+- Only request a human interview after local diagnosis, repository evidence, current
+  primary research, and bounded independent agents cannot resolve genuine ambiguity.
 - Never place prompts, private product data, credentials, Browser state, or raw relationship content in learning records.
 
 ## Agent skills

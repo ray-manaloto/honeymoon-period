@@ -21,6 +21,7 @@ import {
 import { dirname, join, resolve } from "node:path";
 
 const states = new Set(["ready", "running", "waiting", "blocked", "failed", "complete"]);
+const retrospectiveCodes = new Set(["promoted", "linked", "no-new-lesson"]);
 
 class ControllerError extends Error {}
 
@@ -686,6 +687,41 @@ function initializeLocked(root, options, now) {
   return { action: "initialized", state: goal.state };
 }
 
+function adoptInput(root, goal, options, now) {
+  const locked = withMutationLock(root, () => {
+    if (goal.state !== "ready" || existsSync(paths(root).lease)) fail("goal-not-ready");
+    const input = safeReference(options.ownedInput, "owned-input");
+    if (goal.revision.ownedInputs.includes(input)) {
+      return { action: "noop", reason: "owned-input-already-adopted", state: goal.state };
+    }
+    const ownedInputs = [...goal.revision.ownedInputs, input];
+    manifest(root, ownedInputs);
+    goal.revision.ownedInputs = ownedInputs;
+    goal.revision = revision(root, goal);
+    goal.evidence.current = [];
+    atomicJson(paths(root).active, goal);
+    appendEvent(paths(root).history, event(goal, now, "owned-input-adopted", { input: hash(input) }));
+    return { action: "owned-input-adopted", state: goal.state };
+  });
+  if (!locked) fail("mutation-contention");
+  return locked;
+}
+
+function blockForInterview(root, goal, now) {
+  const text =
+    "The goal exhausted its bounded approaches without completing. What new evidence or authority should guide the next attempt?";
+  const fingerprint = hash(text.toLowerCase().replace(/\s+/g, " ").trim());
+  const directory = questionDirectory(root, fingerprint);
+  mkdirSync(directory, { mode: 0o700, recursive: true });
+  atomicJson(join(directory, "question.json"), { fingerprint, text });
+  goal.state = "blocked";
+  goal.question = { emitted: false, fingerprint };
+  goal.reason = "human-interview-required";
+  goal.run = null;
+  atomicJson(paths(root).active, goal);
+  appendEvent(paths(root).history, event(goal, now, "operator-question", { fingerprint }));
+}
+
 function wake(root, goal, options, now) {
   const wakeToken = options.wakeToken;
   if (!wakeToken) fail("wake-token-required");
@@ -758,13 +794,13 @@ function wake(root, goal, options, now) {
     goal.waiting = null;
   }
   if (goal.state === "failed") {
-    if (goal.reason === "unchanged-failure") {
-      return { action: "noop", reason: goal.reason, state: goal.state };
+    if (goal.reason === "unchanged-failure" || goal.reason === "repair-budget-exhausted") {
+      blockForInterview(root, goal, now);
+      return wake(root, goal, options, now);
     }
     if (goal.budgets.retriesUsed >= goal.policy.maxRetries) {
-      goal.reason = "retry-budget-exhausted";
-      atomicJson(paths(root).active, goal);
-      return { action: "noop", reason: goal.reason, state: goal.state };
+      blockForInterview(root, goal, now);
+      return wake(root, goal, options, now);
     }
     if (goal.retryDueAt && Date.parse(goal.retryDueAt) > now.valueOf()) {
       return { action: "noop", reason: "retry-not-due", state: goal.state };
@@ -826,7 +862,14 @@ function checkpointLocked(root, goal, options, now) {
   const extraEvents = [];
 
   if (options.state === "complete") {
-    if (options.retrospectiveCode !== "completed") fail("invalid-retrospective-code");
+    if (!retrospectiveCodes.has(options.retrospectiveCode)) fail("invalid-retrospective-code");
+    const reviewer = loadEvidenceRecord(
+      root,
+      options.reviewerRecord,
+      { field: "verdict", kind: "standards-review", value: "PASS" },
+      goal,
+      now,
+    );
     const verifier = loadEvidenceRecord(
       root,
       options.verifierRecord,
@@ -842,8 +885,12 @@ function checkpointLocked(root, goal, options, now) {
       now,
     );
     if (
+      !reviewer.record.agentId ||
       !verifier.record.agentId ||
       !validator.record.agentId ||
+      new Set([reviewer.record.agentId, verifier.record.agentId, validator.record.agentId]).size !==
+        3 ||
+      reviewer.record.fresh !== true ||
       verifier.record.agentId === validator.record.agentId ||
       verifier.record.fresh !== true ||
       validator.record.fresh !== true
@@ -868,7 +915,11 @@ function checkpointLocked(root, goal, options, now) {
       aggregateRecordHash: aggregate.contentHash,
       at: now.toISOString(),
       protectedArtifactRecordHash: protectedArtifacts.contentHash,
+      retrospectiveCode: options.retrospectiveCode,
       revision: goal.revision.fingerprint,
+      reviewerAgent: hash(reviewer.record.agentId),
+      reviewerRecordHash: reviewer.contentHash,
+      reviewerVerdict: "PASS",
       validatorAgent: hash(validator.record.agentId),
       validatorRecordHash: validator.contentHash,
       validatorVerdict: "PASS",
@@ -877,7 +928,7 @@ function checkpointLocked(root, goal, options, now) {
       verifierVerdict: "ACCEPT",
     };
     goal.evidence.current.push(evidence);
-    details.retrospectiveCode = "completed";
+    details.retrospectiveCode = options.retrospectiveCode;
     extraEvents.push(event(goal, now, "completion-evidence", evidence));
   }
 
@@ -967,6 +1018,7 @@ try {
     else if (action === "wake") result = wake(root, goal, options, now);
     else if (action === "renew") result = renew(root, goal, options, now);
     else if (action === "checkpoint") result = checkpoint(root, goal, options, now);
+    else if (action === "adopt-input") result = adoptInput(root, goal, options, now);
     else fail("unknown-action");
   }
 

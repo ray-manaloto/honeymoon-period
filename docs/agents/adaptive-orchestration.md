@@ -56,6 +56,33 @@ After material integration, use fresh independent direct children for semantic
 Configured capacity is not proof of live availability. Inspect the actual agent roster
 before allocating, and adapt optional fan-out to preserve the final gates.
 
+## Autonomous learning loop
+
+Treat an iteration as one controller-admitted revision from reconciliation to a durable
+checkpoint. For every material iteration:
+
+1. Reconcile authority, HEAD, owned inputs, research status, budgets, and revision-bound
+   evidence before mutation.
+2. After material integration, obtain one fresh read-only standards/spec review while
+   preserving fresh verifier and validator capacity.
+3. Treat findings as evidence. Append the goal change log before adapting downstream
+   state. When a finding exposes a durable recurring pattern, promote one focused entry
+   under `docs/learning/` and add an enforcing guard in the same repair.
+4. Make the smallest repair, add a focused regression, and rerun every invalidated gate.
+   A shared revision change invalidates prior verifier and validator verdicts.
+5. Continue automatically while the controller returns `run`, a distinct repair remains,
+   and time, retry, repair-cycle, and direct-child budgets remain. Plans, handoffs, prior
+   verdicts, and model confidence are evidence, never execution authority.
+6. Before downstream state changes, record the iteration retrospective as `promoted`,
+   `linked`, or `no-new-lesson`. Routine success may use `no-new-lesson` with a concrete
+   reason; do not manufacture documentation for a non-recurring event.
+
+Only request a human interview after local diagnosis, repository evidence, relevant
+primary research, and bounded independent agents cannot resolve genuine ambiguity. Ask
+one deduplicated question. Credentials, consent, paid services, private data, signing,
+deployment, destructive external effects, and designated human ceremonies remain
+authority boundaries rather than ambiguity to be guessed through.
+
 ## Tracker ceremony
 
 For an authorized reconciliation:
@@ -84,8 +111,9 @@ explicitly accepts that debt as a product decision.
 ## Completion contract
 
 Completion requires reconciled local and external state, focused and aggregate checks,
-fresh independent verdicts, a protected-artifact audit, logical commits, and only the
-authorized publication. A green command does not substitute for semantic acceptance.
+fresh independent verdicts, a protected-artifact audit, a recorded retrospective outcome,
+an enforcing guard for every promoted lesson, logical commits, and only the authorized
+publication. A green command does not substitute for semantic acceptance.
 
 ## Goal change log
 
@@ -113,6 +141,7 @@ This initial rollout log is append-only.
 | 18 | 2026-07-19 | The user explicitly rejected retaining legacy code because this is a new project and required zero avoidable technical debt across source, tests, generated surfaces, project documentation, and Codex guidance. This supersedes #19/#23's earlier compatibility requirement for `PUT /v1/honeymoon-periods/{id}/preference`; append-only historical records remain intact as evidence rather than being rewritten. | Deliver one canonical client-request-ID preference-change mutation and remove the obsolete endpoint, schemas, provider methods, tests, and prescriptive documentation. Update the GitHub issue contracts and repository authority before integration; do not preserve shims, aliases, dual-write paths, or stale Codex instructions. All other #23 scope limits and prohibitions remain unchanged. |
 | 19 | 2026-07-19 | Fresh final semantic review found that #23's required two-lane research preflight was only implicit in entry 17, not recorded as the two explicit issue-scoped status lines required by `research-workflow.md`. Research: not needed — #23 is deterministic execution of the approved #19/#23 contract and canonical API-first architecture in `docs/product/web-mvp-plan.md`, with no unresolved external fact. Last30Days: not needed — no recent practitioner recommendation could change this bounded contract, local persistence, generated-client, or regression-test implementation. | Correct the process record before downstream completion state. Do not rerun either lane or consume browser cookies, provider quota, credentials, or external research because the repository-owned specification, existing architecture evidence, and locally reproduced tests fully determine the implementation. Invalidate the prior verifier verdict, bind the explicit preflight to the active goal, rerun the current-revision aggregate, and obtain fresh independent gates. |
 | 20 | 2026-07-19 | Issue #24 required two semantic repair passes after green mechanical checks: a two-axis review found recorded-policy, detail-consistency, duplicated-explanation, and phone-list evidence gaps, then a fresh verifier found the remaining split-read snapshot risk. The user directed that independent subagents own review, the loop learn from every iteration, autonomous work continue until `/goal` completion, and human interviews occur only when research and bounded agent approaches cannot resolve genuine ambiguity. Research: reused — `docs/research/codex-autonomy-quality-loops.md` and `docs/research/codex-autonomous-goal-continuation.md` already define the bounded review-repair-validation and persisted-learning pattern. Last30Days: reused — the retained root-owned autonomy report already covers current practitioner failure modes. | Start `codex/self-learning-autonomy-loop` from `origin/main`. Promote the observed recurrence into the learning registry, adaptive-orchestration guide and skill, continuation instructions, checker, and tests. Make fresh revision-bound subagent review the default on every material loop; automatically repair and rerun while authority and budgets remain. Adopt a conditional autonomous merge gate for exact reviewed PR heads, while credentials, consent, paid services, private data, signing, deployment, destructive external effects, and other human-only ceremonies remain explicit boundaries. |
+| 21 | 2026-07-19 | The first fresh standards review of the self-learning slice found that prose markers did not make controller completion require its own reviewer record or classified retrospective, the merge mutation was not atomically head-matched, the new lesson was absent from owned inputs, exhausted attempts could noop before goal completion, research-index statuses were stale, and the previously named Last30Days file was absent. The present retained report is `.build/research/last30days/openai-symphony-codex-orchestration-release-adoption-reliability-limitations-raw.md`. | Retrospective: `promoted`. Extend the controller schema and fault tests, require three distinct fresh review agents, add a serialized owned-input adoption action, emit one interview question only after bounded exhaustion, use `gh pr merge --match-head-commit`, correct the research links/index, and invalidate all prior gates. Entry 20 remains historical and is corrected by this entry rather than rewritten. |
 
 ## Initial tracker reconciliation evidence
 

@@ -67,6 +67,11 @@ requireMatch(
   /adaptive-orchestration/,
   "AGENTS.md must route long goals to adaptive-orchestration",
 );
+requireMatch(
+  agents,
+  /Only request a human interview/,
+  "AGENTS.md must reserve human interviews for unresolved ambiguity",
+);
 
 const policy = read("docs/agents/adaptive-orchestration.md");
 for (const heading of [
@@ -74,6 +79,7 @@ for (const heading of [
   "Evidence and dependency gate",
   "Context and task selection",
   "Agent allocation",
+  "Autonomous learning loop",
   "Tracker ceremony",
   "Goal change log",
 ]) {
@@ -87,6 +93,69 @@ requireMatch(
   policy,
   /append-only/,
   "orchestration policy must require an append-only goal history",
+);
+for (const outcome of ["promoted", "linked", "no-new-lesson"]) {
+  requireMatch(
+    policy,
+    new RegExp(`\\b${outcome}\\b`),
+    `orchestration policy must define the ${outcome} retrospective outcome`,
+  );
+}
+
+const continuation = read(".codex/goals/CONTINUATION.md");
+requireMatch(
+  continuation,
+  /autonomous learning loop/,
+  "continuation must route admitted runs through the autonomous learning loop",
+);
+
+const issueTracker = read("docs/agents/issue-tracker.md");
+requireMatch(
+  issueTracker,
+  /^## Autonomous merge gate$/m,
+  "issue tracker must define the autonomous merge gate",
+);
+requireMatch(
+  issueTracker,
+  /exact remote\s+head/i,
+  "autonomous merge gate must bind verdicts to the exact remote head",
+);
+requireMatch(
+  issueTracker,
+  /--match-head-commit/,
+  "autonomous merge must atomically match the reviewed head",
+);
+
+const controller = read("scripts/symphony-controller.mjs");
+requireMatch(
+  controller,
+  /kind: "standards-review"/,
+  "controller completion must require a standards-review record",
+);
+for (const outcome of ["promoted", "linked", "no-new-lesson"]) {
+  requireMatch(
+    controller,
+    new RegExp(`"${outcome}"`),
+    `controller must accept the ${outcome} retrospective outcome`,
+  );
+}
+
+const learningRegistry = read("docs/learning/README.md");
+requireMatch(
+  learningRegistry,
+  /Every material goal iteration/,
+  "learning registry must cover every material goal iteration",
+);
+const learningTemplate = read("docs/learning/TEMPLATE.md");
+requireMatch(
+  learningTemplate,
+  /Iteration outcome: promoted/,
+  "learning template must record a promoted iteration outcome",
+);
+requireMatch(
+  learningTemplate,
+  /Enforcing guard/,
+  "learning template must require an enforcing guard",
 );
 
 const handoff = read("docs/agents/handoff-template.md");

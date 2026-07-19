@@ -1,11 +1,22 @@
 # Codex autonomy quality loops
 
 - **Question:** What quality-loop controls can safely let an explicitly authorized Codex goal refine bounded local work without turning model persistence into unlimited authority?
-- **Status:** Research complete; conditional design candidate. No implementation, scheduler, credential, or automation authorization follows from this report.
+- **Status:** Research complete; bounded design adopted by owner decision recorded in goal change-log entry 20.
 - **Research:** linked — this primary-source candidate report reuses [autonomous goal continuation](codex-autonomous-goal-continuation.md) and adds the five assigned official OpenAI Cookbook examples.
 - **Companion-file audit:** [complete](codex-cookbook-companion-markdown-inventory.md) at `openai/openai-cookbook` commit `9fa55b8cecba8c9c543d11f2cf08339a29112be7`; example `.md` filenames are classified as committed, external, or generated before reuse.
-- **Last30Days:** reused — root-owned `.build/research/last30days/codex-autonomous-goal-workflows-session-continuation-hooks-subagents-ambiguity-escalation-raw-v3.md`; deliberately not repeated here.
+- **Last30Days:** reused — [the retained focused Symphony/Codex report](../../.build/research/last30days/openai-symphony-codex-orchestration-release-adoption-reliability-limitations-raw.md); deliberately not repeated here.
 - **Accessed / last verified:** 2026-07-19.
+
+## Current repository decision (2026-07-19)
+
+The owner authorized the bounded quality loop after issue #24 supplied the two comparable
+semantic repair incidents required by the adoption gate. Goal change-log entry 20 records
+that evidence and the current authority. `docs/agents/adaptive-orchestration.md` is now the
+prescriptive source for the autonomous review-repair-validation loop. The historical
+“defer implementation” recommendation below is retained as research provenance, not
+current policy. Root-authored goal pull requests may use the exact-head autonomous merge
+gate in `docs/agents/issue-tracker.md`; protected ceremonies and external-authority
+boundaries remain excluded.
 
 ## Compact conclusion
 
@@ -76,9 +87,11 @@ Continue only when all are true: the lease is live; the next unit and paths are 
 - **Locality:** keep records under the goal's existing durable artifact and bounded worktree; do not introduce cloud traces, external stores, or durable model transcripts by default.
 - **Adapters:** Codex CLI/SDK model calls, an optional judge, and future eval runners must sit behind the schema. Replacing a model or dropping the judge must not alter lease, authority, stop-state, or proof semantics.
 
-## Recommendation category and adoption gate
+## Historical recommendation and adoption gate
 
-**Recommendation: conditional candidate; defer implementation.** The existing controller and final verifier/validator policy are sufficient today. Consider a narrowly scoped pilot only after all prerequisites hold:
+The following was the pre-adoption recommendation. It is retained to show the gate that
+the current decision satisfied, not as current instruction: **conditional candidate;
+defer implementation** until all prerequisites hold.
 
 1. At least two documented incidents show repeated manual local repair/validation cycles for the same artifact class, with a trusted deterministic acceptance command.
 2. A single owner approves the unit schema, retention period, path allowlist, maximum attempts, no-progress fingerprint, and terminal stop/ask matrix.
@@ -92,7 +105,10 @@ Continue only when all are true: the lease is live; the next unit and paths are 
 - Treat model findings, confidence, rankings, and judge pass/fail as advisory unless the completion contract explicitly names the deterministic validator they complement.
 - Redact or avoid real URLs, calendars, addresses, private Notes, relationship data, credentials, and raw Browser state in prompts and checkpoint logs. Keep prompts/diffs minimal to the owned paths.
 - Run review read-only where possible; isolate repair to a copied artifact or leased owned worktree; validate before any integration; retain the Reminders + Beli baseline until its accepted replacement condition is met.
-- Keep the repository's authority stops: credentials/consent, paid quota, publication/GitHub write, merge, deploy, signing/distribution, destructive cleanup, product/architecture changes, and unresolved privacy questions require an explicit human decision.
+- Keep the repository's current authority stops. Standing repository policy may separately
+  authorize bounded publication or exact-head merge; credentials/consent, paid quota,
+  deployment, signing/distribution, destructive external effects, unapproved product or
+  architecture changes, and unresolved privacy questions still require explicit authority.
 
 ## Concrete report additions or corrections for the root
 
@@ -100,7 +116,11 @@ Continue only when all are true: the lease is live; the next unit and paths are 
 - Preserve the conclusion of `codex-autonomous-goal-continuation.md`: a scheduler/goal/hook is not a semantic infinite-loop engine. This report refines its bounded-phase section with review/repair/validation records and no-progress termination.
 - Do not import the improvement-loop Cookbook's live trace, Promptfoo, HALO, API-key, artifact-deletion, or automatic merge/deploy example as a repository dependency or default workflow. It is an alternative architecture requiring separate research and authority.
 
-## Residual decisions and gaps
+## Historical residual decisions and gaps
+
+These were open when the candidate report was written. Goal change-log entry 20 and the
+current orchestration policy resolve adoption, operation scope, and the final-gate shape;
+they remain here only as provenance for future policy changes.
 
 1. Which existing recurring failure class, if any, justifies a local pilot? No qualifying recurrence is evidenced in this research.
 2. What normalized delta/fingerprint is safe for the chosen validator (test name/error family, snapshot diff hash, or schema violation set), and when is a staged multi-pass exception allowed?

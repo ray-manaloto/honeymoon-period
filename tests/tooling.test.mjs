@@ -15,11 +15,16 @@ function run(command, args) {
 const orchestrationPolicyPaths = [
   ".agents/skills/adaptive-orchestration/SKILL.md",
   ".codex/config.toml",
+  ".codex/goals/CONTINUATION.md",
   ".codex/hooks.json",
   "AGENTS.md",
   "docs/agents/adaptive-orchestration.md",
   "docs/agents/handoff-template.md",
+  "docs/agents/issue-tracker.md",
+  "docs/learning/README.md",
+  "docs/learning/TEMPLATE.md",
   "docs/research/codex-context-lifecycle.md",
+  "scripts/symphony-controller.mjs",
 ];
 
 function createOrchestrationFixture() {
@@ -157,6 +162,52 @@ test("adaptive orchestration policy rejects the unstable fan-out feature", () =>
   });
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /enable_fanout must remain unset/);
+});
+
+test("adaptive orchestration policy rejects a broken self-learning autonomy loop", () => {
+  const cases = [
+    {
+      path: "docs/agents/adaptive-orchestration.md",
+      from: "## Autonomous learning loop",
+      message: /orchestration policy is missing Autonomous learning loop/,
+    },
+    {
+      path: "AGENTS.md",
+      from: "Only request a human interview",
+      message: /AGENTS.md must reserve human interviews for unresolved ambiguity/,
+    },
+    {
+      path: "docs/agents/issue-tracker.md",
+      from: "## Autonomous merge gate",
+      message: /issue tracker must define the autonomous merge gate/,
+    },
+    {
+      path: "docs/agents/issue-tracker.md",
+      from: "--match-head-commit",
+      message: /autonomous merge must atomically match the reviewed head/,
+    },
+    {
+      path: ".codex/goals/CONTINUATION.md",
+      from: "autonomous learning loop",
+      message: /continuation must route admitted runs through the autonomous learning loop/,
+    },
+    {
+      path: "docs/learning/README.md",
+      from: "Every material goal iteration",
+      message: /learning registry must cover every material goal iteration/,
+    },
+  ];
+  for (const fixture of cases) {
+    const directory = createOrchestrationFixture();
+    const path = join(directory, fixture.path);
+    writeFileSync(path, readFileSync(path, "utf8").replace(fixture.from, "REMOVED"));
+    const result = spawnSync("node", ["scripts/check-adaptive-orchestration.mjs", directory], {
+      cwd: root,
+      encoding: "utf8",
+    });
+    assert.notEqual(result.status, 0, fixture.path);
+    assert.match(result.stderr, fixture.message);
+  }
 });
 
 test("OpenAPI response audit rejects an operation with an undocumented emitted error", () => {

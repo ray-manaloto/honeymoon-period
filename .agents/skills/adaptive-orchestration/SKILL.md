@@ -51,7 +51,7 @@ guidance, examples, and prototypes. Do not create compatibility shims, duplicate
 transports, or artificial migration history without an explicitly approved external
 contract. Clearly label historical evidence instead of letting it prescribe obsolete work.
 
-## 4. Manage context and agents
+## 4. Run the self-learning loop
 
 Apply the lifecycle zones and non-numeric overrides in
 `docs/research/codex-context-lifecycle.md`. Use percentages only when current usage and
@@ -64,6 +64,17 @@ Use no more than three direct children, prevent recursive delegation, give write
 disjoint paths, and reserve fresh independent verifier and validator slots after
 material integration.
 
+For each material controller-admitted revision, follow the policy's autonomous learning
+loop: obtain one fresh read-only standards/spec review, make the smallest focused repair
+with a regression guard, and obtain fresh revision-bound verification. Before downstream
+state changes, record `promoted`, `linked`, or `no-new-lesson`. Continue through distinct
+bounded repairs while the controller admits work. Request a human interview only after
+local evidence, current primary research, and bounded agents cannot resolve genuine
+ambiguity.
+
+**Completion criterion:** the iteration has a durable retrospective outcome, every
+promoted lesson has an enforcing guard, and no stale review or verdict is reused.
+
 ## 5. Reconcile and finish
 
 For authorized tracker writes, capture a fresh complete snapshot, re-read each target
@@ -73,6 +84,8 @@ postcondition read before the next write. Re-read before retrying an uncertain r
 Run focused checks, the repository aggregate, and fresh semantic `ACCEPT` plus
 mechanical `PASS` gates. Publish only after both gates and a final dirty-tree audit.
 Use `docs/agents/handoff-template.md` whenever the lifecycle policy requires a new task.
+For an authorized root-authored goal pull request, apply the exact-remote-HEAD autonomous
+merge gate in `docs/agents/issue-tracker.md`; any remote-head change invalidates the gate.
 
 **Completion criterion:** every acceptance item has evidence, residual risk is explicit,
 protected artifacts are unchanged, external state matches the recorded postconditions,
