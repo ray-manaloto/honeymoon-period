@@ -3,12 +3,12 @@
   "goalId": "self-learning-autonomy-loop",
   "objectiveFingerprint": "429b78ea87394d1341c81bed3aae6f0cd0bbb4a413d011126295fad8013ef5f2",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "running",
-  "reason": null,
+  "state": "ready",
+  "reason": "revision-changed",
   "revision": {
-    "fingerprint": "045ea211906f8a771d91933be084e9ee2ded3ec41d63aafe0171cf00b6c4e2d8",
-    "head": "634d7727e27fc3536f26c640aa52f5a1cf722951",
-    "ownedManifest": "37205de889a27d947e51a8763bb34939ad801c88b787ca7c4987fa3cb3c8cc02",
+    "fingerprint": "0828aa803a0fd3a18df1ba6491a14ff5e090948f5f86552146cfc3b26a225765",
+    "head": "ec4c4eef1a009a8258b5fdcdec8990966ee2cf10",
+    "ownedManifest": "763afbb423440324afd6d474267f05d9cc672315f25e0692df26dc73e204e6d6",
     "ownedInputs": [
       "AGENTS.md",
       "docs/agents/adaptive-orchestration.md",
@@ -34,12 +34,7 @@
   "leaseEpoch": 2,
   "lastWakeToken": "manual-20260719T160500-self-learning-postrepair",
   "question": null,
-  "run": {
-    "deadlineAt": "2026-07-19T21:36:24.729Z",
-    "directChildrenUsed": 0,
-    "ownerToken": "7d56ebf1-b55a-41ab-aa20-6bb4dff30e82",
-    "startedAt": "2026-07-19T21:06:24.729Z"
-  },
+  "run": null,
   "evidence": {
     "current": []
   },
