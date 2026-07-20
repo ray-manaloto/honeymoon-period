@@ -126,11 +126,13 @@ current #20 questions more directly than importing a full shared-calendar produc
 Event chat, RSVP, photo, playlist, and paid-host features do not pass the deletion
 test for this two-person planning MVP.
 
-**Disposition: defer a bounded specification decision.** Issue #20 should decide:
-whether a Plan is an immutable selected occurrence or a mutable scheduling object;
-whether cancellation/rescheduling creates history; when a Special becomes expired;
-and whether the first calendar action is only user-confirmed export or durable sync.
-Do not build calendar integration before that decision.
+**Disposition: two lifecycle boundaries approved; remaining #20 semantics deferred.**
+A confirmed Plan keeps one stable identity, and cancellation or rescheduling appends
+history rather than replacing it. Calendar V1 uses only the user-confirmed EventKit
+system editor, with no reads or managed synchronization. Issue #20 must still decide
+recurrence, expiration/deadline behavior, and any later availability or provider
+semantics. Do not build calendar integration before the complete #20 contract is
+accepted and separately authorized.
 
 ### 4. Calendar: use least privilege and make the first handoff user-confirmed
 
@@ -249,7 +251,7 @@ their source-screening evidence.
 | Historical evidence | Still supported by current source | Reconciled implication |
 | --- | --- | --- |
 | [Restaurant/shared-list bake-off](bakeoff-restaurant-shared-list.md) | Tavola remains the clearest restaurant Share Sheet pattern; Soonish remains a voting interaction reference; Mapstr/Beli are not full workflow replacements. | Preserve raw capture and actor-owned preferences; do not compose third-party products. |
-| [Calendar bake-off](bakeoff-calendar-scheduling.md) | Howbout remains the closest “undated idea to dated plan” model. Apple/Google remain primitives, not an idea system. | Specify Plan lifecycle before selecting a calendar mechanism. |
+| [Calendar bake-off](bakeoff-calendar-scheduling.md) | Howbout remains the closest “undated idea to dated plan” model. Apple/Google remain primitives, not an idea system. | Preserve one stable Plan with append-only revisions and use a user-confirmed V1 calendar handoff; finish recurrence, deadline, and privacy decisions before implementation. |
 | [Flexible-database bake-off](bakeoff-flexible-database-automation.md) | Notion remains a configurable but non-enforcing composition with capture and ownership gaps. | Reject it as a canonical path. |
 | [Reminders + Beli prototype](reminders-beli-prototype.md) | Shortcut capture remains valuable baseline evidence, while exact URL dedupe and partner setup remain known limits. | Retain baseline unchanged until an accepted replacement. |
 | [Link capture/enrichment baseline](link-capture-enrichment.md) | Provider parsing and venue identity remain unresolved, distinct concerns. | Do not infer venue merging from exact-link duplicate detection. |
@@ -260,8 +262,8 @@ their source-screening evidence.
 | --- | --- | --- |
 | Canonical capture provenance plus non-blocking enrichment | **Adopt** | Already aligned with the accepted contract and removes no necessary ownership. |
 | Third-party shared-list/database composition | **Reject** | Duplicates the canonical record or weakens provenance/actor ownership, while adding identity/token/vendor surface. |
-| Undated candidate -> confirmed plan transition | **Defer to #20** | Valuable model, but lifecycle, recurrence, cancellation, deadlines, and retained history need one explicit product decision. |
-| User-confirmed EventKit editor | **Bounded pilot after #20** | Least-privilege handoff; no calendar read/OAuth required. Native work is separately sequenced. |
+| Undated candidate -> confirmed Plan transition | **Partially approved; remaining #20 contract deferred** | A confirmed Plan has one stable identity and append-only reschedule/cancellation history; recurrence, deadlines, and transition details remain unresolved. |
+| User-confirmed EventKit editor | **Approved V1 boundary; implementation separately gated** | Least-privilege handoff with no calendar read, OAuth, or managed synchronization. Native work remains separately sequenced. |
 | Unauthenticated secret-link ICS subscription feed | **Defer to a post-V1 interoperability pilot** | Lower-authority one-way projection without calendar reads, but URL leakage, public-feed compatibility, and provider-controlled refresh prevent it from replacing an explicit V1 write or plan lifecycle. |
 | iCloud/Google free-busy and durable event sync | **Defer** | Requires provider, authorization, revocation, conflict, and retention decisions; not needed for the first handoff. |
 | Apple Invites | **Reject for canonical integration** | RSVP/presentation is adjacent, host requires iCloud+, and it provides neither provenance nor preference/ranking semantics. |
