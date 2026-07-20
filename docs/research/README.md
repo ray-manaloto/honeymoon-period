@@ -41,7 +41,7 @@ Research reports use primary sources where available, record a last-verified dat
 | [Requested outliers](bakeoff-requested-outliers.md) | Are Posteady or Privacy AI relevant candidates? | Researched; both eliminated on relevance | 2026-07-15 | [Verify requested outliers and candidate relevance](https://github.com/ray-manaloto/honeymoon-period/issues/6) |
 | [Reminders + Beli prototype](reminders-beli-prototype.md) | What has the baseline proved and where is it weak? | Source-verified plus user-observed cases | 2026-07-15 | [ADR-0001](../adr/0001-existing-product-first.md) |
 | [Link capture and enrichment](link-capture-enrichment.md) | How do current sources normalize, enrich, and deduplicate? | Implementation baseline; API/ToS research pending | 2026-07-15 | — |
-| [Calendar and scheduling](calendar-scheduling.md) | How should Apple, Google, and AI scheduling fit? | Planned | — | — |
+| [Calendar and scheduling redirect](calendar-scheduling.md) | Where is the canonical current calendar research? | Superseded redirect; no independent prescriptive authority | 2026-07-20 | [Adjacent capture and calendar product landscape](adjacent-capture-calendar-landscape.md) |
 | [Native iOS feasibility](native-ios-feasibility.md) | What native surfaces and simulator workflow are viable? | Findings retained; SwiftUI destination accepted and implementation deferred | 2026-07-15 | [ADR-0002](../adr/0002-api-first-web-mvp.md) |
 | [Source register](source-register.md) | Which primary source supports each unstable claim? | Active | 2026-07-15 | — |
 

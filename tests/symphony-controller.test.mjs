@@ -23,12 +23,12 @@ const authorityOptions = {
   externalCompletion: "not-required",
   last30daysRef: "docs/last30days.md",
   last30daysReason: "bounded-local-contract",
-  last30daysStatus: "not-needed",
+  last30daysStatus: "not needed",
   objectiveRef: "docs/goal.md",
   prohibitedActionsRef: "docs/prohibitions.md",
   researchRef: "docs/research.md",
   researchReason: "bounded-local-contract",
-  researchStatus: "not-needed",
+  researchStatus: "not needed",
 };
 function git(root, ...args) {
   return execFileSync("git", args, { cwd: root, encoding: "utf8" }).trim();
@@ -1139,6 +1139,15 @@ test("owned inputs must be readable in-root files and budgets have hard maxima",
   });
   assert.notEqual(missingAuthority.status, 0);
   assert.match(missingAuthority.stderr, /research-preflight-required/);
+  const invalidVocabulary = command(root, "init", {
+    ...authorityOptions,
+    goal: "invalid-research-vocabulary",
+    objective: "reject noncanonical research vocabulary",
+    ownedInput: "file.txt",
+    researchStatus: "completed",
+  });
+  assert.notEqual(invalidVocabulary.status, 0);
+  assert.match(invalidVocabulary.stderr, /research-preflight-required/);
   const missingObjective = command(root, "init", {
     ...authorityOptions,
     goal: "invalid-fixture",
@@ -1288,6 +1297,20 @@ test("owned-input adoption advances the mandatory iteration-review baseline", ()
   git(root, "commit", "-qm", "change lesson");
   const reconciled = run(root, "reconcile", { now: "2026-07-19T10:00:01.000Z" });
   assert.equal(reconciled.reason, "iteration-review-required");
+});
+
+test("research evidence uses repository vocabulary and can bind completed lanes", () => {
+  const root = createFixture();
+  const bound = run(root, "bind-research", {
+    researchRef: "docs/research.md",
+    last30daysRef: "docs/last30days.md",
+    now: "2026-07-19T10:00:00.000Z",
+  });
+  assert.equal(bound.action, "research-evidence-bound");
+  assert.equal(active(root).authority.research.status, "linked");
+  assert.equal(active(root).authority.last30days.status, "linked");
+  assert.equal(active(root).authority.research.evidenceRef, "docs/research.md");
+  assert.equal(active(root).authority.last30days.evidenceRef, "docs/last30days.md");
 });
 
 test("a material revision cannot advance without a durable iteration review", () => {

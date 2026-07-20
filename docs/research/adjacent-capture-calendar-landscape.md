@@ -159,6 +159,20 @@ sync/reconciliation debt. Cross-provider free/busy or managed event sync is a la
 separate product decision because it changes data sensitivity, authorization,
 revocation, conflict, and lifecycle requirements.
 
+An authenticated HTTPS iCalendar feed is a narrower, one-way interoperability
+option. WhenTo documents subscriptions from Apple Calendar, Google Calendar, and
+Outlook; Apple documents URL subscriptions, while Outlook warns that refresh can
+take more than 24 hours and Google documents material setup limitations. RFC 5545
+standardizes portable event data but not stateful two-way synchronization. A future
+feed would therefore remain a lower-authority projection of confirmed Plans, with
+stable `UID`, update/cancellation semantics, a revocable opaque URL, minimal approved
+data, and explicit stale-refresh UX. It cannot supply availability, conflict
+resolution, immediate delivery, or a user-confirmed write into a chosen calendar.
+[WhenTo](https://whento.be/), [Apple Calendar subscriptions](https://support.apple.com/en-sg/102301),
+[Outlook calendar subscriptions](https://support.microsoft.com/en-US/Outlook/import-or-subscribe-to-a-calendar-in-outlook-com-or-outlook-on-the-web),
+[Google Calendar subscriptions](https://support.google.com/calendar/answer/37100?hl=en),
+and [RFC 5545](https://www.rfc-editor.org/info/rfc5545/)
+
 **Disposition: bounded pilot only after #20's contract is accepted.** A later native
 pilot may prove the no-permission system-editor flow with synthetic data. Reject
 provider-specific read/sync now: it fails the deletion test and is outside the local
@@ -246,6 +260,7 @@ their source-screening evidence.
 | Third-party shared-list/database composition | **Reject** | Duplicates the canonical record or weakens provenance/actor ownership, while adding identity/token/vendor surface. |
 | Undated candidate -> confirmed plan transition | **Defer to #20** | Valuable model, but lifecycle, recurrence, cancellation, deadlines, and retained history need one explicit product decision. |
 | User-confirmed EventKit editor | **Bounded pilot after #20** | Least-privilege handoff; no calendar read/OAuth required. Native work is separately sequenced. |
+| Authenticated ICS subscription feed | **Defer to a post-V1 interoperability pilot** | Lower-authority one-way projection without calendar reads, but provider-controlled setup/refresh cannot replace an explicit V1 write or plan lifecycle. |
 | iCloud/Google free-busy and durable event sync | **Defer** | Requires provider, authorization, revocation, conflict, and retention decisions; not needed for the first handoff. |
 | Apple Invites | **Reject for canonical integration** | RSVP/presentation is adjacent, host requires iCloud+, and it provides neither provenance nor preference/ranking semantics. |
 | URL-focused Share Extension | **Adopt in native phase** | Thin API client preserves the canonical capture contract; activation rules constrain inputs. |
@@ -258,7 +273,8 @@ their source-screening evidence.
 ## Unresolved decisions for Grilling
 
 1. Is the first calendar outcome deliberately **export-only via a user-confirmed
-   editor**, or does the product require managed synchronization from the outset?
+   editor**, with authenticated ICS retained only as a later one-way interoperability
+   option, or does the product require managed synchronization from the outset?
 2. When dates change or a plan is cancelled, should history preserve one Plan with
    revisions, or create a replacement occurrence linked to the original candidate?
 3. Do “recurring offers” mean repeatable templates (for example, weekly happy hour),

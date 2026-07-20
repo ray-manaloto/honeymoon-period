@@ -24,7 +24,7 @@ import { pathToFileURL } from "node:url";
 
 const states = new Set(["ready", "running", "waiting", "blocked", "failed", "complete"]);
 const retrospectiveCodes = new Set(["promoted", "linked", "no-new-lesson"]);
-const researchStatuses = new Set(["completed", "not-needed", "reused"]);
+const researchStatuses = new Set(["linked", "not needed", "reused"]);
 const directChildRoles = new Set([
   "implementation",
   "research",
@@ -271,8 +271,8 @@ function authorityFromOptions(root, options) {
   if (!new Set(["not-required", "required"]).has(externalCompletion)) {
     fail("invalid-external-completion");
   }
-  if (researchStatus === "not-needed") safeReference(options.researchReason, "research-reason");
-  if (last30daysStatus === "not-needed") {
+  if (researchStatus === "not needed") safeReference(options.researchReason, "research-reason");
+  if (last30daysStatus === "not needed") {
     safeReference(options.last30daysReason, "last30days-reason");
   }
   return {
@@ -286,7 +286,7 @@ function authorityFromOptions(root, options) {
     last30days: {
       evidenceRef: existingReference(root, options.last30daysRef, "last30days-ref"),
       reasonCode:
-        last30daysStatus === "not-needed"
+        last30daysStatus === "not needed"
           ? safeReference(options.last30daysReason, "last30days-reason")
           : null,
       status: last30daysStatus,
@@ -299,7 +299,7 @@ function authorityFromOptions(root, options) {
     research: {
       evidenceRef: existingReference(root, options.researchRef, "research-ref"),
       reasonCode:
-        researchStatus === "not-needed"
+        researchStatus === "not needed"
           ? safeReference(options.researchReason, "research-reason")
           : null,
       status: researchStatus,
@@ -989,6 +989,33 @@ function adoptInput(root, goal, options, now) {
   });
 }
 
+function bindResearch(root, goal, options, now) {
+  return withMutationLock(root, () => {
+    goal = readJson(paths(root).active, "active-goal-missing");
+    if (goal.state !== "ready" || existsSync(paths(root).lease)) fail("goal-not-ready");
+    goal.authority.research = {
+      evidenceRef: existingReference(root, options.researchRef, "research-ref"),
+      reasonCode: null,
+      status: "linked",
+    };
+    goal.authority.last30days = {
+      evidenceRef: existingReference(root, options.last30daysRef, "last30days-ref"),
+      reasonCode: null,
+      status: "linked",
+    };
+    goal.revision = revision(root, goal);
+    goal.learning.enforceFromRevision = goal.revision.fingerprint;
+    goal.evidence.current = [];
+    commitTransition(
+      root,
+      [{ target: "active.json", value: goal }],
+      [event(goal, now, "research-evidence-bound")],
+      options,
+    );
+    return { action: "research-evidence-bound", state: goal.state };
+  });
+}
+
 function wake(root, goal, options, now) {
   const wakeToken = options.wakeToken;
   if (!wakeToken) fail("wake-token-required");
@@ -1607,6 +1634,7 @@ export function runController(hooks = productionRuntime) {
       else if (action === "renew") result = renew(root, goal, options, now);
       else if (action === "checkpoint") result = checkpoint(root, goal, options, now);
       else if (action === "adopt-input") result = adoptInput(root, goal, options, now);
+      else if (action === "bind-research") result = bindResearch(root, goal, options, now);
       else if (action === "claim-child") result = claimChild(root, options, now);
       else if (action === "settle-child") result = settleChild(root, options, now);
       else if (action === "record-iteration") result = recordIteration(root, options, now);

@@ -19,8 +19,8 @@
   "goalId": "adjacent-capture-calendar-research",
   "objectiveFingerprint": "a879f93a16dfed2b08714f786e2a2f901dad3075da86b2eca9484330dcf4c3e0",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "ready",
-  "reason": "expired-lease-reconciled",
+  "state": "running",
+  "reason": null,
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
     "fingerprint": "c074dd6ee3e2e5489f55cc5560f880b37734935eeaeaf662d0221fe263d4c362",
@@ -33,21 +33,36 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 1,
-  "lastWakeTokenHash": "1314902b0ee35f8c4e5fe288721a4fe5c9113706cc39f9c3f62889f53acb95b6",
+  "leaseEpoch": 3,
+  "lastWakeTokenHash": "a07e79b435352a5126952e3efb6bc534ddd4ad030eeec6cfb922cdb04e31e447",
   "question": null,
-  "run": null,
+  "run": {
+    "childClaims": [],
+    "deadlineAt": "2026-07-20T19:17:22.891Z",
+    "ownerTokenHash": "a9c69cd772e65986498e3d0266ae9e01be5dbff62927a120c81a88d16784ec32",
+    "startedAt": "2026-07-20T18:47:22.891Z"
+  },
   "evidence": {
     "current": []
   },
   "learning": {
-    "completed": [],
+    "completed": [
+      {
+        "at": "2026-07-20T18:44:00.916Z",
+        "retrospectiveCode": "promoted",
+        "retrospectiveRecordHash": "7e50c45b083474402abdfdf39f4164f2ff2b8697dd513f3ccf10ceeb470a366c",
+        "reviewerAgent": "071e4ad547cdab231ac9b8d3e159d2412f1bb4aa00efe337e614b105cad6083b",
+        "reviewerRecordHash": "353b10930fd1d8b0a8ecda4b0350840b02b22a78eb571e865ed524acc00e8496",
+        "reviewerVerdict": "FAIL",
+        "revision": "c074dd6ee3e2e5489f55cc5560f880b37734935eeaeaf662d0221fe263d4c362"
+      }
+    ],
     "enforceFromRevision": "c074dd6ee3e2e5489f55cc5560f880b37734935eeaeaf662d0221fe263d4c362"
   },
   "budgets": {
     "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 1
+    "runsUsed": 3
   },
   "policy": {
     "maxDirectChildren": 3,
@@ -55,5 +70,7 @@
     "maxRetries": 3,
     "maxRuntimeMs": 1800000,
     "ttlMs": 300000
-  }
+  },
+  "waiting": null,
+  "lastCheckpointId": "514ee96b-42fa-4442-8a73-5aa54ec6d61b"
 }
