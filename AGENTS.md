@@ -137,6 +137,9 @@ authority.
 - Before downstream state changes, record every material iteration as `promoted`,
   `linked`, or `no-new-lesson`; routine green work should use a concrete
   `no-new-lesson` reason instead of creating documentation sediment.
+- During a non-complete controller goal, source commits require the live-lease check
+  enforced by `.codex/hooks/pre_tool_policy.py`; reconcile and obtain a new run after
+  expiry. Only state-file commits may occur without a work lease.
 - Promote recurring stable lessons into `AGENTS.md`, conventions, skills, agent briefs, generators, or checks; retire entries when their guard or underlying constraint becomes obsolete.
 - Only request a human interview after local diagnosis, repository evidence, current
   primary research, and bounded independent agents cannot resolve genuine ambiguity.

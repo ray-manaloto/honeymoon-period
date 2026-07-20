@@ -1301,6 +1301,15 @@ test("owned-input adoption advances the mandatory iteration-review baseline", ()
 
 test("research evidence uses repository vocabulary and can bind completed lanes", () => {
   const root = createFixture();
+  const initialRevision = active(root).revision.fingerprint;
+  const invalid = command(root, "bind-research", {
+    researchRef: "docs/missing.md",
+    last30daysRef: "docs/last30days.md",
+    now: "2026-07-19T10:00:00.000Z",
+  });
+  assert.notEqual(invalid.status, 0);
+  assert.match(invalid.stderr, /invalid-research-ref/);
+  assert.equal(active(root).revision.fingerprint, initialRevision);
   const bound = run(root, "bind-research", {
     researchRef: "docs/research.md",
     last30daysRef: "docs/last30days.md",
@@ -1311,6 +1320,15 @@ test("research evidence uses repository vocabulary and can bind completed lanes"
   assert.equal(active(root).authority.last30days.status, "linked");
   assert.equal(active(root).authority.research.evidenceRef, "docs/research.md");
   assert.equal(active(root).authority.last30days.evidenceRef, "docs/last30days.md");
+  assert.notEqual(active(root).revision.fingerprint, initialRevision);
+  run(root, "wake", { wakeToken: "bound-lanes", now: "2026-07-19T10:00:00.100Z" });
+  const running = command(root, "bind-research", {
+    researchRef: "docs/research.md",
+    last30daysRef: "docs/last30days.md",
+    now: "2026-07-19T10:00:00.200Z",
+  });
+  assert.notEqual(running.status, 0);
+  assert.match(running.stderr, /goal-not-ready/);
 });
 
 test("a material revision cannot advance without a durable iteration review", () => {

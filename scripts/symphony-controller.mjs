@@ -355,9 +355,17 @@ function revision(root, goal) {
   const branch = git(root, ["branch", "--show-current"]);
   const worktree = realpathSync(root);
   const ownedManifest = manifest(root, goal.revision.ownedInputs);
+  const researchAuthority = hash(
+    JSON.stringify({
+      last30days: goal.authority.last30days,
+      research: goal.authority.research,
+    }),
+  );
   return {
     branch,
-    fingerprint: hash(`${hash(worktree)}\0${branch}\0${head}\0${ownedManifest}`),
+    fingerprint: hash(
+      `${hash(worktree)}\0${branch}\0${head}\0${ownedManifest}\0${researchAuthority}`,
+    ),
     head,
     ownedManifest,
     ownedInputs: goal.revision.ownedInputs,

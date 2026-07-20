@@ -26,3 +26,4 @@ Use [TEMPLATE.md](TEMPLATE.md). Current entries:
 - [2026-07-16 web MVP semantic completion audit](2026-07-16-web-mvp-semantic-audit.md)
 - [2026-07-16 field-scoped PATCH updates](2026-07-16-field-scoped-patch-updates.md)
 - [2026-07-19 autonomous review-repair loop](2026-07-19-autonomous-review-repair-loop.md)
+- [2026-07-20 lease-valid source integration](2026-07-20-lease-valid-source-integration.md)

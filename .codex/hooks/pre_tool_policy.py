@@ -4,7 +4,11 @@
 from __future__ import annotations
 
 import json
+import hashlib
+from datetime import datetime, timezone
+from pathlib import Path
 import re
+import subprocess
 import sys
 from typing import Any
 
@@ -57,10 +61,69 @@ def command_from(payload: dict[str, Any]) -> str:
     return command if isinstance(command, str) else ""
 
 
-def denial_reason(command: str) -> str | None:
+def git_output(root: Path, *args: str) -> str:
+    return subprocess.check_output(
+        ["git", *args], cwd=root, text=True, stderr=subprocess.DEVNULL
+    ).strip()
+
+
+def active_goal_commit_denial(
+    command: str, root: Path, now: datetime | None = None
+) -> str | None:
+    if re.search(r"\bgit\s+commit\b", command, re.IGNORECASE) is None:
+        return None
+    try:
+        staged = git_output(root, "diff", "--cached", "--name-only").splitlines()
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    state_paths = {".codex/goals/active.json", ".codex/goals/history.jsonl"}
+    if staged and set(staged) <= state_paths:
+        return None
+    try:
+        active = json.loads((root / ".codex/goals/active.json").read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    if active.get("state") == "complete":
+        return None
+    try:
+        owner = json.loads((root / ".codex/goals/.lease/owner.json").read_text())
+        renewal_path = root / ".codex/goals/.lease/renewal.json"
+        renewal = json.loads(renewal_path.read_text()) if renewal_path.exists() else None
+        effective_expiry = owner["expiresAt"]
+        if (
+            renewal
+            and renewal.get("ownerToken") == owner.get("ownerToken")
+            and renewal.get("epoch") == owner.get("epoch")
+        ):
+            effective_expiry = renewal["expiresAt"]
+        expires_at = datetime.fromisoformat(effective_expiry.replace("Z", "+00:00"))
+        current_time = now or datetime.now(timezone.utc)
+        run = active["run"]
+        valid = (
+            active.get("state") == "running"
+            and active.get("leaseEpoch") == owner.get("epoch")
+            and hashlib.sha256(owner["ownerToken"].encode()).hexdigest()
+            == run.get("ownerTokenHash")
+            and expires_at > current_time
+            and owner.get("branch") == git_output(root, "branch", "--show-current")
+            and owner.get("head") == git_output(root, "rev-parse", "HEAD")
+        )
+    except (KeyError, OSError, ValueError, json.JSONDecodeError, subprocess.CalledProcessError):
+        valid = False
+    if valid:
+        return None
+    return (
+        "a live Symphony goal lease is required before committing source; "
+        "reconcile and obtain a new controller run first"
+    )
+
+
+def denial_reason(command: str, root: Path | None = None) -> str | None:
     for pattern, reason in POLICIES:
         if pattern.search(command):
             return reason
+    if root is not None:
+        return active_goal_commit_denial(command, root)
     return None
 
 
@@ -73,7 +136,7 @@ def main() -> int:
     if not isinstance(payload, dict) or payload.get("tool_name") != "Bash":
         return 0
 
-    reason = denial_reason(command_from(payload))
+    reason = denial_reason(command_from(payload), Path.cwd())
     if reason is None:
         return 0
 
