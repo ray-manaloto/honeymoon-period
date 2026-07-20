@@ -1,6 +1,7 @@
 # Calendar and scheduling candidate bake-off
 
-- Status: source research retained; hands-on validation deferred by ADR-0002
+- Status: historical source evidence retained; active decisions are superseded by the
+  [2026-07-20 adjacent capture and calendar landscape](adjacent-capture-calendar-landscape.md)
 - Last verified: 2026-07-15
 - Access date: 2026-07-15
 - Region: United States
@@ -152,7 +153,7 @@ For a custom composition, the most privacy-preserving Google design is: each per
 - Which exact OAuth scope combination would satisfy free/busy plus writes to only an app-created/shared calendar, and would Google classify the final combination as sensitive for external users?
 - How should event ownership, attendee invitations, updates, cancellation, recurrence, reminders, and conflicts behave when either partner initiates the plan?
 
-## Recommended bake-off actions
+## Historical bake-off actions (not an active implementation gate)
 
 1. **Trial Howbout first, with synthetic data only.** Time-box Share Sheet capture, one invite, one undated restaurant, one one-time event, one general poll, one time poll, privacy defaults, one external-calendar free/busy check, one confirmed plan, edit/delete lifecycle, and export. Do not grant access to real calendars; create a synthetic test calendar if hands-on approval is given.
 2. **Run a no-install calendar control.** Compare one shared iCloud calendar (if both use iCloud) against one shared Google Calendar using synthetic events and free/busy-only personal-calendar sharing.
@@ -161,4 +162,8 @@ For a custom composition, the most privacy-preserving Google design is: each per
 
 ## Decision impact
 
-The calendar lane does not justify selecting an all-in-one winner from source evidence alone. It narrows the next experiment to Howbout versus native shared-calendar controls. Reclaim should remain a conditional benchmark, and EventKit/Google Calendar API should remain implementation options only after the bake-off defines whether the minimum requirement is user-confirmed event creation, private free/busy suggestions, or full lifecycle synchronization.
+The calendar lane did not justify selecting an all-in-one winner from source evidence
+alone. The current authority has since approved a user-confirmed EventKit system-editor
+export for Calendar V1, with no reads or managed synchronization, while recurrence,
+deadlines, transition details, and availability/privacy remain Grilling-gated. The
+historical trials above are not prerequisites and carry no implementation authority.
