@@ -19,13 +19,13 @@
   "goalId": "adjacent-capture-calendar-research",
   "objectiveFingerprint": "a879f93a16dfed2b08714f786e2a2f901dad3075da86b2eca9484330dcf4c3e0",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "running",
-  "reason": null,
+  "state": "ready",
+  "reason": "revision-changed",
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
-    "fingerprint": "7ab161ab3ce7d9806f833df3bd09f153c71a7e0719b66a2d111d90a446a59941",
-    "head": "85591c8f2883c79c4d1fce163bfd2594e4cb5ce8",
-    "ownedManifest": "8c582b195ac044cbd0dea28a3eac56bbf89d753c80e0c50bb7c60522c11bf37c",
+    "fingerprint": "3f53af62569c917477e5cc734d25870f268b20df360fc8c9f20ef0a5b8ec9ac9",
+    "head": "8849bc36a533955e4beeb692c3bffc17cbb554c8",
+    "ownedManifest": "8b1a3f6022be50b049baea52337a5b06a303fb37fcffa9d8c53c4d04510fd908",
     "ownedInputs": [
       "docs/agents/adaptive-orchestration.md",
       "docs/research/adjacent-capture-calendar-landscape.md",
@@ -44,46 +44,7 @@
   "leaseEpoch": 6,
   "lastWakeTokenHash": "0dd3d49b1c9eb2e0628a9200d17967ab23abb157d24ef1c1b8f2f955f12de13a",
   "question": null,
-  "run": {
-    "childClaims": [
-      {
-        "epoch": 6,
-        "head": "246f6445ad62e8881fe4fdd3a765bfb7c57748f3",
-        "manifest": "8c582b195ac044cbd0dea28a3eac56bbf89d753c80e0c50bb7c60522c11bf37c",
-        "revision": "7ab161ab3ce7d9806f833df3bd09f153c71a7e0719b66a2d111d90a446a59941",
-        "role": "standards-review",
-        "status": "completed",
-        "taskRefHash": "724fcfb5649ee832fae5537417878ebf7f364859eeb986767e528373cd5f0420",
-        "tokenHash": "790c154d04ce7569bee62d1a28f1a1abd1c1bf983c3c7453e1c24f0613076d17",
-        "settledAt": "2026-07-20T19:30:16.504Z"
-      },
-      {
-        "epoch": 6,
-        "head": "246f6445ad62e8881fe4fdd3a765bfb7c57748f3",
-        "manifest": "8c582b195ac044cbd0dea28a3eac56bbf89d753c80e0c50bb7c60522c11bf37c",
-        "revision": "7ab161ab3ce7d9806f833df3bd09f153c71a7e0719b66a2d111d90a446a59941",
-        "role": "verifier",
-        "status": "completed",
-        "taskRefHash": "44bc2f4b62098a9a27c3ae990882d855c81bdd209295e4caaeb03eea358ef10d",
-        "tokenHash": "924041214eed4afd016d596f57f7a133e1cc43ace98ae4ccf35e1ab3b4fb1f06",
-        "settledAt": "2026-07-20T19:27:41.573Z"
-      },
-      {
-        "epoch": 6,
-        "head": "246f6445ad62e8881fe4fdd3a765bfb7c57748f3",
-        "manifest": "8c582b195ac044cbd0dea28a3eac56bbf89d753c80e0c50bb7c60522c11bf37c",
-        "revision": "7ab161ab3ce7d9806f833df3bd09f153c71a7e0719b66a2d111d90a446a59941",
-        "role": "validator",
-        "status": "completed",
-        "taskRefHash": "17e3b3b677c32a24d6ce0481c8edc982591276c39b0a8e716b92670b02322100",
-        "tokenHash": "94480c4855524be8b841a6bb5885aac19fde775ef885434ab33d4d7e1e4d76ec",
-        "settledAt": "2026-07-20T19:26:26.029Z"
-      }
-    ],
-    "deadlineAt": "2026-07-20T19:48:45.981Z",
-    "ownerTokenHash": "4110f187151d90710ccb8cd2c635663e872e20440921e2af29e6c172319d9fda",
-    "startedAt": "2026-07-20T19:18:45.981Z"
-  },
+  "run": null,
   "evidence": {
     "current": []
   },
@@ -117,7 +78,7 @@
         "revision": "7ab161ab3ce7d9806f833df3bd09f153c71a7e0719b66a2d111d90a446a59941"
       }
     ],
-    "enforceFromRevision": "7ab161ab3ce7d9806f833df3bd09f153c71a7e0719b66a2d111d90a446a59941"
+    "enforceFromRevision": "3f53af62569c917477e5cc734d25870f268b20df360fc8c9f20ef0a5b8ec9ac9"
   },
   "budgets": {
     "repairCyclesUsed": 0,
