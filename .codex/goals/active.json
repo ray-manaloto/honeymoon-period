@@ -19,32 +19,32 @@
   "goalId": "adjacent-capture-calendar-research",
   "objectiveFingerprint": "a879f93a16dfed2b08714f786e2a2f901dad3075da86b2eca9484330dcf4c3e0",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "running",
-  "reason": null,
+  "state": "ready",
+  "reason": "revision-changed",
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
-    "fingerprint": "4af084760a1aa73f73c4864b6abf841b9c56bf1c8a87cfbc47a2f1d28085feba",
-    "head": "d61af86363b9175e9ab10c5791241e68da535f8f",
-    "ownedManifest": "b02dfe5fa21088229121f3a07874169a4492d006149fccb3f3cf65c096ea05a6",
+    "fingerprint": "7ab161ab3ce7d9806f833df3bd09f153c71a7e0719b66a2d111d90a446a59941",
+    "head": "85591c8f2883c79c4d1fce163bfd2594e4cb5ce8",
+    "ownedManifest": "8c582b195ac044cbd0dea28a3eac56bbf89d753c80e0c50bb7c60522c11bf37c",
     "ownedInputs": [
       "docs/agents/adaptive-orchestration.md",
       "docs/research/adjacent-capture-calendar-landscape.md",
       "docs/research/README.md",
       "scripts/symphony-controller.mjs",
       "tests/symphony-controller.test.mjs",
-      "docs/research/calendar-scheduling.md"
+      "docs/research/calendar-scheduling.md",
+      ".codex/hooks/pre_tool_policy.py",
+      "tests/test_pre_tool_policy.py",
+      "AGENTS.md",
+      "docs/learning/README.md",
+      "docs/learning/2026-07-20-lease-valid-source-integration.md"
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
   "leaseEpoch": 5,
   "lastWakeTokenHash": "d34967c73b3110df0a9eb18e989a970f66396b9c2a4027a413fd96335eb07bd8",
   "question": null,
-  "run": {
-    "childClaims": [],
-    "deadlineAt": "2026-07-20T19:45:48.165Z",
-    "ownerTokenHash": "39d2ac95ab501427b9778b30a966fccef876dca13cdcfdce5ebacc463ca74c82",
-    "startedAt": "2026-07-20T19:15:48.165Z"
-  },
+  "run": null,
   "evidence": {
     "current": []
   },
@@ -58,9 +58,18 @@
         "reviewerRecordHash": "353b10930fd1d8b0a8ecda4b0350840b02b22a78eb571e865ed524acc00e8496",
         "reviewerVerdict": "FAIL",
         "revision": "c074dd6ee3e2e5489f55cc5560f880b37734935eeaeaf662d0221fe263d4c362"
+      },
+      {
+        "at": "2026-07-20T19:09:00.117Z",
+        "retrospectiveCode": "promoted",
+        "retrospectiveRecordHash": "744439dcc4c4c0e91b7150e02c252ee1fe3795553ac76c8fb1bf0b100cf76940",
+        "reviewerAgent": "846581c963247b1e0beb098f52a6911c25fd39d338a2efb09a6765cbc1bdc5a7",
+        "reviewerRecordHash": "c0f693601c8f6b036b604aa64f6725373a0d472717b46be9e0960af04d86d5dd",
+        "reviewerVerdict": "FAIL",
+        "revision": "4af084760a1aa73f73c4864b6abf841b9c56bf1c8a87cfbc47a2f1d28085feba"
       }
     ],
-    "enforceFromRevision": "4af084760a1aa73f73c4864b6abf841b9c56bf1c8a87cfbc47a2f1d28085feba"
+    "enforceFromRevision": "7ab161ab3ce7d9806f833df3bd09f153c71a7e0719b66a2d111d90a446a59941"
   },
   "budgets": {
     "repairCyclesUsed": 0,
