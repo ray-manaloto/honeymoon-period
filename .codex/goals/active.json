@@ -19,13 +19,13 @@
   "goalId": "adjacent-capture-calendar-research",
   "objectiveFingerprint": "a879f93a16dfed2b08714f786e2a2f901dad3075da86b2eca9484330dcf4c3e0",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "blocked",
-  "reason": "iteration-review-required",
+  "state": "ready",
+  "reason": "bootstrap-revision-bound",
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
-    "fingerprint": "3c192fa0fed841b9488e686edb7b1c988ea4205b9d5566d20217558ac9419098",
-    "head": "c6587ff6e425424565fea218aedbb6d0f0e6da66",
-    "ownedManifest": "ddea1752aaae180b6d9a059f86a2d5faedd67c121aa31796c36e9547a7a1e853",
+    "fingerprint": "97fb25f0e70b869fbf2c726dae8e795edd6199fd3b04d57ce9cca2c87e2933ce",
+    "head": "59571d003a737e6f2184b4973e658de95a9a3f30",
+    "ownedManifest": "fff335dc09c6669ce425745ca2b07f833a768b7a5243758d4377d05ade5d7c9c",
     "ownedInputs": [
       "docs/agents/adaptive-orchestration.md",
       "docs/research/adjacent-capture-calendar-landscape.md",
@@ -42,7 +42,7 @@
   },
   "learning": {
     "completed": [],
-    "enforceFromRevision": "3c192fa0fed841b9488e686edb7b1c988ea4205b9d5566d20217558ac9419098"
+    "enforceFromRevision": "97fb25f0e70b869fbf2c726dae8e795edd6199fd3b04d57ce9cca2c87e2933ce"
   },
   "budgets": {
     "repairCyclesUsed": 0,
