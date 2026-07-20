@@ -143,6 +143,7 @@ for (const invariant of [
   ["resolve-question", "controller must support explicit ambiguity resolution"],
   ["claim-child", "controller must issue direct-child claims"],
   ["settle-child", "controller must settle direct-child claims"],
+  ["distinct-child-claims-required", "final agent roles must use distinct child claims"],
   ["caller-child-count-forbidden", "controller must reject caller-authored child counts"],
   ["caller-repair-count-forbidden", "controller must reject caller-authored repair counts"],
 ]) {

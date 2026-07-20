@@ -63,10 +63,11 @@ Keep shared files, Git, tracker writes, integration, and publication with the ro
 Use no more than three direct children, prevent recursive delegation, give writers
 disjoint paths, and reserve fresh independent verifier and validator slots after
 material integration.
-Before every spawn, obtain a controller-issued `claim-child` bound to the current owner
-lease and stable task reference. Settle it when the child returns. Do not pass a
+Before every spawn, obtain a role-specific controller-issued `claim-child` bound to the
+current owner lease and stable task reference. Settle it when the child returns. Do not pass a
 caller-authored count at checkpoint; the controller derives live usage and binds agent
-evidence to completed claims.
+evidence to completed claims. Final standards, verifier, and validator evidence uses
+three distinct claims and task references whose roles match their evidence kinds.
 
 For each material controller-admitted revision, follow the policy's autonomous learning
 loop: obtain one fresh read-only standards/spec review, make the smallest focused repair

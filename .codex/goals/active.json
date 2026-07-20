@@ -3,8 +3,8 @@
   "goalId": "self-learning-autonomy-loop",
   "objectiveFingerprint": "429b78ea87394d1341c81bed3aae6f0cd0bbb4a413d011126295fad8013ef5f2",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "ready",
-  "reason": "revision-changed",
+  "state": "running",
+  "reason": null,
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
     "fingerprint": "e2bbec1010a3656a40741c30456a4171e92151ca019c857aa30a86029cf96f38",
@@ -36,16 +36,52 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 16,
+  "leaseEpoch": 17,
   "question": null,
-  "run": null,
+  "run": {
+    "childClaims": [
+      {
+        "epoch": 17,
+        "head": "fe4a9ed40b093fc44a504bc71c7473430ce08452",
+        "manifest": "e69f9a1a3115c81b71317b4928c9ce38f769a11bc9de137e44c997eb21df3c8f",
+        "revision": "e2bbec1010a3656a40741c30456a4171e92151ca019c857aa30a86029cf96f38",
+        "status": "completed",
+        "taskRefHash": "b861df698fe8a5ac5e8c51e08106f4b8e9b9cd320da4a447a4b7cfe4985fce15",
+        "tokenHash": "fa8da78af67e8795ab78d6a261c042aee3493339de5d99ae38a36b71f1fd2830",
+        "settledAt": "2026-07-20T00:02:13.232Z"
+      },
+      {
+        "epoch": 17,
+        "head": "fe4a9ed40b093fc44a504bc71c7473430ce08452",
+        "manifest": "e69f9a1a3115c81b71317b4928c9ce38f769a11bc9de137e44c997eb21df3c8f",
+        "revision": "e2bbec1010a3656a40741c30456a4171e92151ca019c857aa30a86029cf96f38",
+        "status": "completed",
+        "taskRefHash": "a19bd48fdb8ebe1ca6b191dbb5d951a13bf56fae67aaf6646844c309e80a7ba1",
+        "tokenHash": "2527f78f8341525aee715a2ae21f88842ac0fe7b97bc7f39eaa3a99a9b199fdf",
+        "settledAt": "2026-07-20T00:00:04.790Z"
+      },
+      {
+        "epoch": 17,
+        "head": "fe4a9ed40b093fc44a504bc71c7473430ce08452",
+        "manifest": "e69f9a1a3115c81b71317b4928c9ce38f769a11bc9de137e44c997eb21df3c8f",
+        "revision": "e2bbec1010a3656a40741c30456a4171e92151ca019c857aa30a86029cf96f38",
+        "status": "completed",
+        "taskRefHash": "84a61bb342376b41e53bdd5fd8e0eb70ff33126fd3ff557c8f3a6e738b252d67",
+        "tokenHash": "4ca6e4748eef59d5d7b3d1e750de6afa212b78ddb9c3721e35a584879e532350",
+        "settledAt": "2026-07-19T23:59:13.567Z"
+      }
+    ],
+    "deadlineAt": "2026-07-20T00:22:45.525Z",
+    "ownerTokenHash": "83dbfd8c80f71771690dc3fb2fb5916f1756e603e6e9f76011fd0c573daab818",
+    "startedAt": "2026-07-19T23:52:45.525Z"
+  },
   "evidence": {
     "current": []
   },
   "budgets": {
     "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 16
+    "runsUsed": 17
   },
   "policy": {
     "maxDirectChildren": 3,
@@ -116,9 +152,18 @@
         "reviewerRecordHash": "d3c7e4d04ecaa88bde87dc2ef831afe1eb6141d702427d67ad5cd628b54059db",
         "reviewerVerdict": "FAIL",
         "revision": "54ebc8f366d3aee9e9e288f1f8be8496d6f45e15df823d6e4152730ccf01f589"
+      },
+      {
+        "at": "2026-07-20T00:02:50.955Z",
+        "retrospectiveCode": "promoted",
+        "retrospectiveRecordHash": "3491cda9c1b087d2b9ac753e9290a4de0b6ba8edbb50e62e4cfbcfdc2fc3f2b1",
+        "reviewerAgent": "817c6d41abff43392cf363559608c0aa0e2fb6b942c12d02cf1a7ff40dae85cc",
+        "reviewerRecordHash": "86ecd5d41b30b6f84c601d5d7436c9a2cb4899265c6cc5ae10407d8bab31e423",
+        "reviewerVerdict": "FAIL",
+        "revision": "e2bbec1010a3656a40741c30456a4171e92151ca019c857aa30a86029cf96f38"
       }
     ],
     "enforceFromRevision": "e2bbec1010a3656a40741c30456a4171e92151ca019c857aa30a86029cf96f38"
   },
-  "lastWakeTokenHash": "39434b479f7e7525bfff73a842dc8699af8ba4b1064ec01746f5456c9b478a56"
+  "lastWakeTokenHash": "076f738809ed5faf8c7985c7031d01fe96e20ede044755a2bd3a45dbc6f6ba7d"
 }

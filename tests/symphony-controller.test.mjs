@@ -188,6 +188,7 @@ function evidenceRecords(root, completedAt, ownerToken) {
       const taskRef = name;
       const claim = run(root, "claim-child", {
         ownerToken,
+        role: record.kind,
         taskRef,
         now: completedAt,
       });
@@ -597,11 +598,13 @@ test("time retry repair and direct-child budgets are bounded", () => {
   const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
   const first = run(root, "claim-child", {
     ownerToken: lease.ownerToken,
+    role: "standards-review",
     taskRef: "bounded-review-a",
     now: "2026-07-19T10:00:00.010Z",
   });
   const second = run(root, "claim-child", {
     ownerToken: lease.ownerToken,
+    role: "verifier",
     taskRef: "bounded-review-b",
     now: "2026-07-19T10:00:00.020Z",
   });
@@ -610,6 +613,7 @@ test("time retry repair and direct-child budgets are bounded", () => {
   assert.doesNotMatch(JSON.stringify(active(root)), new RegExp(first.childClaim));
   const duplicate = command(root, "claim-child", {
     ownerToken: lease.ownerToken,
+    role: "standards-review",
     taskRef: "bounded-review-a",
     now: "2026-07-19T10:00:00.030Z",
   });
@@ -617,6 +621,7 @@ test("time retry repair and direct-child budgets are bounded", () => {
   assert.match(duplicate.stderr, /duplicate-child-claim/);
   const overDelegated = command(root, "claim-child", {
     ownerToken: lease.ownerToken,
+    role: "validator",
     taskRef: "bounded-review-c",
     now: "2026-07-19T10:00:00.040Z",
   });
@@ -640,6 +645,7 @@ test("child claims must settle under the issuing lease before checkpoint", () =>
   const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
   const claim = run(root, "claim-child", {
     ownerToken: lease.ownerToken,
+    role: "standards-review",
     taskRef: "bounded-review",
     now: "2026-07-19T10:00:00.010Z",
   });
@@ -1051,6 +1057,29 @@ test("completion rejects colliding or report-mismatched independent verdict reco
   });
   assert.notEqual(rejected.status, 0);
   assert.match(rejected.stderr, /independent-verdicts-required/);
+
+  writeFileSync(validatorPath, `${JSON.stringify(validator)}\n`);
+  const verifier = JSON.parse(readFileSync(join(root, records.verifierRecord), "utf8"));
+  writeFileSync(
+    validatorPath,
+    `${JSON.stringify({
+      ...validator,
+      childClaim: verifier.childClaim,
+      taskRef: verifier.taskRef,
+    })}\n`,
+  );
+  const reusedClaim = command(root, "checkpoint", {
+    ownerToken: lease.ownerToken,
+    state: "complete",
+    ...records,
+    retrospectiveCode: "no-new-lesson",
+    now: "2026-07-19T10:00:00.100Z",
+  });
+  assert.notEqual(reusedClaim.status, 0);
+  assert.match(
+    reusedClaim.stderr,
+    /independent-child-claim-required|distinct-child-claims-required/,
+  );
 
   writeFileSync(validatorPath, `${JSON.stringify(validator)}\n`);
   writeFileSync(

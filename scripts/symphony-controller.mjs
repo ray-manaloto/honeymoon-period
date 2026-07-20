@@ -25,6 +25,14 @@ import { pathToFileURL } from "node:url";
 const states = new Set(["ready", "running", "waiting", "blocked", "failed", "complete"]);
 const retrospectiveCodes = new Set(["promoted", "linked", "no-new-lesson"]);
 const researchStatuses = new Set(["completed", "not-needed", "reused"]);
+const directChildRoles = new Set([
+  "implementation",
+  "research",
+  "review",
+  "standards-review",
+  "validator",
+  "verifier",
+]);
 
 class ControllerError extends Error {}
 
@@ -1145,6 +1153,7 @@ function loadAgentEvidenceRecord(root, recordPath, expected, goal, now) {
   );
   if (
     childClaim?.status !== "completed" ||
+    childClaim.role !== expected.kind ||
     childClaim.taskRefHash !== hash(taskRef) ||
     childClaim.revision !== goal.revision.fingerprint ||
     childClaim.epoch !== goal.leaseEpoch
@@ -1224,6 +1233,7 @@ function claimChild(root, options, now) {
     const goal = readJson(paths(root).active, "active-goal-missing");
     const lease = assertLease(root, goal, options.ownerToken, now);
     const taskRef = safeReference(options.taskRef, "child-task-ref");
+    if (!directChildRoles.has(options.role)) fail("invalid-child-role");
     goal.run.childClaims ??= [];
     const taskRefHash = hash(taskRef);
     if (goal.run.childClaims.some((claim) => claim.taskRefHash === taskRefHash)) {
@@ -1239,6 +1249,7 @@ function claimChild(root, options, now) {
       head: lease.head,
       manifest: lease.manifest,
       revision: lease.revision,
+      role: options.role,
       status: "active",
       taskRefHash,
       tokenHash: hash(childClaim),
@@ -1247,7 +1258,13 @@ function claimChild(root, options, now) {
     commitTransition(
       root,
       [{ target: "active.json", value: goal }],
-      [event(goal, now, "child-claimed", { epoch: lease.epoch, taskRefHash })],
+      [
+        event(goal, now, "child-claimed", {
+          epoch: lease.epoch,
+          role: options.role,
+          taskRefHash,
+        }),
+      ],
       options,
     );
     return {
@@ -1403,11 +1420,18 @@ function checkpointLocked(root, goal, options, now) {
       new Set([reviewer.record.agentId, verifier.record.agentId, validator.record.agentId]).size !==
         3 ||
       reviewer.record.fresh !== true ||
-      verifier.record.agentId === validator.record.agentId ||
       verifier.record.fresh !== true ||
       validator.record.fresh !== true
     ) {
       fail("independent-verdicts-required");
+    }
+    if (
+      new Set([reviewer.record.childClaim, verifier.record.childClaim, validator.record.childClaim])
+        .size !== 3 ||
+      new Set([reviewer.record.taskRef, verifier.record.taskRef, validator.record.taskRef]).size !==
+        3
+    ) {
+      fail("distinct-child-claims-required");
     }
     const aggregate = loadEvidenceRecord(
       root,

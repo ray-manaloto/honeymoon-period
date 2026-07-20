@@ -53,12 +53,14 @@ children do not delegate. Assign disjoint writing paths and concise evidence con
 After material integration, use fresh independent direct children for semantic
 `ACCEPT`/`REJECT` and mechanical `PASS`/`FAIL` gates.
 
-The root must obtain a controller `claim-child` admission before each spawn and settle
-that exact claim after the child returns. Claims bind the task reference to the current
+The root must obtain a role-specific controller `claim-child` admission before each spawn
+and settle that exact claim after the child returns. Claims bind the role and task reference to the current
 lease epoch, authority revision, HEAD, and owned-input manifest; tracked state stores
 only their hashes. Checkpoint derives the live count from controller state and refuses
 caller-supplied counts or active claims. Revision-bound agent evidence must present its
-completed claim, so model self-report cannot substitute for admitted delegation.
+completed claim. Final standards, verifier, and validator records require three distinct
+claims and task references with matching roles, so model self-report cannot substitute
+for admitted delegation.
 
 Configured capacity is not proof of live availability. Inspect the actual agent roster
 before allocating, and adapt optional fan-out to preserve the final gates.
@@ -183,6 +185,7 @@ This initial rollout log is append-only.
 | 40 | 2026-07-19 | During entry 39's repair, a scheduled wake reconciled the intentionally dirty root worktree after the lease expired. The controller first adopted the intermediate owned-input manifest, then blocked for dirtiness, and later demanded an iteration review for that never-admitted fingerprint. | Retrospective: `promoted` within the already recorded entry 39 repair. Check dirty conflicts before revision adoption and apply the learning transition gate only to revisions that received a durable `run-started` admission. Add a regression proving dirty work cannot become an iteration baseline. |
 | 41 | 2026-07-19 | Fresh exact-head standards and semantic gates rejected three remaining self-report paths: a caller could forge the ambient mutation-lock flag, Markdown authority fragments were never resolved to actual headings, and checkpoint accepted a caller-supplied child count without controller-issued admissions. The exact standards `FAIL` and promoted retrospective were recorded through `record-iteration` before this change. | Retrospective: `promoted`. Replace ambient lock trust with an inherited descriptor protocol verified against the locked Git-path inode and contention state; resolve Markdown fragments to canonical heading anchors; issue revision/lease-bound direct-child claims and derive usage from controller state. Add forged-environment, nonexistent-anchor, duplicate/foreign/stale child-claim, and budget-exhaustion tests, then invalidate and rerun all gates. |
 | 42 | 2026-07-19 | The structural-claim revision earned semantic `ACCEPT` and mechanical `PASS`, but its fresh standards gate found two remaining ambient/self-report controls: distinct failed repairs could declare `--repair 0`, and any production caller could enable injected clocks, pauses, and crashes with `SYMPHONY_CONTROLLER_TEST_MODE=1`. The controller-bound standards `FAIL` and promoted retrospective were recorded before repair. | Retrospective: `promoted`. Count every new distinct retryable failure as one repair cycle without a caller parameter. Remove all test-only clock and fault options from the production CLI; place deterministic fault injection behind a test-only preload/harness that production cannot activate through controller arguments or ambient mode flags. Add bypass regressions, invalidate `ACCEPT`/`PASS`, and rerun all gates. |
+| 43 | 2026-07-20 | The ambient-control repair again earned semantic `ACCEPT` and mechanical `PASS`, but fresh standards review found that all three independent completion roles could reuse one completed child claim while varying caller-authored agent IDs. The claim-bound standards `FAIL` and promoted retrospective were recorded before repair. | Retrospective: `promoted`. Require a role on every child admission, match evidence kind to that role, and require reviewer, verifier, and validator to present distinct completed claim tokens and task references. Add claim-reuse, task-reuse, and role-mismatch regressions; invalidate prior gates and rerun all three. |
 
 ## Initial tracker reconciliation evidence
 
