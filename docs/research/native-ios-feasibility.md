@@ -28,6 +28,11 @@ Earlier inspection found only Command Line Tools selected; full Xcode and an iOS
 
 Simulator-first work can cover SwiftUI flows, deterministic URL fixtures, metadata forms, ranking logic, many Share Extension paths from Safari, local calendar fakes, accessibility, and logs. It cannot be final proof for real provider-app share sheets, production CloudKit sharing, GPS context, notifications/background behavior, real-device performance, or TestFlight onboarding.
 
-## Deferred Apple service decisions
+## Apple service decision boundary
 
-Do not infer CloudKit, App Groups, EventKit, or Google OAuth from feasibility alone. Backend and client boundaries are recorded in [ADR-0002](../adr/0002-api-first-web-mvp.md); Apple service choices remain later decisions.
+Calendar V1 is now approved as a user-confirmed EventKit system-editor export only,
+with no calendar reads and no managed synchronization. That product boundary does not
+authorize native implementation. Do not infer CloudKit, App Groups, direct EventKit
+store access, or Google OAuth from feasibility alone; those remain later decisions.
+Backend and client boundaries are recorded in
+[ADR-0002](../adr/0002-api-first-web-mvp.md).

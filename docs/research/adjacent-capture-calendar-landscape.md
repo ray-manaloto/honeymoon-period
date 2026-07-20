@@ -289,9 +289,14 @@ their source-screening evidence.
 
 1. Do “recurring offers” mean repeatable templates (for example, weekly happy hour),
    discrete time windows, or both? This changes the model and ranking semantics.
-2. Is private availability a future convenience feature limited to free/busy, or is it
+2. Which append-only transition details must every Plan revision retain for a
+   reschedule or cancellation, including actor, reason, prior values, and calendar
+   export provenance?
+3. When do specials and reservation deadlines expire, and how do expiration states
+   affect candidate ranking and Plan eligibility?
+4. Is private availability a future convenience feature limited to free/busy, or is it
    explicitly out of scope until a provider/consent design is approved?
-3. Before public deployment, which fields constitute enough same-venue evidence to
+5. Before public deployment, which fields constitute enough same-venue evidence to
    propose a merge without silently merging independently captured sources? This is
    the #21 decision and remains separate from URL normalization.
 
