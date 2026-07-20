@@ -22,8 +22,9 @@ remain possible after reconciliation so the controller can persist its durable s
 `git commit` when that live-lease check fails. `tests/test_pre_tool_policy.py` proves
 fresh, expired, state-only, subdirectory, `git -C`, and malformed-state cases. The
 state-only exemption accepts only command forms that cannot add unstaged paths; `-a`
-and explicit pathspecs remain lease-gated. The controller remains execution authority;
-the hook is a fail-closed integration guard, not an alternate admission mechanism.
+and explicit pathspecs remain lease-gated. Goal JSON and its state enum are validated
+before any exemption. The controller remains execution authority; the hook is a
+fail-closed integration guard, not an alternate admission mechanism.
 
 ## Promotion and retirement
 

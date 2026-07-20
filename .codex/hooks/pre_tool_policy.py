@@ -126,13 +126,22 @@ def active_goal_commit_denial(
         staged = git_output(root, "diff", "--cached", "--name-only").splitlines()
     except (OSError, subprocess.CalledProcessError):
         return None
-    state_paths = {".codex/goals/active.json", ".codex/goals/history.jsonl"}
-    if staged and set(staged) <= state_paths and state_only_commit_form(command):
-        return None
     try:
         active = json.loads((root / ".codex/goals/active.json").read_text())
     except (OSError, json.JSONDecodeError):
         return "valid active goal state is required before committing source"
+    if active.get("state") not in {
+        "ready",
+        "running",
+        "waiting",
+        "blocked",
+        "failed",
+        "complete",
+    }:
+        return "valid active goal state is required before committing source"
+    state_paths = {".codex/goals/active.json", ".codex/goals/history.jsonl"}
+    if staged and set(staged) <= state_paths and state_only_commit_form(command):
+        return None
     if active.get("state") == "complete":
         return None
     try:

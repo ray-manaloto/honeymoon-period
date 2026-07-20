@@ -131,6 +131,14 @@ class PreToolPolicyTests(unittest.TestCase):
             self.assertIsNotNone(
                 POLICY.active_goal_commit_denial("git commit source.txt -m mixed", root)
             )
+            (goal_dir / "active.json").write_text("not json")
+            self.assertIsNotNone(
+                POLICY.active_goal_commit_denial("git commit -m malformed-state", root)
+            )
+            (goal_dir / "active.json").write_text("{}")
+            self.assertIsNotNone(
+                POLICY.active_goal_commit_denial("git commit -m invalid-state", root)
+            )
 
 
 if __name__ == "__main__":
