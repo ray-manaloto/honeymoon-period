@@ -126,14 +126,14 @@ current #20 questions more directly than importing a full shared-calendar produc
 Event chat, RSVP, photo, playlist, and paid-host features do not pass the deletion
 test for this two-person planning MVP.
 
-**Disposition: four lifecycle boundaries approved; remaining #20 semantics deferred.**
+**Disposition: five lifecycle boundaries approved; remaining #20 semantics deferred.**
 A confirmed Plan keeps one stable identity, and cancellation or rescheduling appends
 history rather than replacing it. Calendar V1 uses only the user-confirmed EventKit
 system editor, with no reads or managed synchronization. Recurring offers use reusable
 templates that generate discrete dated windows and ordinary Plan occurrences. Issue
-#20 must still decide expiration/deadline behavior and any later availability or
-provider semantics. Do not build calendar integration before the complete #20 contract
-is accepted and separately authorized.
+#20 must still decide any later availability or provider semantics. Do not build
+calendar integration before the complete #20 contract is accepted and separately
+authorized.
 
 ### 4. Calendar: use least privilege and make the first handoff user-confirmed
 
@@ -252,7 +252,7 @@ their source-screening evidence.
 | Historical evidence | Still supported by current source | Reconciled implication |
 | --- | --- | --- |
 | [Restaurant/shared-list bake-off](bakeoff-restaurant-shared-list.md) | Tavola remains the clearest restaurant Share Sheet pattern; Soonish remains a voting interaction reference; Mapstr/Beli are not full workflow replacements. | Preserve raw capture and actor-owned preferences; do not compose third-party products. |
-| [Calendar bake-off](bakeoff-calendar-scheduling.md) | Howbout remains the closest “undated idea to dated plan” model. Apple/Google remain primitives, not an idea system. | Preserve one stable Plan with complete immutable revision events, model recurring offers as templates plus discrete windows, and use a user-confirmed V1 calendar handoff; finish deadline and privacy decisions before implementation. |
+| [Calendar bake-off](bakeoff-calendar-scheduling.md) | Howbout remains the closest “undated idea to dated plan” model. Apple/Google remain primitives, not an idea system. | Preserve one stable Plan with complete immutable revision events, model recurring offers as templates plus discrete windows, expire dated windows deterministically, and use a user-confirmed V1 calendar handoff; finish privacy decisions before implementation. |
 | [Flexible-database bake-off](bakeoff-flexible-database-automation.md) | Notion remains a configurable but non-enforcing composition with capture and ownership gaps. | Reject it as a canonical path. |
 | [Reminders + Beli prototype](reminders-beli-prototype.md) | Shortcut capture remains valuable baseline evidence, while exact URL dedupe and partner setup remain known limits. | Retain baseline unchanged until an accepted replacement. |
 | [Link capture/enrichment baseline](link-capture-enrichment.md) | Provider parsing and venue identity remain unresolved, distinct concerns. | Do not infer venue merging from exact-link duplicate detection. |
@@ -263,7 +263,7 @@ their source-screening evidence.
 | --- | --- | --- |
 | Canonical capture provenance plus non-blocking enrichment | **Adopt** | Already aligned with the accepted contract and removes no necessary ownership. |
 | Third-party shared-list/database composition | **Reject** | Duplicates the canonical record or weakens provenance/actor ownership, while adding identity/token/vendor surface. |
-| Undated candidate -> confirmed Plan transition | **Partially approved; remaining #20 contract deferred** | A confirmed Plan has one stable identity and complete immutable reschedule/cancellation revision events; recurring offers use templates plus discrete windows; deadline behavior remains unresolved. |
+| Undated candidate -> confirmed Plan transition | **Partially approved; remaining #20 contract deferred** | A confirmed Plan has one stable identity and complete immutable reschedule/cancellation revision events; recurring offers use templates plus discrete windows; explicit deadlines deterministically expire unconfirmed windows while preserving history. |
 | User-confirmed EventKit editor | **Approved V1 boundary; implementation separately gated** | Least-privilege handoff with no calendar read, OAuth, or managed synchronization. Native work remains separately sequenced. |
 | Unauthenticated secret-link ICS subscription feed | **Defer to a post-V1 interoperability pilot** | Lower-authority one-way projection without calendar reads, but URL leakage, public-feed compatibility, and provider-controlled refresh prevent it from replacing an explicit V1 write or plan lifecycle. |
 | iCloud/Google free-busy and durable event sync | **Defer** | Requires provider, authorization, revocation, conflict, and retention decisions; not needed for the first handoff. |
@@ -294,14 +294,17 @@ their source-screening evidence.
   timestamp, transition type, before-and-after scheduling/status values including time
   zone, an optional bounded reason, and calendar-export provenance form the audit
   record. Unrelated calendar data is excluded. Approved by the user on 2026-07-20.
+- **Explicit deadlines expire windows deterministically.** Store the deadline as an
+  instant with its source time zone and apply urgency only before that instant. At or
+  after it, the dated window is expired and excluded from active ranking and new Plan
+  confirmation, while all history remains. An unknown deadline neither expires nor
+  receives an urgency boost. Approved by the user on 2026-07-20.
 
 ## Unresolved decisions for Grilling
 
-1. When do specials and reservation deadlines expire, and how do expiration states
-   affect candidate ranking and Plan eligibility?
-2. Is private availability a future convenience feature limited to free/busy, or is it
+1. Is private availability a future convenience feature limited to free/busy, or is it
    explicitly out of scope until a provider/consent design is approved?
-3. Before public deployment, which fields constitute enough same-venue evidence to
+2. Before public deployment, which fields constitute enough same-venue evidence to
    propose a merge without silently merging independently captured sources? This is
    the #21 decision and remains separate from URL normalization.
 

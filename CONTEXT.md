@@ -26,6 +26,9 @@
 - **Score** — a person's configurable numeric preference used for ranking.
 - **Preference** — one participant's vote and optional score for one honeymoon-period.
 - **Special** — a time-constrained offer, menu, event, deadline, or reservation opportunity.
+- **Deadline** — an explicit instant with its source time zone that adds urgency only
+  before expiration; an expired dated window leaves active ranking and new Plan
+  confirmation but remains in history. An unknown deadline has no urgency boost.
 - **Availability** — free time inferred or selected without exposing unrelated private calendar details.
 - **Plan** — a honeymoon-period assigned to a specific occurrence and optionally a calendar event.
 - **Plan revision** — an immutable, server-ordered audit event containing actor,
