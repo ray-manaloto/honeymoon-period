@@ -278,16 +278,18 @@ their source-screening evidence.
   no calendar reads and no managed synchronization. Unauthenticated secret-link ICS
   remains deferred to a separately approved post-V1 interoperability pilot.
   Approved by the user on 2026-07-20.
+- **Each confirmed Plan keeps one stable identity.** Rescheduling and cancellation
+  append revisions to that Plan's history; they do not create replacement Plan
+  records. This preserves audit history, idempotency, notes, and calendar-export
+  provenance without duplicate canonical records. Approved by the user on 2026-07-20.
 
 ## Unresolved decisions for Grilling
 
-1. When dates change or a plan is cancelled, should history preserve one Plan with
-   revisions, or create a replacement occurrence linked to the original candidate?
-2. Do “recurring offers” mean repeatable templates (for example, weekly happy hour),
+1. Do “recurring offers” mean repeatable templates (for example, weekly happy hour),
    discrete time windows, or both? This changes the model and ranking semantics.
-3. Is private availability a future convenience feature limited to free/busy, or is it
+2. Is private availability a future convenience feature limited to free/busy, or is it
    explicitly out of scope until a provider/consent design is approved?
-4. Before public deployment, which fields constitute enough same-venue evidence to
+3. Before public deployment, which fields constitute enough same-venue evidence to
    propose a merge without silently merging independently captured sources? This is
    the #21 decision and remains separate from URL normalization.
 
