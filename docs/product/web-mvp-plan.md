@@ -169,17 +169,19 @@ slice is implemented by #23. Continue the remaining dependent tracer bullets in 
 1. [#24 Apply and replay the versioned preference policy](https://github.com/ray-manaloto/honeymoon-period/issues/24), after #23; and
 2. [#25 Redact preference history to shared tombstones](https://github.com/ray-manaloto/honeymoon-period/issues/25), blocked by #24.
 
-Three #20 boundaries are now approved: a confirmed Plan keeps one stable identity with
+Four #20 boundaries are now approved: a confirmed Plan keeps one stable identity with
 append-only reschedule/cancellation history; recurring offers are reusable templates
 that generate discrete dated windows and ordinary stable-identity Plan occurrences;
+every Plan revision is a complete immutable, server-ordered audit event that excludes
+unrelated calendar data;
 and Calendar V1 is a user-confirmed EventKit system-editor export with no reads or
 managed synchronization. The remaining intentionally deferred questions are:
 
-- [#20 Finish deadline, transition-detail, and availability/privacy semantics](https://github.com/ray-manaloto/honeymoon-period/issues/20); and
+- [#20 Finish deadline and availability/privacy semantics](https://github.com/ray-manaloto/honeymoon-period/issues/20); and
 - [#21 Define venue and source merging semantics before public deployment](https://github.com/ray-manaloto/honeymoon-period/issues/21).
 
 #20 and #21 remain `question`/`needs-triage` items and are not ready for agent
-implementation; the three settled #20 boundaries constrain its eventual specification
+implementation; the four settled #20 boundaries constrain its eventual specification
 without making it implementation-ready.
 
 ## Tracker reconciliation

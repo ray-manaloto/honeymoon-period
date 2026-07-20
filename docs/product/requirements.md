@@ -1,6 +1,6 @@
 # Product requirements inventory
 
-- Status: approved MVP outcomes, preference/history semantics, and bounded Plan/recurring-offer/calendar V1 decisions; remaining #20 and merge semantics are deferred
+- Status: approved MVP outcomes, preference/history semantics, and bounded Plan/revision/recurring-offer/calendar V1 decisions; remaining #20 and merge semantics are deferred
 - Last updated: 2026-07-20
 
 ## Confirmed outcomes
@@ -83,26 +83,29 @@ replay and tombstone redaction remain intentionally deferred to the dependent
 [#24](https://github.com/ray-manaloto/honeymoon-period/issues/24) and
 [#25](https://github.com/ray-manaloto/honeymoon-period/issues/25) tracer bullets.
 
-## Approved Plan, recurring-offer, and calendar V1 boundaries
+## Approved Plan, revision, recurring-offer, and calendar V1 boundaries
 
-The 2026-07-20 adjacent-product and calendar decision pass settled three boundaries:
+The 2026-07-20 adjacent-product and calendar decision pass settled four boundaries:
 
 - each confirmed Plan keeps one stable identity; rescheduling and cancellation append
   revisions to that Plan's history instead of creating replacement Plan records; and
 - a recurring offer is a reusable template that generates discrete dated availability
   windows; a confirmed window becomes an ordinary stable-identity Plan occurrence,
   and a Plan itself never recurs indefinitely; and
+- every Plan revision is an immutable, server-ordered event recording actor,
+  timestamp, transition type, before-and-after scheduling/status values including time
+  zone, an optional bounded reason, and calendar-export provenance; it excludes
+  unrelated calendar data; and
 - Calendar V1 is a user-confirmed EventKit system-editor export only, with no calendar
   reads and no managed synchronization.
 
 An unauthenticated secret-link ICS projection is not part of V1 and remains deferred
 to a separately approved interoperability pilot. These decisions constrain the future
-#20 specification; they do not authorize implementation while deadline,
-availability/privacy, and remaining transition semantics are unresolved.
+#20 specification; they do not authorize implementation while deadline and
+availability/privacy semantics are unresolved.
 
 ## Remaining semantics to refine
 
-- How does a confirmed Plan's append-only history represent each reschedule and cancellation transition?
 - Is private availability explicitly out of scope, or a later free/busy-only convenience behind a provider and consent design?
 - When do specials and reservation deadlines expire, and how do those states affect planning eligibility?
 - When do different source links merge into one venue or event?

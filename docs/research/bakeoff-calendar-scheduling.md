@@ -166,5 +166,5 @@ The calendar lane did not justify selecting an all-in-one winner from source evi
 alone. The current authority has since approved a user-confirmed EventKit system-editor
 export for Calendar V1, with no reads or managed synchronization, plus recurring-offer
 templates that generate discrete dated windows and ordinary Plan occurrences.
-Deadlines, transition details, and availability/privacy remain Grilling-gated. The
+Deadlines and availability/privacy remain Grilling-gated. The
 historical trials above are not prerequisites and carry no implementation authority.
