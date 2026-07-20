@@ -169,7 +169,7 @@ slice is implemented by #23. Continue the remaining dependent tracer bullets in 
 1. [#24 Apply and replay the versioned preference policy](https://github.com/ray-manaloto/honeymoon-period/issues/24), after #23; and
 2. [#25 Redact preference history to shared tombstones](https://github.com/ray-manaloto/honeymoon-period/issues/25), blocked by #24.
 
-Five #20 boundaries are now approved: a confirmed Plan keeps one stable identity with
+#20's product boundaries are now approved: a confirmed Plan keeps one stable identity with
 append-only reschedule/cancellation history; recurring offers are reusable templates
 that generate discrete dated windows and ordinary stable-identity Plan occurrences;
 every Plan revision is a complete immutable, server-ordered audit event that excludes
@@ -178,14 +178,15 @@ explicit deadlines use source-time-zone instants, add urgency only before expira
 and then exclude the expired window from active ranking and new confirmation without
 deleting history;
 and Calendar V1 is a user-confirmed EventKit system-editor export with no reads or
-managed synchronization. The remaining intentionally deferred questions are:
+managed synchronization. Private availability is out of V1; any future integration is
+separately gated and defaults to explicit opt-in free/busy only, with no event details
+or unrelated-calendar persistence. The remaining intentionally deferred question is:
 
-- [#20 Finish availability/privacy semantics](https://github.com/ray-manaloto/honeymoon-period/issues/20); and
 - [#21 Define venue and source merging semantics before public deployment](https://github.com/ray-manaloto/honeymoon-period/issues/21).
 
-#20 and #21 remain `question`/`needs-triage` items and are not ready for agent
-implementation; the five settled #20 boundaries constrain its eventual specification
-without making it implementation-ready.
+#20 remains non-implementation-ready until its approved product contract is reconciled
+under separate tracker authority; #21 remains an unresolved `question`/`needs-triage`
+item. Neither is ready for agent implementation under this research-only goal.
 
 ## Tracker reconciliation
 
@@ -194,4 +195,5 @@ superseded existing-product bake-off. ADR-0002 records the API-first decision;
 the accepted local MVP and completed maintenance issues #16--#18 are retained
 delivery evidence. #19 is closed and Project `Done`; its open child tickets #23--#25
 are Project `Todo` with native sub-issue and dependency edges. #20 and #21 remain
-non-blocking, non-implementation-ready questions.
+non-blocking and non-implementation-ready in the live tracker; #20's repository product
+choices are settled, while #21 remains the open product question.

@@ -29,7 +29,9 @@
 - **Deadline** — an explicit instant with its source time zone that adds urgency only
   before expiration; an expired dated window leaves active ranking and new Plan
   confirmation but remains in history. An unknown deadline has no urgency boost.
-- **Availability** — free time inferred or selected without exposing unrelated private calendar details.
+- **Availability** — free time selected without calendar reads in V1. Any later
+  provider integration requires separate consent and defaults to opt-in free/busy
+  intervals only, without event details or unrelated-calendar persistence.
 - **Plan** — a honeymoon-period assigned to a specific occurrence and optionally a calendar event.
 - **Plan revision** — an immutable, server-ordered audit event containing actor,
   timestamp, transition type, before-and-after scheduling/status values with time zone,

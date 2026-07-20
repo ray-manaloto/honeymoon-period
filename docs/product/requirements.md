@@ -1,6 +1,6 @@
 # Product requirements inventory
 
-- Status: approved MVP outcomes, preference/history semantics, and bounded Plan/revision/recurring-offer/deadline/calendar V1 decisions; remaining #20 and merge semantics are deferred
+- Status: approved MVP outcomes, preference/history semantics, and #20 Plan/calendar boundaries; merge semantics remain deferred
 - Last updated: 2026-07-20
 
 ## Confirmed outcomes
@@ -83,9 +83,9 @@ replay and tombstone redaction remain intentionally deferred to the dependent
 [#24](https://github.com/ray-manaloto/honeymoon-period/issues/24) and
 [#25](https://github.com/ray-manaloto/honeymoon-period/issues/25) tracer bullets.
 
-## Approved Plan, revision, recurring-offer, deadline, and calendar V1 boundaries
+## Approved #20 Plan and calendar boundaries
 
-The 2026-07-20 adjacent-product and calendar decision pass settled five boundaries:
+The 2026-07-20 adjacent-product and calendar decision pass settled these boundaries:
 
 - each confirmed Plan keeps one stable identity; rescheduling and cancellation append
   revisions to that Plan's history instead of creating replacement Plan records; and
@@ -101,16 +101,18 @@ The 2026-07-20 adjacent-product and calendar decision pass settled five boundari
   excluded from active ranking and new Plan confirmation, and retained in history;
   an unknown deadline neither expires nor receives an urgency boost; and
 - Calendar V1 is a user-confirmed EventKit system-editor export only, with no calendar
-  reads and no managed synchronization.
+  reads and no managed synchronization; and
+- private availability is out of scope for V1; any future provider integration requires
+  a separately approved provider-and-consent design, explicit opt-in, free/busy-only
+  intervals by default, no event titles/descriptions/attendees/locations, and no
+  persistence of unrelated calendar data.
 
 An unauthenticated secret-link ICS projection is not part of V1 and remains deferred
-to a separately approved interoperability pilot. These decisions constrain the future
-#20 specification; they do not authorize implementation while availability/privacy
-semantics are unresolved.
+to a separately approved interoperability pilot. The approved #20 product contract
+does not authorize implementation or any provider/calendar-read integration.
 
 ## Remaining semantics to refine
 
-- Is private availability explicitly out of scope, or a later free/busy-only convenience behind a provider and consent design?
 - When do different source links merge into one venue or event?
 - Which remaining semantics must be fixed before the API leaves local development?
 

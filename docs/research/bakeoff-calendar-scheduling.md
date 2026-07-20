@@ -167,5 +167,6 @@ alone. The current authority has since approved a user-confirmed EventKit system
 export for Calendar V1, with no reads or managed synchronization, plus recurring-offer
 templates that generate discrete dated windows and ordinary Plan occurrences.
 Explicit deadlines now deterministically expire unconfirmed windows while preserving
-history; availability/privacy remains Grilling-gated. The historical trials above are
-not prerequisites and carry no implementation authority.
+history. Private availability is now out of V1; any later provider integration requires
+a separate provider-and-consent decision and defaults to opt-in free/busy only. The
+historical trials above are not prerequisites and carry no implementation authority.
