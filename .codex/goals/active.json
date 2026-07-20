@@ -19,8 +19,8 @@
   "goalId": "adjacent-capture-calendar-research",
   "objectiveFingerprint": "a879f93a16dfed2b08714f786e2a2f901dad3075da86b2eca9484330dcf4c3e0",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "blocked",
-  "reason": null,
+  "state": "ready",
+  "reason": "operator-input-received",
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
     "fingerprint": "8c3a3e9e71e2417910768bff15b9bd91ed33435e5147a7870462fb49cdd3bace",
@@ -43,12 +43,7 @@
   },
   "leaseEpoch": 18,
   "lastWakeTokenHash": "ec6f1698c838e0b01d68fd5212d9ae80e5fe018996a22b8f1e6f0642915697e5",
-  "question": {
-    "createdAt": "2026-07-20T21:02:46.648Z",
-    "emitted": false,
-    "emittedAt": null,
-    "fingerprint": "4e9aea9fe6f8d4d2d0e109a4360ef474e240f8113620f8b062d3da6186a8b8f6"
-  },
+  "question": null,
   "run": null,
   "evidence": {
     "current": []
