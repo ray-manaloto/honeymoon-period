@@ -12,7 +12,8 @@
 - Raise priority for expiring specials and compatible availability.
 - Integrate with Apple Calendar and Google Calendar or a suitable low-cost scheduling layer.
 - Keep partner onboarding to one app installation plus an invitation when possible.
-- Time-box an existing-app bake-off before custom development.
+- Retain the completed existing-app bake-off as historical evidence; it is not an
+  implementation prerequisite and must not reopen the accepted API-first path.
 - Keep preference ranking system-owned, explainable, and versioned.
 - Support a development feature flag that can rank from one person's vote while partner voting is unavailable.
 - Expose versioned REST APIs for capture, preferences, notes/metadata, sorting, ranking, and queries so presentation clients remain replaceable.
