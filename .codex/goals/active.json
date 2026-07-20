@@ -19,8 +19,8 @@
   "goalId": "adjacent-capture-calendar-research",
   "objectiveFingerprint": "a879f93a16dfed2b08714f786e2a2f901dad3075da86b2eca9484330dcf4c3e0",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "ready",
-  "reason": "bootstrap-revision-bound",
+  "state": "running",
+  "reason": null,
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
     "fingerprint": "97fb25f0e70b869fbf2c726dae8e795edd6199fd3b04d57ce9cca2c87e2933ce",
@@ -33,10 +33,37 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 0,
-  "lastWakeTokenHash": null,
+  "leaseEpoch": 1,
+  "lastWakeTokenHash": "1314902b0ee35f8c4e5fe288721a4fe5c9113706cc39f9c3f62889f53acb95b6",
   "question": null,
-  "run": null,
+  "run": {
+    "childClaims": [
+      {
+        "epoch": 1,
+        "head": "402133e8380807b3785960435128ee1a6320156c",
+        "manifest": "fff335dc09c6669ce425745ca2b07f833a768b7a5243758d4377d05ade5d7c9c",
+        "revision": "97fb25f0e70b869fbf2c726dae8e795edd6199fd3b04d57ce9cca2c87e2933ce",
+        "role": "research",
+        "status": "active",
+        "taskRefHash": "7efec98af8e2af4745714974e22a55f40accdc5b7d87d85f5226e52c45ad3b33",
+        "tokenHash": "d60ae02ced599d0f08b52ef66c2fced55d1ed6b22c700ed91d3b2d8f6efe2ce1"
+      },
+      {
+        "epoch": 1,
+        "head": "402133e8380807b3785960435128ee1a6320156c",
+        "manifest": "fff335dc09c6669ce425745ca2b07f833a768b7a5243758d4377d05ade5d7c9c",
+        "revision": "97fb25f0e70b869fbf2c726dae8e795edd6199fd3b04d57ce9cca2c87e2933ce",
+        "role": "research",
+        "status": "completed",
+        "taskRefHash": "8fcea8b9ac6a1bf2cc02ecb1bcd5e4c558bd700aea42f7a34ebf179656f2db73",
+        "tokenHash": "c1b1c6bf77af1c5140465cf3eddc977e79cd7419bc9849b20bd20a4d6d7a047c",
+        "settledAt": "2026-07-20T18:29:13.907Z"
+      }
+    ],
+    "deadlineAt": "2026-07-20T18:56:46.156Z",
+    "ownerTokenHash": "5e205ac65f030e9a49fd632e1c06aaf7a6310ef5eb23d724210b0543a14497cd",
+    "startedAt": "2026-07-20T18:26:46.156Z"
+  },
   "evidence": {
     "current": []
   },
@@ -47,7 +74,7 @@
   "budgets": {
     "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 0
+    "runsUsed": 1
   },
   "policy": {
     "maxDirectChildren": 3,
