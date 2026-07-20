@@ -19,13 +19,13 @@
   "goalId": "lost-work-publication-reconciliation",
   "objectiveFingerprint": "439c47cf057817666dfd8b59378325bdf904f555e6214398e0816035b9e9fc10",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "ready",
+  "state": "failed",
   "reason": null,
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
-    "fingerprint": "d1be53bea10092c08f82d49677bf72cc3d2b12f1f9ca500efc0418eaa067f9eb",
-    "head": "fb0206e0574062d3e8cdf71bcf56646cc961b96f",
-    "ownedManifest": "72f3167d410eea5b2543cef2345135e47b33980a0e9f2b7a1449ba2feeed05bb",
+    "fingerprint": "f3f94b05210614884f4f04bdd3a69ceaffb03bb2f7ebd84e018d21ca56c5fe40",
+    "head": "515cf20e5961b16cb83ff3e118f58afdddae1750",
+    "ownedManifest": "d8eef12e35f0ab5eeaa7ebf713969389f50faac44d061d2678e7197a1953abe0",
     "ownedInputs": [
       ".agents/skills/adaptive-orchestration/SKILL.md",
       ".codex/goals/CONTINUATION.md",
@@ -66,21 +66,31 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 0,
-  "lastWakeTokenHash": null,
+  "leaseEpoch": 3,
+  "lastWakeTokenHash": "e9c66bb5c1913f402564351e78b545949d724b1567754da5bc8125c74e61f3ab",
   "question": null,
   "run": null,
   "evidence": {
     "current": []
   },
   "learning": {
-    "completed": [],
-    "enforceFromRevision": "d1be53bea10092c08f82d49677bf72cc3d2b12f1f9ca500efc0418eaa067f9eb"
+    "completed": [
+      {
+        "at": "2026-07-20T23:52:08.161Z",
+        "retrospectiveCode": "promoted",
+        "retrospectiveRecordHash": "2712cdd007b84407c8e690d9b0075397a1e515ff2140c456d20bd10ad182d429",
+        "reviewerAgent": "c0763e68c0b23e8227b13ad0dff0105f575a29a5660e9f4569f11325eb626492",
+        "reviewerRecordHash": "648b9b75b492a00249e6cb58dd6eef1d788e3fe6f07ceea9917ed804d83f4b11",
+        "reviewerVerdict": "FAIL",
+        "revision": "d1be53bea10092c08f82d49677bf72cc3d2b12f1f9ca500efc0418eaa067f9eb"
+      }
+    ],
+    "enforceFromRevision": "f3f94b05210614884f4f04bdd3a69ceaffb03bb2f7ebd84e018d21ca56c5fe40"
   },
   "budgets": {
-    "repairCyclesUsed": 0,
+    "repairCyclesUsed": 1,
     "retriesUsed": 0,
-    "runsUsed": 0
+    "runsUsed": 3
   },
   "policy": {
     "maxDirectChildren": 3,
@@ -88,5 +98,9 @@
     "maxRetries": 3,
     "maxRuntimeMs": 3600000,
     "ttlMs": 300000
-  }
+  },
+  "waiting": null,
+  "retryDueAt": "2026-07-20T23:55:17.466Z",
+  "failureFingerprint": "fb50341ec6d771eb5be2ed2582abb0989ef236e55cdc8e16c904907dab7e7b45",
+  "lastCheckpointId": "52477b30-826f-41bd-a2a7-a50e8493ecac"
 }
