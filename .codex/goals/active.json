@@ -19,8 +19,8 @@
   "goalId": "adjacent-capture-calendar-research",
   "objectiveFingerprint": "a879f93a16dfed2b08714f786e2a2f901dad3075da86b2eca9484330dcf4c3e0",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "ready",
-  "reason": "revision-changed",
+  "state": "running",
+  "reason": null,
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
     "fingerprint": "7ab161ab3ce7d9806f833df3bd09f153c71a7e0719b66a2d111d90a446a59941",
@@ -41,10 +41,49 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 5,
-  "lastWakeTokenHash": "d34967c73b3110df0a9eb18e989a970f66396b9c2a4027a413fd96335eb07bd8",
+  "leaseEpoch": 6,
+  "lastWakeTokenHash": "0dd3d49b1c9eb2e0628a9200d17967ab23abb157d24ef1c1b8f2f955f12de13a",
   "question": null,
-  "run": null,
+  "run": {
+    "childClaims": [
+      {
+        "epoch": 6,
+        "head": "246f6445ad62e8881fe4fdd3a765bfb7c57748f3",
+        "manifest": "8c582b195ac044cbd0dea28a3eac56bbf89d753c80e0c50bb7c60522c11bf37c",
+        "revision": "7ab161ab3ce7d9806f833df3bd09f153c71a7e0719b66a2d111d90a446a59941",
+        "role": "standards-review",
+        "status": "completed",
+        "taskRefHash": "724fcfb5649ee832fae5537417878ebf7f364859eeb986767e528373cd5f0420",
+        "tokenHash": "790c154d04ce7569bee62d1a28f1a1abd1c1bf983c3c7453e1c24f0613076d17",
+        "settledAt": "2026-07-20T19:30:16.504Z"
+      },
+      {
+        "epoch": 6,
+        "head": "246f6445ad62e8881fe4fdd3a765bfb7c57748f3",
+        "manifest": "8c582b195ac044cbd0dea28a3eac56bbf89d753c80e0c50bb7c60522c11bf37c",
+        "revision": "7ab161ab3ce7d9806f833df3bd09f153c71a7e0719b66a2d111d90a446a59941",
+        "role": "verifier",
+        "status": "completed",
+        "taskRefHash": "44bc2f4b62098a9a27c3ae990882d855c81bdd209295e4caaeb03eea358ef10d",
+        "tokenHash": "924041214eed4afd016d596f57f7a133e1cc43ace98ae4ccf35e1ab3b4fb1f06",
+        "settledAt": "2026-07-20T19:27:41.573Z"
+      },
+      {
+        "epoch": 6,
+        "head": "246f6445ad62e8881fe4fdd3a765bfb7c57748f3",
+        "manifest": "8c582b195ac044cbd0dea28a3eac56bbf89d753c80e0c50bb7c60522c11bf37c",
+        "revision": "7ab161ab3ce7d9806f833df3bd09f153c71a7e0719b66a2d111d90a446a59941",
+        "role": "validator",
+        "status": "completed",
+        "taskRefHash": "17e3b3b677c32a24d6ce0481c8edc982591276c39b0a8e716b92670b02322100",
+        "tokenHash": "94480c4855524be8b841a6bb5885aac19fde775ef885434ab33d4d7e1e4d76ec",
+        "settledAt": "2026-07-20T19:26:26.029Z"
+      }
+    ],
+    "deadlineAt": "2026-07-20T19:48:45.981Z",
+    "ownerTokenHash": "4110f187151d90710ccb8cd2c635663e872e20440921e2af29e6c172319d9fda",
+    "startedAt": "2026-07-20T19:18:45.981Z"
+  },
   "evidence": {
     "current": []
   },
@@ -67,6 +106,15 @@
         "reviewerRecordHash": "c0f693601c8f6b036b604aa64f6725373a0d472717b46be9e0960af04d86d5dd",
         "reviewerVerdict": "FAIL",
         "revision": "4af084760a1aa73f73c4864b6abf841b9c56bf1c8a87cfbc47a2f1d28085feba"
+      },
+      {
+        "at": "2026-07-20T19:30:58.269Z",
+        "retrospectiveCode": "promoted",
+        "retrospectiveRecordHash": "5198812b886bea4cceebd2de1a546ca811da6d24c97cb9d6d09ed40da9d3e483",
+        "reviewerAgent": "45c4eb8ab52d1fb11b986d233870fb69af52ed06c578b45e1753b1d90e02d462",
+        "reviewerRecordHash": "6784b7562697dd8567eb3cf1c6fa49f5b67c6b93cc991decdc49d40416891cc2",
+        "reviewerVerdict": "FAIL",
+        "revision": "7ab161ab3ce7d9806f833df3bd09f153c71a7e0719b66a2d111d90a446a59941"
       }
     ],
     "enforceFromRevision": "7ab161ab3ce7d9806f833df3bd09f153c71a7e0719b66a2d111d90a446a59941"
@@ -74,7 +122,7 @@
   "budgets": {
     "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 5
+    "runsUsed": 6
   },
   "policy": {
     "maxDirectChildren": 3,

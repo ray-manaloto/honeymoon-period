@@ -92,6 +92,24 @@ class PreToolPolicyTests(unittest.TestCase):
                     "git commit -m source", root, now + timedelta(minutes=6)
                 )
             )
+            subdirectory = root / "nested"
+            subdirectory.mkdir()
+            self.assertEqual(
+                POLICY.commit_repository("git commit -m source", subdirectory), root.resolve()
+            )
+            self.assertEqual(
+                POLICY.commit_repository(f"git -C {root} commit -m source", subdirectory),
+                root.resolve(),
+            )
+            self.assertIsNotNone(
+                POLICY.denial_reason(
+                    f"git -C {root} commit -m source", subdirectory
+                )
+            )
+            (goal_dir / "active.json").write_text("{}")
+            self.assertIsNotNone(
+                POLICY.active_goal_commit_denial("git commit -m source", root, now)
+            )
 
     def test_state_only_goal_commit_does_not_require_a_work_lease(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

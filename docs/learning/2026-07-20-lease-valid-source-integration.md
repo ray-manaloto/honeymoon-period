@@ -18,10 +18,11 @@ remain possible after reconciliation so the controller can persist its durable s
 
 ## Enforcing guard
 
-`.codex/hooks/pre_tool_policy.py` rejects a source `git commit` when that live-lease
-check fails. `tests/test_pre_tool_policy.py` proves fresh, expired, and state-only
-cases. The controller remains execution authority; the hook is a fail-closed integration
-guard, not an alternate admission mechanism.
+`.codex/hooks/pre_tool_policy.py` resolves the Git top-level and rejects a source
+`git commit` when that live-lease check fails. `tests/test_pre_tool_policy.py` proves
+fresh, expired, state-only, subdirectory, `git -C`, and malformed-state cases. The
+controller remains execution authority; the hook is a fail-closed integration guard,
+not an alternate admission mechanism.
 
 ## Promotion and retirement
 

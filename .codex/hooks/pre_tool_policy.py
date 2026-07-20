@@ -8,6 +8,7 @@ import hashlib
 from datetime import datetime, timezone
 from pathlib import Path
 import re
+import shlex
 import subprocess
 import sys
 from typing import Any
@@ -67,10 +68,35 @@ def git_output(root: Path, *args: str) -> str:
     ).strip()
 
 
+def commit_repository(command: str, cwd: Path) -> Path | None:
+    try:
+        tokens = shlex.split(command)
+    except ValueError:
+        return None
+    for git_index, token in enumerate(tokens):
+        if token != "git":
+            continue
+        target = cwd
+        index = git_index + 1
+        while index < len(tokens) and tokens[index] != "commit":
+            if tokens[index] == "-C" and index + 1 < len(tokens):
+                candidate = Path(tokens[index + 1])
+                target = candidate if candidate.is_absolute() else target / candidate
+                index += 2
+                continue
+            index += 1
+        if index < len(tokens) and tokens[index] == "commit":
+            try:
+                return Path(git_output(target, "rev-parse", "--show-toplevel")).resolve()
+            except (OSError, subprocess.CalledProcessError):
+                return None
+    return None
+
+
 def active_goal_commit_denial(
     command: str, root: Path, now: datetime | None = None
 ) -> str | None:
-    if re.search(r"\bgit\s+commit\b", command, re.IGNORECASE) is None:
+    if re.search(r"\bgit\b[^\n;&|]*\bcommit\b", command, re.IGNORECASE) is None:
         return None
     try:
         staged = git_output(root, "diff", "--cached", "--name-only").splitlines()
@@ -82,7 +108,7 @@ def active_goal_commit_denial(
     try:
         active = json.loads((root / ".codex/goals/active.json").read_text())
     except (OSError, json.JSONDecodeError):
-        return None
+        return "valid active goal state is required before committing source"
     if active.get("state") == "complete":
         return None
     try:
@@ -123,7 +149,9 @@ def denial_reason(command: str, root: Path | None = None) -> str | None:
         if pattern.search(command):
             return reason
     if root is not None:
-        return active_goal_commit_denial(command, root)
+        repository = commit_repository(command, root)
+        if repository is not None:
+            return active_goal_commit_denial(command, repository)
     return None
 
 
