@@ -63,3 +63,9 @@ postcondition; prose or model self-report cannot substitute for it.
 The controller intentionally implements a Symphony-derived local subset. It
 does not claim full Symphony conformance, run Symphony, require Linear, create
 an HTTP surface, or replace repository Git/publication ownership.
+
+A failed goal remains immutable evidence. When its authority or phase contract is itself
+invalid, record the failed iteration, checkpoint `failed`, and use only the explicit
+`--replace-terminal true` initialization transition for the corrected successor goal.
+Source completion and publication remain separate goals when publication would otherwise
+make source completion depend on its own downstream external result.

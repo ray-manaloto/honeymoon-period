@@ -72,6 +72,11 @@ requireMatch(
   /Only request a human interview/,
   "AGENTS.md must reserve human interviews for unresolved ambiguity",
 );
+requireMatch(
+  agents,
+  /Serialize heavyweight aggregate and mechanical validation suites/,
+  "shared-worktree heavyweight validation must remain serialized",
+);
 
 const policy = read("docs/agents/adaptive-orchestration.md");
 for (const heading of [
@@ -125,6 +130,11 @@ requireMatch(
   /--match-head-commit/,
   "autonomous merge must atomically match the reviewed head",
 );
+requireMatch(
+  issueTracker,
+  /Source completion and publication are two distinct immutable phases\./,
+  "publication policy must keep source completion before publication",
+);
 
 const controller = read("scripts/symphony-controller.mjs");
 const mutationLock = read("scripts/mutation-lock.py");
@@ -143,6 +153,7 @@ for (const invariant of [
   ["resolve-question", "controller must support explicit ambiguity resolution"],
   ["claim-child", "controller must issue direct-child claims"],
   ["settle-child", "controller must settle direct-child claims"],
+  ["replaceTerminal", "controller must support explicit terminal-goal replacement"],
   ["distinct-child-claims-required", "final agent roles must use distinct child claims"],
   ["caller-child-count-forbidden", "controller must reject caller-authored child counts"],
   ["caller-repair-count-forbidden", "controller must reject caller-authored repair counts"],

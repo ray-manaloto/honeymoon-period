@@ -1199,7 +1199,7 @@ test("owned inputs must be readable in-root files and budgets have hard maxima",
   assert.match(unbounded.stderr, /invalid-max-runtime-ms/);
 });
 
-test("an explicit transition replaces only a completed goal and preserves history", () => {
+test("an explicit terminal transition replaces a completed goal and preserves history", () => {
   const root = createFixture();
   const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
   run(root, "checkpoint", {
@@ -1216,15 +1216,45 @@ test("an explicit transition replaces only a completed goal and preserves histor
     objective: "Exercise the next bounded goal",
     objectiveRef: "docs/goal.md",
     ownedInput: "owned/input.txt",
-    replaceComplete: true,
+    replaceTerminal: true,
     now: "2026-07-19T10:00:01.000Z",
   });
   assert.equal(initialized.action, "initialized");
   assert.equal(active(root).goalId, "replacement-goal");
   const records = history(root);
   assert.equal(records.length, previousHistoryLength + 2);
-  assert.equal(records.at(-2).type, "completed-goal-replaced");
+  assert.equal(records.at(-2).type, "terminal-goal-replaced");
+  assert.equal(records.at(-2).previousState, "complete");
   assert.equal(records.at(-2).previousGoalId, "fixture-goal");
+  assert.equal(records.at(-1).type, "goal-initialized");
+});
+
+test("an explicit terminal transition can replace a failed goal without erasing history", () => {
+  const root = createFixture();
+  const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
+  run(root, "checkpoint", {
+    failureFingerprint: "invalid-publication-phase-authority",
+    ownerToken: lease.ownerToken,
+    state: "failed",
+    now: "2026-07-19T10:00:00.100Z",
+  });
+  const previousHistoryLength = history(root).length;
+  const initialized = run(root, "init", {
+    ...authorityOptions,
+    goal: "corrected-source-goal",
+    objective: "Complete the source candidate before publication",
+    objectiveRef: "docs/goal.md",
+    ownedInput: "owned/input.txt",
+    replaceTerminal: true,
+    now: "2026-07-19T10:00:01.000Z",
+  });
+  assert.equal(initialized.action, "initialized");
+  assert.equal(active(root).goalId, "corrected-source-goal");
+  const records = history(root);
+  assert.equal(records.length, previousHistoryLength + 2);
+  assert.equal(records.at(-2).type, "terminal-goal-replaced");
+  assert.equal(records.at(-2).previousGoalId, "fixture-goal");
+  assert.equal(records.at(-2).previousState, "failed");
   assert.equal(records.at(-1).type, "goal-initialized");
 });
 

@@ -905,7 +905,10 @@ function initializeLocked(root, options, now) {
   let previousGoal = null;
   if (existsSync(controllerPaths.active)) {
     previousGoal = readJson(controllerPaths.active, "active-goal-invalid");
-    if (options.replaceComplete !== "true" || previousGoal.state !== "complete") {
+    if (
+      options.replaceTerminal !== "true" ||
+      !new Set(["complete", "failed"]).has(previousGoal.state)
+    ) {
       fail("active-goal-already-exists");
     }
     if (existsSync(controllerPaths.lease)) fail("completed-goal-lease-present");
@@ -963,8 +966,9 @@ function initializeLocked(root, options, now) {
       goalId: goal.goalId,
       previousGoalId: previousGoal.goalId,
       previousRevision: previousGoal.revision.fingerprint,
+      previousState: previousGoal.state,
       revision: goal.revision.fingerprint,
-      type: "completed-goal-replaced",
+      type: "terminal-goal-replaced",
     });
   }
   events.push(event(goal, now, "goal-initialized"));

@@ -89,8 +89,11 @@ For authorized tracker writes, capture a fresh complete snapshot, re-read each t
 immediately before its serialized mutation, record returned identifiers, and perform a
 postcondition read before the next write. Re-read before retrying an uncertain result.
 
-Run focused checks, the repository aggregate, and fresh semantic `ACCEPT` plus
-mechanical `PASS` gates. Publish only after both gates and a final dirty-tree audit.
+Run focused checks and the repository aggregate first. In a shared worktree, do not run
+heavyweight aggregate, controller, E2E, fixed-port, or shared-state-reset suites in
+parallel; start the fresh mechanical validator only after the root aggregate exits.
+Then obtain fresh semantic `ACCEPT` plus mechanical `PASS` gates. Publish only after both
+gates and a final dirty-tree audit.
 Final agents inspect the running candidate revision; the root verifies their collaboration
 output provenance and only then checkpoints completion with controller-bound report hashes.
 Use `docs/agents/handoff-template.md` whenever the lifecycle policy requires a new task.

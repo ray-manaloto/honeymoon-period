@@ -188,6 +188,16 @@ test("adaptive orchestration policy rejects a broken self-learning autonomy loop
       message: /autonomous merge must atomically match the reviewed head/,
     },
     {
+      path: "docs/agents/issue-tracker.md",
+      from: "Source completion and publication are two distinct immutable phases.",
+      message: /publication policy must keep source completion before publication/,
+    },
+    {
+      path: "AGENTS.md",
+      from: "Serialize heavyweight aggregate and mechanical validation suites",
+      message: /shared-worktree heavyweight validation must remain serialized/,
+    },
+    {
       path: ".codex/goals/CONTINUATION.md",
       from: "autonomous learning loop",
       message: /continuation must route admitted runs through the autonomous learning loop/,

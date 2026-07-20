@@ -115,6 +115,7 @@ authority.
 - Prefer `explorer`/`researcher` for read-heavy work, `prototype`/`worker` for isolated writes, `ios-specialist` for difficult Apple work, and `reviewer` after integration.
 - Prefer `web-specialist` for React-admin/Vite/Browser/Playwright work after a ticket and owned path are explicit.
 - Keep the root on GPT-5.6 Sol. Prefer the lower-model `verifier` for independent acceptance/evidence checks and `validator` for reproducible mechanical checks; use both after material integration when their work is independent.
+- Serialize heavyweight aggregate and mechanical validation suites in the shared worktree: the root completes the aggregate first, then the fresh validator runs its independent mechanical pass. Standards and semantic reviewers inspect bound aggregate evidence and must not start duplicate full suites, E2E runs, fixed-port servers, or shared-state resets concurrently.
 - Verification agents must be fresh, independent from implementers and from each other, and must not edit source or documentation. Verifiers return `ACCEPT`/`REJECT`; validators return `PASS`/`FAIL`. Both report exact commands or inspected evidence, paths and lines, failures, residual risks, and unverified behavior.
 - Final agents evaluate the current running candidate revision; their reports are inputs to
   the root's subsequent controller completion checkpoint. They must not reject solely
