@@ -2,8 +2,9 @@
 
 - **Question:** Which project documentation, agent documentation, skills, and
   workflow modules should change before the next project tasks?
-- **Status:** Research complete; implementation decisions remain with the root
-  and user.
+- **Status:** Historical workflow synthesis retained; its Phase 0 reconciliation is
+  complete and current product/tracker authority lives in the web MVP plan and
+  adaptive-orchestration goal log.
 - **Last verified:** 2026-07-17
 - **Research:** linked — six candidate-specific primary-source reports listed
   below.
@@ -105,7 +106,7 @@ reviewed, fresh dry-run report and re-read preconditions. The toolchain doctor
 must never invoke `npm ci`, `playwright install`, Cherri compilation, Shortcut
 signing/import/run, or Apple account/device inspection.
 
-## Recommended next-task roadmap
+## Historical next-task roadmap (completed or superseded)
 
 ### Phase 0 — one batched reconciliation decision
 

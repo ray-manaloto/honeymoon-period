@@ -1,6 +1,6 @@
 # Product requirements inventory
 
-- Status: approved MVP outcomes, preference/history semantics, and #20 Plan/calendar boundaries; merge semantics remain deferred
+- Status: approved MVP outcomes, preference/history semantics, #20 Plan/calendar boundaries, and #21 venue/source identity boundaries
 - Last updated: 2026-07-20
 
 ## Confirmed outcomes
@@ -111,9 +111,20 @@ An unauthenticated secret-link ICS projection is not part of V1 and remains defe
 to a separately approved interoperability pilot. The approved #20 product contract
 does not authorize implementation or any provider/calendar-read integration.
 
-## Remaining semantics to refine
+## Approved #21 venue and source identity boundary
 
-- When do different source links merge into one venue or event?
-- Which remaining semantics must be fixed before the API leaves local development?
+Venue deduplication never auto-merges. The system may propose a merge for explicit user
+confirmation only when either:
 
-Architecture and execution details live in the [approved web MVP plan](web-mvp-plan.md). These remaining product questions do not reopen the selected backend or web framework.
+- an exact authoritative provider venue ID matches; or
+- normalized name, full postal address, locality, and country all agree and no
+  provider venue IDs conflict.
+
+Coordinates may corroborate a proposal but never qualify one alone. Every source
+record and its provenance remains after confirmation so users can audit and correct
+identity decisions. Provider adapters, normalization algorithms, thresholds, and UX
+remain separately authorized implementation work, not open product semantics.
+
+Architecture and execution details live in the [approved web MVP plan](web-mvp-plan.md).
+These decisions do not reopen the selected backend or web framework and do not
+authorize #20/#21 implementation or tracker mutation.

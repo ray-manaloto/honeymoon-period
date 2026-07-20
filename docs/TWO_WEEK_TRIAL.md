@@ -22,7 +22,8 @@ Start with new links; do not bulk-import old iMessages.
 
 Record only observed friction:
 
-- Bad titles or duplicate venues: add a small link-resolution service.
-- Need structured fields or richer views: move the shared list to Notion.
-- Availability is the bottleneck: trial Howbout for scheduling.
-- Need independent scores, comments, automatic urgency, or venue-level merging: validate the approved API-first web MVP.
+- Record bad titles, duplicate venues, structured-field gaps, availability friction,
+  and ranking needs as historical baseline evidence. Do not add a resolver, migrate to
+  Notion, trial a scheduling authority, or reopen the accepted API-first path from this
+  retained checklist. Current product decisions and implementation authority live in
+  the repository product requirements and web MVP plan.

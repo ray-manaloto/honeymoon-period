@@ -255,7 +255,7 @@ their source-screening evidence.
 | [Calendar bake-off](bakeoff-calendar-scheduling.md) | Howbout remains the closest “undated idea to dated plan” model. Apple/Google remain primitives, not an idea system. | Preserve one stable Plan with complete immutable revision events, model recurring offers as templates plus discrete windows, expire dated windows deterministically, use a user-confirmed V1 calendar handoff, and keep availability reads out of V1. |
 | [Flexible-database bake-off](bakeoff-flexible-database-automation.md) | Notion remains a configurable but non-enforcing composition with capture and ownership gaps. | Reject it as a canonical path. |
 | [Reminders + Beli prototype](reminders-beli-prototype.md) | Shortcut capture remains valuable baseline evidence, while exact URL dedupe and partner setup remain known limits. | Retain baseline unchanged until an accepted replacement. |
-| [Link capture/enrichment baseline](link-capture-enrichment.md) | Provider parsing and venue identity remain unresolved, distinct concerns. | Do not infer venue merging from exact-link duplicate detection. |
+| [Link capture/enrichment baseline](link-capture-enrichment.md) | Provider parsing and identity-signal reliability remain unresolved implementation concerns; merge policy is now approved. | Do not infer a merge proposal from exact-link duplicate detection; apply the #21 evidence rule and retain provenance. |
 
 ## Deletion-test decision register
 
@@ -274,6 +274,7 @@ their source-screening evidence.
 | Link Presentation preview enrichment | **Adopt as optional enrichment** | Platform-native and failure-tolerant; never canonical identity. |
 | CloudKit collaboration or shared UI runtime | **Reject** | Creates a second provider-specific authority and conflicts with the accepted API-first path. |
 | AppAuth-iOS, SwiftSoup, or CalDAV client | **Defer behind measured need** | No candidate currently deletes more owned behavior than it adds. |
+| Cross-source venue deduplication | **User-confirmed proposals only** | Never auto-merge. Propose only for an exact authoritative provider venue ID, or normalized name plus full postal address and locality/country with no conflicting provider IDs. Coordinates only corroborate; retain every source record and provenance. |
 
 ## Approved decisions
 
@@ -304,17 +305,26 @@ their source-screening evidence.
   design and defaults to explicit opt-in free/busy intervals only. It must not ingest
   event titles, descriptions, attendees, locations, or persist unrelated calendar
   data. Approved by the user on 2026-07-20.
+- **Venue deduplication never auto-merges.** A merge may only be proposed for user
+  confirmation when either an exact authoritative provider venue ID matches, or the
+  normalized name plus full postal address and locality/country agree with no
+  conflicting provider IDs. Coordinates may corroborate but never qualify a proposal
+  alone. Every source record and its provenance remains after confirmation. Approved
+  by the user on 2026-07-20.
 
-## Unresolved decisions for Grilling
+## Grilling result
 
-1. Before public deployment, which fields constitute enough same-venue evidence to
-   propose a merge without silently merging independently captured sources? This is
-   the #21 decision and remains separate from URL normalization.
+The material #20 and #21 product choices nominated by this report are approved. This
+does not authorize implementation, tracker mutation, deployment, calendar access, or a
+roadmap rewrite. Provider-ID reliability, normalization behavior, and correction UX
+remain implementation hypotheses to verify with synthetic fixtures under a separately
+approved product slice.
 
 ## Evidence limits
 
 No source establishes offline native Share Extension behavior, universal parser
-coverage, calendar sync conflict handling, private availability UX, or safe cross-
-source venue merging for this product. Those remain testable hypotheses, not claims.
+coverage, calendar sync conflict handling, provider-ID reliability, normalization
+accuracy, or correction UX for this product. Those remain testable hypotheses, not
+claims.
 Any bounded pilot must use synthetic data and retain the existing local API-first
 contract.
