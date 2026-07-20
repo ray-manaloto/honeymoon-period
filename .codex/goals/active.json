@@ -1,70 +1,53 @@
 {
   "schemaVersion": 2,
-  "goalId": "self-learning-autonomy-loop",
-  "objectiveFingerprint": "429b78ea87394d1341c81bed3aae6f0cd0bbb4a413d011126295fad8013ef5f2",
+  "authority": {
+    "branch": "codex/self-learning-autonomy-loop",
+    "completionContractRef": "docs/agents/adaptive-orchestration.md#completion-contract",
+    "externalCompletion": "not-required",
+    "last30days": {
+      "evidenceRef": "docs/research/research-first-agent-workflow.md#last30days-supplement",
+      "reasonCode": null,
+      "status": "reused"
+    },
+    "prohibitedActionsRef": "AGENTS.md#product-priorities",
+    "research": {
+      "evidenceRef": "docs/research/bakeoff-restaurant-shared-list.md",
+      "reasonCode": null,
+      "status": "reused"
+    }
+  },
+  "goalId": "adjacent-capture-calendar-research",
+  "objectiveFingerprint": "a879f93a16dfed2b08714f786e2a2f901dad3075da86b2eca9484330dcf4c3e0",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "complete",
+  "state": "ready",
   "reason": null,
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
-    "fingerprint": "a2eefe4229775b69986f2ebd7307d8aac143252d3b31dfa87aa1a6985d0c3032",
+    "fingerprint": "3c192fa0fed841b9488e686edb7b1c988ea4205b9d5566d20217558ac9419098",
     "head": "c6587ff6e425424565fea218aedbb6d0f0e6da66",
-    "ownedManifest": "8655b4ecc72e6e0255e72fb47f02ad68e30c1926b1d40583a044bdaaeb8db92c",
+    "ownedManifest": "ddea1752aaae180b6d9a059f86a2d5faedd67c121aa31796c36e9547a7a1e853",
     "ownedInputs": [
-      "AGENTS.md",
       "docs/agents/adaptive-orchestration.md",
-      ".agents/skills/adaptive-orchestration/SKILL.md",
-      ".codex/goals/CONTINUATION.md",
-      "docs/agents/issue-tracker.md",
-      "docs/learning/README.md",
-      "docs/learning/TEMPLATE.md",
-      "docs/research/codex-autonomy-quality-loops.md",
-      "docs/research/codex-autonomous-goal-continuation.md",
-      "scripts/check-adaptive-orchestration.mjs",
-      "tests/tooling.test.mjs",
-      "docs/learning/2026-07-19-autonomous-review-repair-loop.md",
-      "docs/research/README.md",
-      "docs/research/codex-autonomy-release-capability-inventory.md",
-      "docs/research/codex-autonomy-workflow-primitives.md",
-      "docs/research/autonomous-agent-orchestration-trends.md",
-      "scripts/symphony-controller.mjs",
-      "tests/symphony-controller.test.mjs",
-      ".gitignore",
-      "scripts/mutation-lock.py",
-      "biome.json",
-      "tests/support/symphony-controller-harness.mjs"
+      "docs/research/adjacent-capture-calendar-landscape.md",
+      "docs/research/README.md"
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 18,
+  "leaseEpoch": 0,
+  "lastWakeTokenHash": null,
   "question": null,
   "run": null,
   "evidence": {
-    "current": [
-      {
-        "aggregateRecordHash": "a8dff2f3d9e8fb16498fc6d2d8aae39538df3087ff50fe75f253ee305c835704",
-        "at": "2026-07-20T00:20:11.845Z",
-        "completionRecordHash": "b769652b21c1d8723c1ffa77988dead921d34d33868a24504f16c0da34e3ca6d",
-        "protectedArtifactRecordHash": "e3fa64928bfae2a34a3764cc105e330f4e2bca67bc623792bb8e6f1c2e23ead8",
-        "retrospectiveCode": "no-new-lesson",
-        "retrospectiveRecordHash": "423c2310d969e4fc48884bcf15d4939f8dd167763702e97670bf29d8a3b4ab4f",
-        "revision": "a2eefe4229775b69986f2ebd7307d8aac143252d3b31dfa87aa1a6985d0c3032",
-        "reviewerAgent": "45bc7ae59b67c6a2234dce8c24fa444af4228a59a994db0aaa670878fa0ba5e1",
-        "reviewerRecordHash": "2e7035aaa6998fa6c382d7d44cdcf2ee6c1554f71e0af54eb376b7a143b226e7",
-        "reviewerVerdict": "PASS",
-        "validatorAgent": "cd44d13a74a3bbfec97aac25cac098b7a0f1628b72fac19bf9071450813314e1",
-        "validatorRecordHash": "a65d314aeaf24484d181fdaf2ddde7434a23b05661845a0e4a983bdb0771c154",
-        "validatorVerdict": "PASS",
-        "verifierAgent": "db1b55e90a5e2ff4620ad3c4351b23b9de976ef4175935225aca0cd370ffd411",
-        "verifierRecordHash": "637874bb7305012eaf3af5d07c536bebb852bc7e0826e7d2826efea97412d6a4",
-        "verifierVerdict": "ACCEPT"
-      }
-    ]
+    "current": []
+  },
+  "learning": {
+    "completed": [],
+    "enforceFromRevision": "3c192fa0fed841b9488e686edb7b1c988ea4205b9d5566d20217558ac9419098"
   },
   "budgets": {
     "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 18
+    "runsUsed": 0
   },
   "policy": {
     "maxDirectChildren": 3,
@@ -72,92 +55,5 @@
     "maxRetries": 3,
     "maxRuntimeMs": 1800000,
     "ttlMs": 300000
-  },
-  "authority": {
-    "branch": "codex/self-learning-autonomy-loop",
-    "completionContractRef": "docs/agents/adaptive-orchestration.md#completion-contract",
-    "externalCompletion": "not-required",
-    "last30days": {
-      "evidenceRef": "docs/research/README.md",
-      "reasonCode": null,
-      "status": "reused"
-    },
-    "prohibitedActionsRef": "AGENTS.md#product-priorities",
-    "research": {
-      "evidenceRef": "docs/research/codex-autonomy-quality-loops.md",
-      "reasonCode": null,
-      "status": "reused"
-    }
-  },
-  "learning": {
-    "completed": [
-      {
-        "at": "2026-07-19T22:28:33.919Z",
-        "retrospectiveCode": "linked",
-        "retrospectiveRecordHash": "ca0bd985ab3765e17addd4c966d50a49889c0cda3d4b914a42aee7266f316b74",
-        "reviewerAgent": "36730238dce9fdfed4bfc01da637ae40c3481b1c9a11a92bb971b4b08e0896bc",
-        "reviewerRecordHash": "cda08f0c2c591904f8ccf4f6fc5a99dc9f052046972342235cd8b2b87d90489d",
-        "reviewerVerdict": "FAIL",
-        "revision": "54515c023b2443a38227ef28460666cc7ae9cc9e16c30b97d85d6d1479be1c88"
-      },
-      {
-        "at": "2026-07-19T22:37:51.103Z",
-        "retrospectiveCode": "linked",
-        "retrospectiveRecordHash": "dd71a060535cd987a916d50ca2c96855d77ebfee95407d8ea5c5d9cfabb64a02",
-        "reviewerAgent": "39daba179bd01064477330bcf91b6601a3d7125cbd52146415d233874a4e51b9",
-        "reviewerRecordHash": "ce499286be2823b86f00dc56f0d9faf6f8b75f53db42119f6959704f41d30a6f",
-        "reviewerVerdict": "FAIL",
-        "revision": "3fdb2dc633449a0adb1f3ef645e14fa75ed32e384fa595214fe1748510bc4304"
-      },
-      {
-        "at": "2026-07-19T22:50:50.680Z",
-        "retrospectiveCode": "promoted",
-        "retrospectiveRecordHash": "e5d2d99fe8ac61dcdf91bfc377b2eb5d85396b0bbab96026fcd241eaabe149f1",
-        "reviewerAgent": "5f810963f7ec0ffdd28367daaf90f7eb0564587271236797811ad81d8656da99",
-        "reviewerRecordHash": "2abec0c94d67c54432ee0aedbbf21a03db287354eb4ee7d3a0c5af9e74811d7c",
-        "reviewerVerdict": "FAIL",
-        "revision": "490933e95c950860e13065d5879c71551ade97f2f4b5d1eb364bdfb85736a8bf"
-      },
-      {
-        "at": "2026-07-19T23:21:38.464Z",
-        "retrospectiveCode": "promoted",
-        "retrospectiveRecordHash": "f5e77e6c08adfb25fe2211db7ed66e58b597a0d3906cbd74685e6b2ebdf26243",
-        "reviewerAgent": "0c801eeb13d9f4ccdc07dc40b6cf139ff61c16f9fe84a633e64738b10841a66d",
-        "reviewerRecordHash": "57ad2efa9098e124c4a3960a75de7ac9d02a39ec4939712abeac89d0f2a13708",
-        "reviewerVerdict": "FAIL",
-        "revision": "441103b71a64ae0ac6f310eafe91b5879303c132ff7a93ef37c7b6f1cbfb1c9f"
-      },
-      {
-        "at": "2026-07-19T23:43:49.166Z",
-        "retrospectiveCode": "promoted",
-        "retrospectiveRecordHash": "987897a3b8e505e5852329ab7a38317058c35640664e948030cd293473817308",
-        "reviewerAgent": "1dcf40db79d267fa40e04c4be170893cd9bf730c7598b4a2170eb0b7b9ce9eed",
-        "reviewerRecordHash": "d3c7e4d04ecaa88bde87dc2ef831afe1eb6141d702427d67ad5cd628b54059db",
-        "reviewerVerdict": "FAIL",
-        "revision": "54ebc8f366d3aee9e9e288f1f8be8496d6f45e15df823d6e4152730ccf01f589"
-      },
-      {
-        "at": "2026-07-20T00:02:50.955Z",
-        "retrospectiveCode": "promoted",
-        "retrospectiveRecordHash": "3491cda9c1b087d2b9ac753e9290a4de0b6ba8edbb50e62e4cfbcfdc2fc3f2b1",
-        "reviewerAgent": "817c6d41abff43392cf363559608c0aa0e2fb6b942c12d02cf1a7ff40dae85cc",
-        "reviewerRecordHash": "86ecd5d41b30b6f84c601d5d7436c9a2cb4899265c6cc5ae10407d8bab31e423",
-        "reviewerVerdict": "FAIL",
-        "revision": "e2bbec1010a3656a40741c30456a4171e92151ca019c857aa30a86029cf96f38"
-      },
-      {
-        "at": "2026-07-20T00:20:11.845Z",
-        "retrospectiveCode": "no-new-lesson",
-        "retrospectiveRecordHash": "423c2310d969e4fc48884bcf15d4939f8dd167763702e97670bf29d8a3b4ab4f",
-        "reviewerAgent": "45bc7ae59b67c6a2234dce8c24fa444af4228a59a994db0aaa670878fa0ba5e1",
-        "reviewerRecordHash": "2e7035aaa6998fa6c382d7d44cdcf2ee6c1554f71e0af54eb376b7a143b226e7",
-        "reviewerVerdict": "PASS",
-        "revision": "a2eefe4229775b69986f2ebd7307d8aac143252d3b31dfa87aa1a6985d0c3032"
-      }
-    ],
-    "enforceFromRevision": "a2eefe4229775b69986f2ebd7307d8aac143252d3b31dfa87aa1a6985d0c3032"
-  },
-  "lastWakeTokenHash": "4a37e08fc04d8ac02e6785bf4b9917ae007f9ffe24e8ac089de8deec71deb196",
-  "waiting": null,
-  "lastCheckpointId": "47667cbb-6a41-4923-973e-7cd841815c88"
+  }
 }
