@@ -158,11 +158,13 @@ def active_goal_commit_denial(
         if renewal is not None and not isinstance(renewal, dict):
             raise TypeError("invalid lease renewal")
         effective_expiry = owner["expiresAt"]
-        if (
-            renewal
-            and renewal.get("ownerToken") == owner.get("ownerToken")
-            and renewal.get("epoch") == owner.get("epoch")
-        ):
+        if renewal is not None:
+            if (
+                renewal.get("ownerToken") != owner.get("ownerToken")
+                or renewal.get("epoch") != owner.get("epoch")
+                or "expiresAt" not in renewal
+            ):
+                raise TypeError("invalid lease renewal")
             effective_expiry = renewal["expiresAt"]
         expires_at = datetime.fromisoformat(effective_expiry.replace("Z", "+00:00"))
         current_time = now or datetime.now(timezone.utc)

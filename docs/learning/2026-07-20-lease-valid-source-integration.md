@@ -24,8 +24,9 @@ fresh, expired, state-only, subdirectory, `git -C`, and malformed-state cases. T
 state-only exemption accepts only command forms that cannot add unstaged paths; `-a`
 and explicit pathspecs remain lease-gated. Goal JSON and its state enum are validated
 before any exemption; alternate indexes, invalid object shapes, and timezone-less
-expiry values fail closed. The controller remains execution authority; the hook is a
-fail-closed integration guard, not an alternate admission mechanism.
+expiry values fail closed. A present renewal must match the owner token and epoch and
+carry a timezone-aware expiry. The controller remains execution authority; the hook
+is a fail-closed integration guard, not an alternate admission mechanism.
 
 ## Promotion and retirement
 

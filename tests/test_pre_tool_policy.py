@@ -106,6 +106,29 @@ class PreToolPolicyTests(unittest.TestCase):
                     f"git -C {root} commit -m source", subdirectory
                 )
             )
+            renewal_path = lease_dir / "renewal.json"
+            valid_renewal = {
+                "ownerToken": owner_token,
+                "epoch": 1,
+                "expiresAt": (now + timedelta(minutes=6)).isoformat(),
+            }
+            renewal_path.write_text(json.dumps(valid_renewal))
+            self.assertIsNone(POLICY.active_goal_commit_denial("git commit -m source", root, now))
+            invalid_renewals = (
+                {},
+                {"ownerToken": owner_token, "epoch": 1},
+                {**valid_renewal, "ownerToken": "wrong"},
+                {**valid_renewal, "epoch": 2},
+                {**valid_renewal, "expiresAt": "invalid"},
+                {**valid_renewal, "expiresAt": "2026-07-20T00:06:00"},
+            )
+            for renewal in invalid_renewals:
+                with self.subTest(renewal=renewal):
+                    renewal_path.write_text(json.dumps(renewal))
+                    self.assertIsNotNone(
+                        POLICY.active_goal_commit_denial("git commit -m source", root, now)
+                    )
+            renewal_path.unlink()
             (goal_dir / "active.json").write_text("{}")
             self.assertIsNotNone(
                 POLICY.active_goal_commit_denial("git commit -m source", root, now)
