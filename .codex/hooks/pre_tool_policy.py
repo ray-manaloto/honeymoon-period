@@ -93,6 +93,30 @@ def commit_repository(command: str, cwd: Path) -> Path | None:
     return None
 
 
+def state_only_commit_form(command: str) -> bool:
+    try:
+        tokens = shlex.split(command)
+    except ValueError:
+        return False
+    try:
+        index = tokens.index("commit") + 1
+    except ValueError:
+        return False
+    while index < len(tokens):
+        token = tokens[index]
+        if token in {"-m", "--message"}:
+            index += 2
+            continue
+        if token.startswith("--message=") or (token.startswith("-m") and len(token) > 2):
+            index += 1
+            continue
+        if token in {"--allow-empty", "--allow-empty-message", "--no-verify", "-q", "--quiet"}:
+            index += 1
+            continue
+        return False
+    return True
+
+
 def active_goal_commit_denial(
     command: str, root: Path, now: datetime | None = None
 ) -> str | None:
@@ -103,7 +127,7 @@ def active_goal_commit_denial(
     except (OSError, subprocess.CalledProcessError):
         return None
     state_paths = {".codex/goals/active.json", ".codex/goals/history.jsonl"}
-    if staged and set(staged) <= state_paths:
+    if staged and set(staged) <= state_paths and state_only_commit_form(command):
         return None
     try:
         active = json.loads((root / ".codex/goals/active.json").read_text())

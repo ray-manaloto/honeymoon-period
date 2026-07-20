@@ -120,8 +120,17 @@ class PreToolPolicyTests(unittest.TestCase):
             goal_dir = root / ".codex/goals"
             goal_dir.mkdir(parents=True)
             (goal_dir / "active.json").write_text('{"state":"ready"}\n')
+            (root / "source.txt").write_text("one\n")
+            subprocess.run(["git", "add", ".codex/goals/active.json", "source.txt"], cwd=root, check=True)
+            subprocess.run(["git", "commit", "-qm", "fixture"], cwd=root, check=True)
+            (goal_dir / "active.json").write_text('{"state":"ready","reason":"state"}\n')
+            (root / "source.txt").write_text("two\n")
             subprocess.run(["git", "add", ".codex/goals/active.json"], cwd=root, check=True)
             self.assertIsNone(POLICY.active_goal_commit_denial("git commit -m state", root))
+            self.assertIsNotNone(POLICY.active_goal_commit_denial("git commit -am mixed", root))
+            self.assertIsNotNone(
+                POLICY.active_goal_commit_denial("git commit source.txt -m mixed", root)
+            )
 
 
 if __name__ == "__main__":
