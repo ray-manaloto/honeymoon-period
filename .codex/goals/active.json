@@ -19,13 +19,13 @@
   "goalId": "adjacent-capture-calendar-research",
   "objectiveFingerprint": "a879f93a16dfed2b08714f786e2a2f901dad3075da86b2eca9484330dcf4c3e0",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "running",
-  "reason": null,
+  "state": "ready",
+  "reason": "revision-changed",
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
-    "fingerprint": "b59c43a78818c06bd0874d31149446bf6ad6af5c0432aa7e575a1fbe27f49c5a",
-    "head": "836e3444efc2a02d34b5a2d6bf7523e29773f525",
-    "ownedManifest": "ee1d4d96f1031a3039eb96305c483c51afbb5fa4c34d2c4909b92905606b8299",
+    "fingerprint": "e87781f02d001fffd6fd2a3ca15cd8afd2fe38648e234b169ee74f29a5edef33",
+    "head": "80bd47b91ea9a895a9422893175d14fb77b68a89",
+    "ownedManifest": "6ebc9e80335e6b3b93fbdbeb0207cdc6bcc351bbd0a23defd34fd3f92f454c5e",
     "ownedInputs": [
       "docs/agents/adaptive-orchestration.md",
       "docs/research/adjacent-capture-calendar-landscape.md",
@@ -44,24 +44,7 @@
   "leaseEpoch": 16,
   "lastWakeTokenHash": "fcc96a4eb3c65cddb469d96a05af64548aa2f13a653daaa395d864dc14baffb6",
   "question": null,
-  "run": {
-    "childClaims": [
-      {
-        "epoch": 16,
-        "head": "099a6a640f931e511b7cb2bd67a6dccabb707361",
-        "manifest": "ee1d4d96f1031a3039eb96305c483c51afbb5fa4c34d2c4909b92905606b8299",
-        "revision": "b59c43a78818c06bd0874d31149446bf6ad6af5c0432aa7e575a1fbe27f49c5a",
-        "role": "standards-review",
-        "status": "completed",
-        "taskRefHash": "5fcd35e0d14bca97fd3bae5a286814fded3cb707df396b28815b1826b2824f61",
-        "tokenHash": "e9921e89d1d308f49f4fd2dbf0c4719fd11de338395e360cb2cd6290a1ec2305",
-        "settledAt": "2026-07-20T20:46:54.777Z"
-      }
-    ],
-    "deadlineAt": "2026-07-20T21:13:25.602Z",
-    "ownerTokenHash": "a576d5eec409e78e0932b47c31633e07ad17ef2cbb64a92b1623d594d3c26f7a",
-    "startedAt": "2026-07-20T20:43:25.602Z"
-  },
+  "run": null,
   "evidence": {
     "current": []
   },
@@ -167,7 +150,7 @@
         "revision": "b59c43a78818c06bd0874d31149446bf6ad6af5c0432aa7e575a1fbe27f49c5a"
       }
     ],
-    "enforceFromRevision": "b59c43a78818c06bd0874d31149446bf6ad6af5c0432aa7e575a1fbe27f49c5a"
+    "enforceFromRevision": "e87781f02d001fffd6fd2a3ca15cd8afd2fe38648e234b169ee74f29a5edef33"
   },
   "budgets": {
     "repairCyclesUsed": 0,
