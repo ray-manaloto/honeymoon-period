@@ -272,18 +272,22 @@ their source-screening evidence.
 | CloudKit collaboration or shared UI runtime | **Reject** | Creates a second provider-specific authority and conflicts with the accepted API-first path. |
 | AppAuth-iOS, SwiftSoup, or CalDAV client | **Defer behind measured need** | No candidate currently deletes more owned behavior than it adds. |
 
+## Approved decisions
+
+- **Calendar V1 is user-confirmed EventKit system-editor export only.** It performs
+  no calendar reads and no managed synchronization. Unauthenticated secret-link ICS
+  remains deferred to a separately approved post-V1 interoperability pilot.
+  Approved by the user on 2026-07-20.
+
 ## Unresolved decisions for Grilling
 
-1. Is the first calendar outcome deliberately **export-only via a user-confirmed
-   editor**, with secret-link ICS retained only as a later one-way interoperability
-   option, or does the product require managed synchronization from the outset?
-2. When dates change or a plan is cancelled, should history preserve one Plan with
+1. When dates change or a plan is cancelled, should history preserve one Plan with
    revisions, or create a replacement occurrence linked to the original candidate?
-3. Do “recurring offers” mean repeatable templates (for example, weekly happy hour),
+2. Do “recurring offers” mean repeatable templates (for example, weekly happy hour),
    discrete time windows, or both? This changes the model and ranking semantics.
-4. Is private availability a future convenience feature limited to free/busy, or is it
+3. Is private availability a future convenience feature limited to free/busy, or is it
    explicitly out of scope until a provider/consent design is approved?
-5. Before public deployment, which fields constitute enough same-venue evidence to
+4. Before public deployment, which fields constitute enough same-venue evidence to
    propose a merge without silently merging independently captured sources? This is
    the #21 decision and remains separate from URL normalization.
 
