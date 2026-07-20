@@ -5,43 +5,41 @@
     "completionContractRef": "docs/agents/adaptive-orchestration.md#completion-contract",
     "externalCompletion": "not-required",
     "last30days": {
-      "evidenceRef": "docs/research/research-first-agent-workflow.md#last30days-supplement",
+      "evidenceRef": "docs/research/adjacent-capture-calendar-landscape.md#6-recent-practitioner-discovery-supports-simplicity-not-a-new-feature",
       "reasonCode": null,
-      "status": "reused"
+      "status": "linked"
     },
     "prohibitedActionsRef": "AGENTS.md#product-priorities",
     "research": {
-      "evidenceRef": "docs/research/bakeoff-restaurant-shared-list.md",
+      "evidenceRef": "docs/research/adjacent-capture-calendar-landscape.md",
       "reasonCode": null,
-      "status": "reused"
+      "status": "linked"
     }
   },
   "goalId": "adjacent-capture-calendar-research",
   "objectiveFingerprint": "a879f93a16dfed2b08714f786e2a2f901dad3075da86b2eca9484330dcf4c3e0",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "running",
-  "reason": null,
+  "state": "ready",
+  "reason": "revision-changed",
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
-    "fingerprint": "c074dd6ee3e2e5489f55cc5560f880b37734935eeaeaf662d0221fe263d4c362",
-    "head": "6ec29c1026fbb5970368916105ed9acf62059e6e",
-    "ownedManifest": "8298f2364dacecbefb5d4bb339296aa62a92ac32674085394efc746fc6e7319d",
+    "fingerprint": "4af084760a1aa73f73c4864b6abf841b9c56bf1c8a87cfbc47a2f1d28085feba",
+    "head": "d61af86363b9175e9ab10c5791241e68da535f8f",
+    "ownedManifest": "b02dfe5fa21088229121f3a07874169a4492d006149fccb3f3cf65c096ea05a6",
     "ownedInputs": [
       "docs/agents/adaptive-orchestration.md",
       "docs/research/adjacent-capture-calendar-landscape.md",
-      "docs/research/README.md"
+      "docs/research/README.md",
+      "scripts/symphony-controller.mjs",
+      "tests/symphony-controller.test.mjs",
+      "docs/research/calendar-scheduling.md"
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
   "leaseEpoch": 3,
   "lastWakeTokenHash": "a07e79b435352a5126952e3efb6bc534ddd4ad030eeec6cfb922cdb04e31e447",
   "question": null,
-  "run": {
-    "childClaims": [],
-    "deadlineAt": "2026-07-20T19:17:22.891Z",
-    "ownerTokenHash": "a9c69cd772e65986498e3d0266ae9e01be5dbff62927a120c81a88d16784ec32",
-    "startedAt": "2026-07-20T18:47:22.891Z"
-  },
+  "run": null,
   "evidence": {
     "current": []
   },
@@ -57,7 +55,7 @@
         "revision": "c074dd6ee3e2e5489f55cc5560f880b37734935eeaeaf662d0221fe263d4c362"
       }
     ],
-    "enforceFromRevision": "c074dd6ee3e2e5489f55cc5560f880b37734935eeaeaf662d0221fe263d4c362"
+    "enforceFromRevision": "4af084760a1aa73f73c4864b6abf841b9c56bf1c8a87cfbc47a2f1d28085feba"
   },
   "budgets": {
     "repairCyclesUsed": 0,
