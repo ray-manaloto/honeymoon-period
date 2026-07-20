@@ -20,7 +20,7 @@
   "objectiveFingerprint": "a879f93a16dfed2b08714f786e2a2f901dad3075da86b2eca9484330dcf4c3e0",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
   "state": "ready",
-  "reason": "revision-changed",
+  "reason": "operator-input-received",
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
     "fingerprint": "9e0258cca077f4cf68dfb0c70a33826816078be3035804e9cdef81277b755592",
@@ -41,8 +41,8 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 12,
-  "lastWakeTokenHash": "7044d6e782ad8ec56c48336d63e3091b809c8909eed8b46dbfd1cf58d938e55e",
+  "leaseEpoch": 13,
+  "lastWakeTokenHash": "c812d0653dd137d9ad9f0c6f56156dc92483aa72b293f7cd839986fca9275aef",
   "question": null,
   "run": null,
   "evidence": {
@@ -121,6 +121,15 @@
         "reviewerRecordHash": "9dd978e8f9965e44be510f6ca13785d4217b7469b7bfea877980bfcb553fda6d",
         "reviewerVerdict": "PASS",
         "revision": "5057da6debeeae8f6048e906c3639a3fdbf6ef54d9f4be7ea82ec7a300882330"
+      },
+      {
+        "at": "2026-07-20T20:32:54.725Z",
+        "retrospectiveCode": "no-new-lesson",
+        "retrospectiveRecordHash": "3e08c59a2036ca580aa8cb67b205dca7749b52d04e140422110a8436c43a1000",
+        "reviewerAgent": "5d4783deeaca182593f7046ac3f9d6180d2b5b9e5b88faab00ddf4e70cb3b20a",
+        "reviewerRecordHash": "37208d8c1cd84c75446f6ba3368f53b6c41ee329030c1e4c0f6bed21f5500ed9",
+        "reviewerVerdict": "PASS",
+        "revision": "9e0258cca077f4cf68dfb0c70a33826816078be3035804e9cdef81277b755592"
       }
     ],
     "enforceFromRevision": "9e0258cca077f4cf68dfb0c70a33826816078be3035804e9cdef81277b755592"
@@ -128,7 +137,7 @@
   "budgets": {
     "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 12
+    "runsUsed": 13
   },
   "policy": {
     "maxDirectChildren": 3,
@@ -138,5 +147,5 @@
     "ttlMs": 300000
   },
   "waiting": null,
-  "lastCheckpointId": "0626fcdb-5807-4b17-b751-398996edf053"
+  "lastCheckpointId": "46cffdbb-73cf-4b45-be87-ed7806a3d6d0"
 }
