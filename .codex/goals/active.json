@@ -19,8 +19,8 @@
   "goalId": "adjacent-capture-calendar-research",
   "objectiveFingerprint": "a879f93a16dfed2b08714f786e2a2f901dad3075da86b2eca9484330dcf4c3e0",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "ready",
-  "reason": "revision-changed",
+  "state": "blocked",
+  "reason": null,
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
     "fingerprint": "8c3a3e9e71e2417910768bff15b9bd91ed33435e5147a7870462fb49cdd3bace",
@@ -41,9 +41,14 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 17,
-  "lastWakeTokenHash": "b1f2dda43955cf0f4055109ab7590aa154de80ac4888c8b96a528dde1b8b6961",
-  "question": null,
+  "leaseEpoch": 18,
+  "lastWakeTokenHash": "ec6f1698c838e0b01d68fd5212d9ae80e5fe018996a22b8f1e6f0642915697e5",
+  "question": {
+    "createdAt": "2026-07-20T21:02:46.648Z",
+    "emitted": false,
+    "emittedAt": null,
+    "fingerprint": "4e9aea9fe6f8d4d2d0e109a4360ef474e240f8113620f8b062d3da6186a8b8f6"
+  },
   "run": null,
   "evidence": {
     "current": []
@@ -157,6 +162,15 @@
         "reviewerRecordHash": "f466804738d98bacde0bfec86bf883c95c75036548b0cc2a554b87a5dabad673",
         "reviewerVerdict": "FAIL",
         "revision": "e87781f02d001fffd6fd2a3ca15cd8afd2fe38648e234b169ee74f29a5edef33"
+      },
+      {
+        "at": "2026-07-20T21:02:36.237Z",
+        "retrospectiveCode": "no-new-lesson",
+        "retrospectiveRecordHash": "979fe3324771ada57e313c7bcebdae920a3631ab004267a5e4ecb572f37811af",
+        "reviewerAgent": "bc2314ab654055cb76e6d2a96f46bcd8f40b687df34f9b4765daea0b730f805e",
+        "reviewerRecordHash": "250a2a74fbba9c3aaea80892b659641e207b6ffeb9582ed361e565c57c2672ae",
+        "reviewerVerdict": "PASS",
+        "revision": "8c3a3e9e71e2417910768bff15b9bd91ed33435e5147a7870462fb49cdd3bace"
       }
     ],
     "enforceFromRevision": "8c3a3e9e71e2417910768bff15b9bd91ed33435e5147a7870462fb49cdd3bace"
@@ -164,7 +178,7 @@
   "budgets": {
     "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 17
+    "runsUsed": 18
   },
   "policy": {
     "maxDirectChildren": 3,
@@ -174,5 +188,5 @@
     "ttlMs": 300000
   },
   "waiting": null,
-  "lastCheckpointId": "46cffdbb-73cf-4b45-be87-ed7806a3d6d0"
+  "lastCheckpointId": "b8daf337-1dec-49a3-b62d-6f31c8b8c450"
 }
