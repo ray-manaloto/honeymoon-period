@@ -110,6 +110,12 @@ class PreToolPolicyTests(unittest.TestCase):
             self.assertIsNotNone(
                 POLICY.active_goal_commit_denial("git commit -m source", root, now)
             )
+            (goal_dir / "active.json").write_text(json.dumps(active))
+            owner["expiresAt"] = "2026-07-20T00:05:00"
+            (lease_dir / "owner.json").write_text(json.dumps(owner))
+            self.assertIsNotNone(
+                POLICY.active_goal_commit_denial("git commit -m source", root, now)
+            )
 
     def test_state_only_goal_commit_does_not_require_a_work_lease(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -138,6 +144,15 @@ class PreToolPolicyTests(unittest.TestCase):
             (goal_dir / "active.json").write_text("{}")
             self.assertIsNotNone(
                 POLICY.active_goal_commit_denial("git commit -m invalid-state", root)
+            )
+            (goal_dir / "active.json").write_text("[]")
+            self.assertIsNotNone(
+                POLICY.active_goal_commit_denial("git commit -m invalid-shape", root)
+            )
+            self.assertIsNotNone(
+                POLICY.active_goal_commit_denial(
+                    "GIT_INDEX_FILE=/tmp/alternate git commit -m alternate", root
+                )
             )
 
 

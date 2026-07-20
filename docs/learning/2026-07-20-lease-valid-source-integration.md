@@ -23,7 +23,8 @@ remain possible after reconciliation so the controller can persist its durable s
 fresh, expired, state-only, subdirectory, `git -C`, and malformed-state cases. The
 state-only exemption accepts only command forms that cannot add unstaged paths; `-a`
 and explicit pathspecs remain lease-gated. Goal JSON and its state enum are validated
-before any exemption. The controller remains execution authority; the hook is a
+before any exemption; alternate indexes, invalid object shapes, and timezone-less
+expiry values fail closed. The controller remains execution authority; the hook is a
 fail-closed integration guard, not an alternate admission mechanism.
 
 ## Promotion and retirement

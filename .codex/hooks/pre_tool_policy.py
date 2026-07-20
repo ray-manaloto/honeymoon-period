@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import hashlib
 from datetime import datetime, timezone
+import os
 from pathlib import Path
 import re
 import shlex
@@ -94,9 +95,13 @@ def commit_repository(command: str, cwd: Path) -> Path | None:
 
 
 def state_only_commit_form(command: str) -> bool:
+    if os.environ.get("GIT_INDEX_FILE"):
+        return False
     try:
         tokens = shlex.split(command)
     except ValueError:
+        return False
+    if not tokens or tokens[0] != "git":
         return False
     try:
         index = tokens.index("commit") + 1
@@ -130,7 +135,7 @@ def active_goal_commit_denial(
         active = json.loads((root / ".codex/goals/active.json").read_text())
     except (OSError, json.JSONDecodeError):
         return "valid active goal state is required before committing source"
-    if active.get("state") not in {
+    if not isinstance(active, dict) or active.get("state") not in {
         "ready",
         "running",
         "waiting",
@@ -146,8 +151,12 @@ def active_goal_commit_denial(
         return None
     try:
         owner = json.loads((root / ".codex/goals/.lease/owner.json").read_text())
+        if not isinstance(owner, dict):
+            raise TypeError("invalid lease owner")
         renewal_path = root / ".codex/goals/.lease/renewal.json"
         renewal = json.loads(renewal_path.read_text()) if renewal_path.exists() else None
+        if renewal is not None and not isinstance(renewal, dict):
+            raise TypeError("invalid lease renewal")
         effective_expiry = owner["expiresAt"]
         if (
             renewal
@@ -158,6 +167,8 @@ def active_goal_commit_denial(
         expires_at = datetime.fromisoformat(effective_expiry.replace("Z", "+00:00"))
         current_time = now or datetime.now(timezone.utc)
         run = active["run"]
+        if expires_at.tzinfo is None or current_time.tzinfo is None or not isinstance(run, dict):
+            raise TypeError("invalid lease timing or run")
         valid = (
             active.get("state") == "running"
             and active.get("leaseEpoch") == owner.get("epoch")
@@ -167,7 +178,15 @@ def active_goal_commit_denial(
             and owner.get("branch") == git_output(root, "branch", "--show-current")
             and owner.get("head") == git_output(root, "rev-parse", "HEAD")
         )
-    except (KeyError, OSError, ValueError, json.JSONDecodeError, subprocess.CalledProcessError):
+    except (
+        AttributeError,
+        KeyError,
+        OSError,
+        TypeError,
+        ValueError,
+        json.JSONDecodeError,
+        subprocess.CalledProcessError,
+    ):
         valid = False
     if valid:
         return None
