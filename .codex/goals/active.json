@@ -19,8 +19,8 @@
   "goalId": "adjacent-capture-calendar-research",
   "objectiveFingerprint": "a879f93a16dfed2b08714f786e2a2f901dad3075da86b2eca9484330dcf4c3e0",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "ready",
-  "reason": "revision-changed",
+  "state": "complete",
+  "reason": null,
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
     "fingerprint": "862502c5beff63aa658680636f7182e4dd036659eaaaf782ad35f683c9c35848",
@@ -41,12 +41,31 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 28,
-  "lastWakeTokenHash": "e5cee258990f98e2bd26fbfb5b4e6469cce4ce87ef26c11c98f8add4794dff22",
+  "leaseEpoch": 29,
+  "lastWakeTokenHash": "ebf5844d0a0b9370729c5c69e38af6766cdbd0e0cbe330acda350b9912e69608",
   "question": null,
   "run": null,
   "evidence": {
-    "current": []
+    "current": [
+      {
+        "aggregateRecordHash": "c83e9dfdb7ca8160e274d835a96d576e98a47d64e242d96e47ac976ea30f94f5",
+        "at": "2026-07-20T22:58:51.987Z",
+        "completionRecordHash": "b20613d49a639805571d116ba1ab8fb17dbce587a1e72458532e2b32762c7957",
+        "protectedArtifactRecordHash": "9a6237fe269fd542b42ddf7b442bb73aa61a89e0fbc0948d9a25bc84ef09989b",
+        "retrospectiveCode": "no-new-lesson",
+        "retrospectiveRecordHash": "9d7993a3bbb40de0d1d55ff651555ee056b0872b19a89a8da5e42b9f1c5f970d",
+        "revision": "862502c5beff63aa658680636f7182e4dd036659eaaaf782ad35f683c9c35848",
+        "reviewerAgent": "082085b9b1606012bf5785508670b2919b690475ad7222d317a2f0ee23e576ab",
+        "reviewerRecordHash": "231f7c4444a88f3fb4a46b91785af8352e95a71189145509526571a297eca8fa",
+        "reviewerVerdict": "PASS",
+        "validatorAgent": "d54838546de93a084b666b0c689a5587ebec2362366dbd74377e5902d0ee55b4",
+        "validatorRecordHash": "5e5783a5d6b61227b13620dade2666cb7a4f85dafb856f7faa8efd50664915b0",
+        "validatorVerdict": "PASS",
+        "verifierAgent": "da818b0d2ef9fe9040a80e20aefd2e553d783821214aa631a4fafc06a60a3147",
+        "verifierRecordHash": "f7bc42d1612d6d062b4646558e0821b53591a28a0bc0fc9a6822aa0d9dd6bb35",
+        "verifierVerdict": "ACCEPT"
+      }
+    ]
   },
   "learning": {
     "completed": [
@@ -211,6 +230,15 @@
         "reviewerRecordHash": "b1bf94606a6c4a1d836a82c46a2032059cf961e8b0a8de916a7f7cfe6da23495",
         "reviewerVerdict": "PASS",
         "revision": "a24e69f3e80c7fac4c3cd8306efdbc28230bdba00720fc5db11b285927184266"
+      },
+      {
+        "at": "2026-07-20T22:43:05.709Z",
+        "retrospectiveCode": "no-new-lesson",
+        "retrospectiveRecordHash": "9d7993a3bbb40de0d1d55ff651555ee056b0872b19a89a8da5e42b9f1c5f970d",
+        "reviewerAgent": "082085b9b1606012bf5785508670b2919b690475ad7222d317a2f0ee23e576ab",
+        "reviewerRecordHash": "231f7c4444a88f3fb4a46b91785af8352e95a71189145509526571a297eca8fa",
+        "reviewerVerdict": "PASS",
+        "revision": "862502c5beff63aa658680636f7182e4dd036659eaaaf782ad35f683c9c35848"
       }
     ],
     "enforceFromRevision": "862502c5beff63aa658680636f7182e4dd036659eaaaf782ad35f683c9c35848"
@@ -218,7 +246,7 @@
   "budgets": {
     "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 28
+    "runsUsed": 29
   },
   "policy": {
     "maxDirectChildren": 3,
@@ -228,5 +256,5 @@
     "ttlMs": 300000
   },
   "waiting": null,
-  "lastCheckpointId": "b887f8e7-de17-4bd8-a016-590a9605b7d8"
+  "lastCheckpointId": "bbb41ffd-d3e0-4ec1-b449-62b44d638ba6"
 }
