@@ -19,13 +19,13 @@
   "goalId": "adjacent-capture-calendar-research",
   "objectiveFingerprint": "a879f93a16dfed2b08714f786e2a2f901dad3075da86b2eca9484330dcf4c3e0",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "running",
-  "reason": null,
+  "state": "ready",
+  "reason": "revision-changed",
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
-    "fingerprint": "a24e69f3e80c7fac4c3cd8306efdbc28230bdba00720fc5db11b285927184266",
-    "head": "441a58aedb5db87a944172ec0ebaba6fb8585a05",
-    "ownedManifest": "9b9dbc16648bd78f612585ebb97c2b22dd31e6ae1aed41e354cb952a84e7e61c",
+    "fingerprint": "862502c5beff63aa658680636f7182e4dd036659eaaaf782ad35f683c9c35848",
+    "head": "9d46ffc66317f93d214b3e481822f8c6fe6f284a",
+    "ownedManifest": "f9d3b178ac4d8d4473a7364d34e3e1f9af65a360a50a6c6e056a72ce6b8fcb24",
     "ownedInputs": [
       "docs/agents/adaptive-orchestration.md",
       "docs/research/adjacent-capture-calendar-landscape.md",
@@ -44,12 +44,7 @@
   "leaseEpoch": 28,
   "lastWakeTokenHash": "e5cee258990f98e2bd26fbfb5b4e6469cce4ce87ef26c11c98f8add4794dff22",
   "question": null,
-  "run": {
-    "childClaims": [],
-    "deadlineAt": "2026-07-20T23:01:47.173Z",
-    "ownerTokenHash": "ad6fc3e72365549b2fe8939ac4b22de0bdbc326ff6e0b9b3c6f589d3cb2dfacf",
-    "startedAt": "2026-07-20T22:31:47.173Z"
-  },
+  "run": null,
   "evidence": {
     "current": []
   },
@@ -218,7 +213,7 @@
         "revision": "a24e69f3e80c7fac4c3cd8306efdbc28230bdba00720fc5db11b285927184266"
       }
     ],
-    "enforceFromRevision": "a24e69f3e80c7fac4c3cd8306efdbc28230bdba00720fc5db11b285927184266"
+    "enforceFromRevision": "862502c5beff63aa658680636f7182e4dd036659eaaaf782ad35f683c9c35848"
   },
   "budgets": {
     "repairCyclesUsed": 0,
