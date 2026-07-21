@@ -5,7 +5,7 @@
 - **Accessed / last verified:** 2026-07-19.
 - **Symphony snapshot:** upstream `main` commit `7af5a7648c9fbffa08825fe0c0b18be00100aff3`; latest release `v0.0.1` dated 2026-07-18.
 - **Research:** linked — extends [Autonomous Codex goal continuation](codex-autonomous-goal-continuation.md) and reuses its [workflow primitives](codex-autonomy-workflow-primitives.md), [quality loops](codex-autonomy-quality-loops.md), and [release/capability inventory](codex-autonomy-release-capability-inventory.md).
-- **Last30Days:** linked — root-owned `.build/research/last30days/modern-autonomous-coding-agent-harnesses-and-multi-agent-orchestration-trends-raw-v3.md` plus the focused `.build/research/last30days/openai-symphony-codex-orchestration-release-adoption-reliability-limitations-raw.md`; Symphony community evidence is release-day thin, and discovery is not authority for this survey.
+- **Last30Days:** linked — [the retained focused Symphony/Codex report](../../.build/research/last30days/openai-symphony-codex-orchestration-release-adoption-reliability-limitations-raw.md); Symphony community evidence is release-day thin, and discovery is not authority for this survey. A previously referenced broader raw report is absent from this worktree and is not claimed as evidence.
 - **Evidence rule:** “native” means an owning source documents the control as a framework/runtime feature; “application-owned” means the source exposes primitives but does not supply the policy; “absent” means not found in the reviewed current owning docs, not proof that an extension cannot add it. Cookbook/tutorial examples are labelled examples, not platform contracts.
 
 ## Answer

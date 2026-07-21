@@ -1,79 +1,118 @@
 {
-  "schemaVersion": 1,
-  "goalId": "preference-history-23",
-  "objectiveFingerprint": "7f142cc88e18a8f136efbd5f7737d5a2383360b708fd274608385c47fed9a7fa",
-  "objectiveRef": "issues/23",
-  "researchPreflight": {
-    "research": {
-      "status": "not-needed",
-      "evidenceRef": "docs/agents/adaptive-orchestration.md#goal-change-log"
-    },
+  "schemaVersion": 2,
+  "authority": {
+    "branch": "codex/self-learning-autonomy-loop",
+    "completionContractRef": "docs/agents/adaptive-orchestration.md#completion-contract",
+    "externalCompletion": "not-required",
     "last30days": {
-      "status": "not-needed",
-      "evidenceRef": "docs/agents/adaptive-orchestration.md#goal-change-log"
+      "evidenceRef": "docs/agents/research-workflow.md#reuse-before-rerunning",
+      "reasonCode": "deterministic-local-reconciliation",
+      "status": "not needed"
+    },
+    "prohibitedActionsRef": "AGENTS.md#product-priorities",
+    "research": {
+      "evidenceRef": "docs/agents/research-workflow.md#reuse-before-rerunning",
+      "reasonCode": "deterministic-local-reconciliation",
+      "status": "not needed"
     }
   },
+  "goalId": "pr30-publication-repair-final",
+  "objectiveFingerprint": "31f132823368dfeb8b9d519058e5cdcaffc96240b357abecac65d6947ab165ed",
+  "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
   "state": "complete",
   "reason": null,
   "revision": {
-    "fingerprint": "fd13dcc4df133ef057a1560bff9262e3769e8dbb3202e4be56d80c8291e87257",
-    "head": "c8bf29558bf30123b2f7a72a6c8a8a5619e39aa4",
-    "ownedManifest": "e73829cc06030691b8366f8f8fc7e3f4fe8e89bb90305fa1f887df33681005d8",
+    "branch": "codex/self-learning-autonomy-loop",
+    "fingerprint": "7758315912d52bd87e0ac4e6af662787bbd65f1c8124133270a295a014c7734b",
+    "head": "00d2a5d545e396cbd2de556728f0ab92c1c42c9b",
+    "ownedManifest": "357996a4803671cf2b02879ed9809275fce5cb34c8e2d4248f33e9eac8ac66bb",
     "ownedInputs": [
+      ".codex/goals/CONTINUATION.md",
       "docs/agents/adaptive-orchestration.md",
-      "docs/product/requirements.md",
-      "openapi/v1.json",
-      "openapi/ui-metadata.json",
-      "apps/api/migrations/0001_initial.sql",
-      "apps/api/src/worker.ts",
-      "packages/domain/src/index.ts",
-      "apps/web/src/period-show.tsx",
-      "scripts/generate.mjs",
-      "package.json"
+      "docs/learning/README.md",
+      "docs/learning/2026-07-21-controller-bootstrap-admission.md",
+      "docs/learning/TEMPLATE.md",
+      "docs/research/README.md",
+      "docs/research/link-capture-enrichment.md",
+      "docs/research/native-ios-feasibility.md",
+      "docs/research/workflow-architecture-synthesis.md",
+      "scripts/check-adaptive-orchestration.mjs",
+      "scripts/symphony-controller.mjs",
+      "tests/symphony-controller.test.mjs",
+      "tests/tooling.test.mjs"
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 11,
-  "lastWakeToken": "root-20260719T175000-issue23-complete",
+  "leaseEpoch": 3,
+  "lastWakeTokenHash": "e1f0abdebcca9994b31dfd0003d59661c5b17059a12073734010ab08f9a40045",
   "question": null,
   "run": null,
   "evidence": {
     "current": [
       {
-        "aggregateRecordHash": "8f7d30c63dc236ad44bbae84f9d8ac794ad0219900a72dd41b221432a247d1a1",
-        "at": "2026-07-19T15:55:11.766Z",
-        "protectedArtifactRecordHash": "1aff155f652d31d3f9617ae17df286e6115b087a0c72b912c613332ab77ab9f1",
-        "revision": "fd13dcc4df133ef057a1560bff9262e3769e8dbb3202e4be56d80c8291e87257",
-        "validatorAgent": "61a8758639764f3b6e97721d57ad60feb9a6013fa6598f6531ba379ccb150117",
-        "validatorRecordHash": "4b81efc9e6f8a02cf3e659bc641a09e2183ce369b8858d83fd69c9482782a30a",
+        "aggregateRecordHash": "70e8f2981b0d42152185dc11a8dae713fbd38113a24a67e7b698126a37f35c2b",
+        "at": "2026-07-21T01:44:50.165Z",
+        "completionRecordHash": "f6e16ef0b81279eba19be71035246a286aa974cc10be7b31d5868a6045c84798",
+        "protectedArtifactRecordHash": "81675372cc34adfc74ef2d86c34e97fb9422928c27f6701d8c70e0b79758f065",
+        "retrospectiveCode": "no-new-lesson",
+        "retrospectiveRecordHash": "88d416e369e1181f3d0c5f220f5279bf630f7fa35cb883d32d42ba9471e050a2",
+        "revision": "7758315912d52bd87e0ac4e6af662787bbd65f1c8124133270a295a014c7734b",
+        "reviewerAgent": "f71205efab6c2ef1f9b5e342c88898e8ae2df82a16ec3ce581d7d082bc8af17e",
+        "reviewerRecordHash": "4390fb130403f46dae6ee120942d8e677998b485f0b2ed6d7a897f2da2f04cda",
+        "reviewerVerdict": "PASS",
+        "validatorAgent": "42c02d8d39126fcf2ad260fecd9cc8d75eba15a8cbff359fb35f60e0c1c254b5",
+        "validatorRecordHash": "e445c43615a2f3e65c82ff94e04aa58e8a5aaea52e646493b057d35a21df6236",
         "validatorVerdict": "PASS",
-        "verifierAgent": "861cd061842e1c3cea4ba7aec479cba2eeeec31d43fae94e5b76c4899dd996dc",
-        "verifierRecordHash": "271b0d7b6e6469821325c15a3df6dde6d52a5bc02bac2841e1e4b9d237b4ac61",
+        "verifierAgent": "55488c3207a5b2dbc26f8be3c031ca19f0a7f9845f1cb2cf3d21fe544c425883",
+        "verifierRecordHash": "41f57bf09a81dc4dd2cfbebe3468b5d8852244077d5dc9ddcd4cd5514c1d3706",
         "verifierVerdict": "ACCEPT"
       }
     ]
   },
-  "continuation": {
-    "automationId": "continue-symphony-controller-goal",
-    "configHash": "f7a92191e9a8f274a521b603872484f1ab9430a15074d69f4fc60f79343ebab3",
-    "intervalMinutes": 10,
-    "kind": "codex-desktop-heartbeat",
-    "registryReadAt": "2026-07-19T14:45:16.000Z",
-    "role": "wake-trigger-only",
-    "status": "ACTIVE"
+  "learning": {
+    "completed": [
+      {
+        "at": "2026-07-21T01:18:00.000Z",
+        "retrospectiveCode": "promoted",
+        "retrospectiveRecordHash": "5eacfda4ea30cf6be51fc5dbe451dd994fa6d295933b5c9d967e74224f40c5c0",
+        "reviewerAgent": "ad2ae23c2c8f6ac5e7bcc3c772f6a67c4a86acc0237ce3b590e83730ebec7f06",
+        "reviewerRecordHash": "4c1bcf43c16d7ae93d9d8d9071f39dc2c41ea384e819ad554d2f8551859f52a0",
+        "reviewerVerdict": "FAIL",
+        "revision": "2b2173de20152fc1da0ccec8d232202270efd1e4bc22251a53a43c11655e97ae"
+      },
+      {
+        "at": "2026-07-21T01:30:30.543Z",
+        "retrospectiveCode": "linked",
+        "retrospectiveRecordHash": "b0c9c943b73af37d15e602f1c18a6fc0a8ac68735fe9445caa7871b0bcb7c56f",
+        "reviewerAgent": "c51cd95e64d3d13aedf5daa5dce0ac60339ea6043e7845a8d85563d920bae1a9",
+        "reviewerRecordHash": "7f444ddfcbd2788664ef3ae198b4771b78412be1e681fb3eca24fbf4b7ed85da",
+        "reviewerVerdict": "FAIL",
+        "revision": "d8d95ee28be29330b9214d10e77cab99736c2a65a9d2dc755e14fead866ff493"
+      },
+      {
+        "at": "2026-07-21T01:44:50.165Z",
+        "retrospectiveCode": "no-new-lesson",
+        "retrospectiveRecordHash": "88d416e369e1181f3d0c5f220f5279bf630f7fa35cb883d32d42ba9471e050a2",
+        "reviewerAgent": "f71205efab6c2ef1f9b5e342c88898e8ae2df82a16ec3ce581d7d082bc8af17e",
+        "reviewerRecordHash": "4390fb130403f46dae6ee120942d8e677998b485f0b2ed6d7a897f2da2f04cda",
+        "reviewerVerdict": "PASS",
+        "revision": "7758315912d52bd87e0ac4e6af662787bbd65f1c8124133270a295a014c7734b"
+      }
+    ],
+    "enforceFromRevision": "7758315912d52bd87e0ac4e6af662787bbd65f1c8124133270a295a014c7734b"
   },
   "budgets": {
     "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 11
+    "runsUsed": 3
   },
   "policy": {
     "maxDirectChildren": 3,
-    "maxRepairCycles": 2,
-    "maxRetries": 2,
-    "maxRuntimeMs": 1800000,
+    "maxRepairCycles": 3,
+    "maxRetries": 3,
+    "maxRuntimeMs": 3600000,
     "ttlMs": 300000
   },
   "waiting": null,
-  "lastCheckpointId": "af79edd6-048f-4308-89b6-cc943ef13742"
+  "lastCheckpointId": "735c1fb4-bb23-4943-b3a8-23cd947968ff"
 }

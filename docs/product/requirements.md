@@ -1,7 +1,7 @@
 # Product requirements inventory
 
-- Status: approved MVP outcomes plus approved preference/history semantics; calendar and merge semantics remain deferred
-- Last updated: 2026-07-18
+- Status: approved MVP outcomes, preference/history semantics, #20 Plan/calendar boundaries, and #21 venue/source identity boundaries
+- Last updated: 2026-07-20
 
 ## Confirmed outcomes
 
@@ -12,7 +12,8 @@
 - Raise priority for expiring specials and compatible availability.
 - Integrate with Apple Calendar and Google Calendar or a suitable low-cost scheduling layer.
 - Keep partner onboarding to one app installation plus an invitation when possible.
-- Time-box an existing-app bake-off before custom development.
+- Retain the completed existing-app bake-off as historical evidence; it is not an
+  implementation prerequisite and must not reopen the accepted API-first path.
 - Keep preference ranking system-owned, explainable, and versioned.
 - Support a development feature flag that can rank from one person's vote while partner voting is unavailable.
 - Expose versioned REST APIs for capture, preferences, notes/metadata, sorting, ranking, and queries so presentation clients remain replaceable.
@@ -82,12 +83,48 @@ replay and tombstone redaction remain intentionally deferred to the dependent
 [#24](https://github.com/ray-manaloto/honeymoon-period/issues/24) and
 [#25](https://github.com/ray-manaloto/honeymoon-period/issues/25) tracer bullets.
 
-## Remaining semantics to refine
+## Approved #20 Plan and calendar boundaries
 
-- Does calendar integration only suggest openings, or create/update/cancel events after approval?
-- Which event details may be read while protecting unrelated private calendar content?
-- How are recurring happy hours modeled separately from one-time specials and reservation deadlines?
-- When do different source links merge into one venue or event?
-- Which remaining semantics must be fixed before the API leaves local development?
+The 2026-07-20 adjacent-product and calendar decision pass settled these boundaries:
 
-Architecture and execution details live in the [approved web MVP plan](web-mvp-plan.md). These remaining product questions do not reopen the selected backend or web framework.
+- each confirmed Plan keeps one stable identity; rescheduling and cancellation append
+  revisions to that Plan's history instead of creating replacement Plan records; and
+- a recurring offer is a reusable template that generates discrete dated availability
+  windows; a confirmed window becomes an ordinary stable-identity Plan occurrence,
+  and a Plan itself never recurs indefinitely; and
+- every Plan revision is an immutable, server-ordered event recording actor,
+  timestamp, transition type, before-and-after scheduling/status values including time
+  zone, an optional bounded reason, and calendar-export provenance; it excludes
+  unrelated calendar data; and
+- an explicit deadline is stored as an instant with its source time zone and adds
+  urgency only before that instant; at or after it the dated window is expired,
+  excluded from active ranking and new Plan confirmation, and retained in history;
+  an unknown deadline neither expires nor receives an urgency boost; and
+- Calendar V1 is a user-confirmed EventKit system-editor export only, with no calendar
+  reads and no managed synchronization; and
+- private availability is out of scope for V1; any future provider integration requires
+  a separately approved provider-and-consent design, explicit opt-in, free/busy-only
+  intervals by default, no event titles/descriptions/attendees/locations, and no
+  persistence of unrelated calendar data.
+
+An unauthenticated secret-link ICS projection is not part of V1 and remains deferred
+to a separately approved interoperability pilot. The approved #20 product contract
+does not authorize implementation or any provider/calendar-read integration.
+
+## Approved #21 venue and source identity boundary
+
+Venue deduplication never auto-merges. The system may propose a merge for explicit user
+confirmation only when either:
+
+- an exact authoritative provider venue ID matches; or
+- normalized name, full postal address, locality, and country all agree and no
+  provider venue IDs conflict.
+
+Coordinates may corroborate a proposal but never qualify one alone. Every source
+record and its provenance remains after confirmation so users can audit and correct
+identity decisions. Provider adapters, normalization algorithms, thresholds, and UX
+remain separately authorized implementation work, not open product semantics.
+
+Architecture and execution details live in the [approved web MVP plan](web-mvp-plan.md).
+These decisions do not reopen the selected backend or web framework and do not
+authorize #20/#21 implementation or tracker mutation.

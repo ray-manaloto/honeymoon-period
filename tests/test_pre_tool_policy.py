@@ -1,8 +1,13 @@
 from __future__ import annotations
 
 import importlib.util
+import hashlib
+import json
 from pathlib import Path
+import subprocess
+import tempfile
 import unittest
+from datetime import datetime, timedelta, timezone
 
 
 MODULE_PATH = Path(__file__).parents[1] / ".codex" / "hooks" / "pre_tool_policy.py"
@@ -48,6 +53,130 @@ class PreToolPolicyTests(unittest.TestCase):
         ):
             with self.subTest(command=command):
                 self.assertIsNone(POLICY.denial_reason(command))
+
+    def test_source_commit_requires_a_live_goal_lease(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+            subprocess.run(["git", "config", "user.email", "fixture@example.invalid"], cwd=root, check=True)
+            subprocess.run(["git", "config", "user.name", "Fixture"], cwd=root, check=True)
+            (root / "source.txt").write_text("one\n")
+            subprocess.run(["git", "add", "source.txt"], cwd=root, check=True)
+            subprocess.run(["git", "commit", "-qm", "fixture"], cwd=root, check=True)
+            (root / "source.txt").write_text("two\n")
+            subprocess.run(["git", "add", "source.txt"], cwd=root, check=True)
+
+            goal_dir = root / ".codex/goals"
+            lease_dir = goal_dir / ".lease"
+            lease_dir.mkdir(parents=True)
+            owner_token = "fixture-owner"
+            now = datetime(2026, 7, 20, tzinfo=timezone.utc)
+            owner = {
+                "branch": POLICY.git_output(root, "branch", "--show-current"),
+                "epoch": 1,
+                "expiresAt": (now + timedelta(minutes=5)).isoformat(),
+                "head": POLICY.git_output(root, "rev-parse", "HEAD"),
+                "ownerToken": owner_token,
+            }
+            active = {
+                "state": "running",
+                "leaseEpoch": 1,
+                "run": {"ownerTokenHash": hashlib.sha256(owner_token.encode()).hexdigest()},
+            }
+            (goal_dir / "active.json").write_text(json.dumps(active))
+            (lease_dir / "owner.json").write_text(json.dumps(owner))
+
+            self.assertIsNone(POLICY.active_goal_commit_denial("git commit -m source", root, now))
+            self.assertIsNotNone(
+                POLICY.active_goal_commit_denial(
+                    "git commit -m source", root, now + timedelta(minutes=6)
+                )
+            )
+            subdirectory = root / "nested"
+            subdirectory.mkdir()
+            self.assertEqual(
+                POLICY.commit_repository("git commit -m source", subdirectory), root.resolve()
+            )
+            self.assertEqual(
+                POLICY.commit_repository(f"git -C {root} commit -m source", subdirectory),
+                root.resolve(),
+            )
+            self.assertIsNotNone(
+                POLICY.denial_reason(
+                    f"git -C {root} commit -m source", subdirectory
+                )
+            )
+            renewal_path = lease_dir / "renewal.json"
+            valid_renewal = {
+                "ownerToken": owner_token,
+                "epoch": 1,
+                "expiresAt": (now + timedelta(minutes=6)).isoformat(),
+            }
+            renewal_path.write_text(json.dumps(valid_renewal))
+            self.assertIsNone(POLICY.active_goal_commit_denial("git commit -m source", root, now))
+            invalid_renewals = (
+                {},
+                {"ownerToken": owner_token, "epoch": 1},
+                {**valid_renewal, "ownerToken": "wrong"},
+                {**valid_renewal, "epoch": 2},
+                {**valid_renewal, "expiresAt": "invalid"},
+                {**valid_renewal, "expiresAt": "2026-07-20T00:06:00"},
+            )
+            for renewal in invalid_renewals:
+                with self.subTest(renewal=renewal):
+                    renewal_path.write_text(json.dumps(renewal))
+                    self.assertIsNotNone(
+                        POLICY.active_goal_commit_denial("git commit -m source", root, now)
+                    )
+            renewal_path.unlink()
+            (goal_dir / "active.json").write_text("{}")
+            self.assertIsNotNone(
+                POLICY.active_goal_commit_denial("git commit -m source", root, now)
+            )
+            (goal_dir / "active.json").write_text(json.dumps(active))
+            owner["expiresAt"] = "2026-07-20T00:05:00"
+            (lease_dir / "owner.json").write_text(json.dumps(owner))
+            self.assertIsNotNone(
+                POLICY.active_goal_commit_denial("git commit -m source", root, now)
+            )
+
+    def test_state_only_goal_commit_does_not_require_a_work_lease(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+            subprocess.run(["git", "config", "user.email", "fixture@example.invalid"], cwd=root, check=True)
+            subprocess.run(["git", "config", "user.name", "Fixture"], cwd=root, check=True)
+            goal_dir = root / ".codex/goals"
+            goal_dir.mkdir(parents=True)
+            (goal_dir / "active.json").write_text('{"state":"ready"}\n')
+            (root / "source.txt").write_text("one\n")
+            subprocess.run(["git", "add", ".codex/goals/active.json", "source.txt"], cwd=root, check=True)
+            subprocess.run(["git", "commit", "-qm", "fixture"], cwd=root, check=True)
+            (goal_dir / "active.json").write_text('{"state":"ready","reason":"state"}\n')
+            (root / "source.txt").write_text("two\n")
+            subprocess.run(["git", "add", ".codex/goals/active.json"], cwd=root, check=True)
+            self.assertIsNone(POLICY.active_goal_commit_denial("git commit -m state", root))
+            self.assertIsNotNone(POLICY.active_goal_commit_denial("git commit -am mixed", root))
+            self.assertIsNotNone(
+                POLICY.active_goal_commit_denial("git commit source.txt -m mixed", root)
+            )
+            (goal_dir / "active.json").write_text("not json")
+            self.assertIsNotNone(
+                POLICY.active_goal_commit_denial("git commit -m malformed-state", root)
+            )
+            (goal_dir / "active.json").write_text("{}")
+            self.assertIsNotNone(
+                POLICY.active_goal_commit_denial("git commit -m invalid-state", root)
+            )
+            (goal_dir / "active.json").write_text("[]")
+            self.assertIsNotNone(
+                POLICY.active_goal_commit_denial("git commit -m invalid-shape", root)
+            )
+            self.assertIsNotNone(
+                POLICY.active_goal_commit_denial(
+                    "GIT_INDEX_FILE=/tmp/alternate git commit -m alternate", root
+                )
+            )
 
 
 if __name__ == "__main__":

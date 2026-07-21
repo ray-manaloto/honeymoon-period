@@ -51,7 +51,7 @@ guidance, examples, and prototypes. Do not create compatibility shims, duplicate
 transports, or artificial migration history without an explicitly approved external
 contract. Clearly label historical evidence instead of letting it prescribe obsolete work.
 
-## 4. Manage context and agents
+## 4. Run the self-learning loop
 
 Apply the lifecycle zones and non-numeric overrides in
 `docs/research/codex-context-lifecycle.md`. Use percentages only when current usage and
@@ -63,6 +63,25 @@ Keep shared files, Git, tracker writes, integration, and publication with the ro
 Use no more than three direct children, prevent recursive delegation, give writers
 disjoint paths, and reserve fresh independent verifier and validator slots after
 material integration.
+Before every spawn, obtain a role-specific controller-issued `claim-child` bound to the
+current owner lease and stable task reference. Settle it when the child returns. Do not pass a
+caller-authored count at checkpoint; the controller derives live usage and binds agent
+evidence to completed claims. Final standards, verifier, and validator evidence uses
+three distinct claims and task references whose roles match their evidence kinds.
+
+For each material controller-admitted revision, follow the policy's autonomous learning
+loop: obtain one fresh read-only standards/spec review, make the smallest focused repair
+with a regression guard, and obtain fresh revision-bound verification. Before downstream
+state changes, record `promoted`, `linked`, or `no-new-lesson`. Continue through distinct
+bounded repairs while the controller admits work. Request a human interview only after
+local evidence, current primary research, and bounded agents cannot resolve genuine
+ambiguity.
+Treat every new distinct failed repair as one controller-counted cycle; never supply a
+caller-authored repair count. Keep injected clocks, pauses, and crashes in the test-only
+controller harness, never in production arguments or ambient mode flags.
+
+**Completion criterion:** the iteration has a durable retrospective outcome, every
+promoted lesson has an enforcing guard, and no stale review or verdict is reused.
 
 ## 5. Reconcile and finish
 
@@ -70,9 +89,16 @@ For authorized tracker writes, capture a fresh complete snapshot, re-read each t
 immediately before its serialized mutation, record returned identifiers, and perform a
 postcondition read before the next write. Re-read before retrying an uncertain result.
 
-Run focused checks, the repository aggregate, and fresh semantic `ACCEPT` plus
-mechanical `PASS` gates. Publish only after both gates and a final dirty-tree audit.
+Run focused checks and the repository aggregate first. In a shared worktree, do not run
+heavyweight aggregate, controller, E2E, fixed-port, or shared-state-reset suites in
+parallel; start the fresh mechanical validator only after the root aggregate exits.
+Then obtain fresh semantic `ACCEPT` plus mechanical `PASS` gates. Publish only after both
+gates and a final dirty-tree audit.
+Final agents inspect the running candidate revision; the root verifies their collaboration
+output provenance and only then checkpoints completion with controller-bound report hashes.
 Use `docs/agents/handoff-template.md` whenever the lifecycle policy requires a new task.
+For an authorized root-authored goal pull request, apply the exact-remote-HEAD autonomous
+merge gate in `docs/agents/issue-tracker.md`; any remote-head change invalidates the gate.
 
 **Completion criterion:** every acceptance item has evidence, residual risk is explicit,
 protected artifacts are unchanged, external state matches the recorded postconditions,

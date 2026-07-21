@@ -1,10 +1,20 @@
 # Autonomous Codex goal continuation
 
 - **Question:** How can this repository autonomously resume and refine an explicitly authorized long-running goal across fresh Codex desktop or CLI sessions, allocate bounded subagents, continue when unambiguous, and stop only at real ambiguity or authority boundaries?
-- **Status:** Research complete and synthesized across workflow-primitives, quality-loop, and release/capability candidates; design decision and explicit implementation/scheduling authorization still required.
+- **Status:** Research complete; thin scheduled-task controller and bounded learning loop adopted and implemented under the recorded goal authority.
 - **Accessed / last verified:** 2026-07-19.
 - **Research:** linked — this root synthesis plus [workflow primitives](codex-autonomy-workflow-primitives.md), [quality loops](codex-autonomy-quality-loops.md), and [release/capability inventory](codex-autonomy-release-capability-inventory.md).
-- **Last30Days:** reused — `.build/research/last30days/codex-autonomous-goal-workflows-session-continuation-hooks-subagents-ambiguity-escalation-raw-v3.md`; discovery is not authority.
+- **Last30Days:** reused — [the retained focused Symphony/Codex report](../../.build/research/last30days/openai-symphony-codex-orchestration-release-adoption-reliability-limitations-raw.md); discovery is not authority.
+
+## Current repository decision (2026-07-19)
+
+The owner authorized and the repository implemented the thin scheduled-task controller,
+then authorized its bounded self-learning review-repair-validation loop after the repeated
+issue #24 evidence recorded in goal change-log entry 20. The active goal record and lease
+remain the only execution authority. Earlier statements in this report that implementation,
+scheduling, or loop adoption still require a decision are retained as historical analysis
+and are superseded by the recorded repository policy. Publication, exact-head autonomous
+merge, and protected external ceremonies remain governed by their current explicit gates.
 
 ## Recommendation
 
@@ -26,13 +36,11 @@ turn a scheduled task, goal, or hook into an unlimited-authority agent.
 ([Scheduled tasks](https://learn.chatgpt.com/docs/automations#schedule-a-task-inside-a-chat),
 [Long-running work](https://learn.chatgpt.com/docs/long-running-work))
 
-This is a recommendation for the first **disposable one-goal Adapter pilot if
-the owner selects and authorizes automation**, not evidence that a reusable
-controller Module should already exist. The status quo remains manual
-Goal/handoff continuation until that decision. The user's requested unattended
-workflow establishes a real pilot question; promotion beyond one isolated goal
-requires recorded recurrence or pilot evidence showing that the Adapter removes
-meaningful recovery/coordination work and passes its deletion test.
+Historically, this was a recommendation for a first disposable one-goal Adapter pilot,
+not evidence that a reusable controller Module should already exist. The owner later
+authorized the pilot and its scheduled continuation; controller fault injection and the
+issue #24 recurrence then supplied the promotion evidence recorded in the goal change log.
+The paragraph is retained as design provenance, while the current decision above governs.
 
 For robust headless or CI execution, use a deliberately separate controller
 around `codex exec` / `codex exec resume` (or the official Codex GitHub Action),
@@ -74,8 +82,8 @@ inner loop; a self-contained phase plan plus append-only evidence enables
 recovery; deterministic code or policy admits, verifies, records, and stops a
 bounded agentic phase.
 
-No locally reproduced failure yet proves that a reusable controller **Module**
-is necessary. The current gap is an architectural hypothesis plus known
+At the time of this research, no locally reproduced failure proved that a reusable
+controller **Module** was necessary. The then-current gap was an architectural hypothesis plus known
 control-flow risks: duplicate writers, stale state, no-progress spinning,
 authority drift, and self-certification. The Cookbook examples demonstrate
 useful patterns, but their API keys, dependencies, trace stores, external
@@ -463,11 +471,12 @@ sed -n '1,220p' .codex/config.toml
 sed -n '1,120p' .codex/hooks.json
 ```
 
-## Remaining gaps
+## Historical gaps at research time
 
-- This research did not configure or run a scheduled task, a launchd/CI
-  controller, or App Server client; those are external/stateful actions needing
-  explicit authorization and an implementation plan.
+- This research had not configured or run a scheduled task, a launchd/CI controller, or
+  App Server client. The later authorized implementation used the narrower Desktop
+  scheduled-task path and recorded observed-wake evidence; launchd/CI and App Server remain
+  outside the selected architecture.
 - Official documentation does not supply a repository-level active-goal schema,
   lease protocol, semantic ambiguity classifier, automatic subagent allocator,
   or a stable API for live worker occupancy. Those controls must be implemented
@@ -475,6 +484,5 @@ sed -n '1,120p' .codex/hooks.json
 - The reviewed Cookbooks supply patterns rather than evidence-backed defaults
   for cadence, lease TTL, maximum attempts, trace retention, model judge use,
   failure fingerprinting, or autonomous-action allowlists.
-- Validate the exact desktop Scheduled UI and its permission/worktree behavior
-  against the installed desktop build before relying on it; the docs describe
-  the feature but this report did not mutate the user’s task configuration.
+- The later controller goal validated the installed Desktop scheduled-task behavior and
+  recorded an observed wake. Revalidate only if the selected native mechanism changes.

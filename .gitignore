@@ -10,7 +10,7 @@ test-results/
 .playwright-cli/
 .artifacts/
 .codex/goals/.lease*/
-.codex/goals/.mutation*/
+.codex/goals/.transaction.json
 .codex/goals/.question-*/
 .codex/goals/.evidence*/
 *.plist

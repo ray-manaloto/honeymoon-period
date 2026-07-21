@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
 import {
   appendFileSync,
   closeSync,
   existsSync,
+  fstatSync,
   fsyncSync,
   lstatSync,
   mkdirSync,
@@ -19,8 +20,19 @@ import {
   writeFileSync,
 } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
 const states = new Set(["ready", "running", "waiting", "blocked", "failed", "complete"]);
+const retrospectiveCodes = new Set(["promoted", "linked", "no-new-lesson"]);
+const researchStatuses = new Set(["linked", "not needed", "reused"]);
+const directChildRoles = new Set([
+  "implementation",
+  "research",
+  "review",
+  "standards-review",
+  "validator",
+  "verifier",
+]);
 
 class ControllerError extends Error {}
 
@@ -103,6 +115,55 @@ function appendEvent(path, event) {
   }
 }
 
+function replayTransition(root) {
+  const transactionPath = join(paths(root).directory, ".transaction.json");
+  if (!existsSync(transactionPath)) return;
+  const transaction = readJson(transactionPath, "invalid-transition-journal");
+  if (!transaction.id || !Array.isArray(transaction.writes) || !Array.isArray(transaction.events)) {
+    fail("invalid-transition-journal");
+  }
+  for (const write of transaction.writes) {
+    const target = resolve(paths(root).directory, write.target);
+    if (!target.startsWith(`${paths(root).directory}/`)) fail("invalid-transition-journal");
+    atomicJson(target, write.value);
+  }
+  const existing = new Set();
+  if (existsSync(paths(root).history)) {
+    for (const line of readFileSync(paths(root).history, "utf8").split("\n").filter(Boolean)) {
+      const recorded = JSON.parse(line);
+      if (recorded.transactionId === transaction.id) existing.add(recorded.eventIndex);
+    }
+  }
+  transaction.events.forEach((recorded, eventIndex) => {
+    if (!existing.has(eventIndex)) {
+      appendEvent(paths(root).history, {
+        ...recorded,
+        eventIndex,
+        transactionId: transaction.id,
+      });
+    }
+  });
+  rmSync(transactionPath);
+  fsyncParent(transactionPath);
+}
+
+function commitTransition(root, writes, events, options = {}) {
+  const transactionPath = join(paths(root).directory, ".transaction.json");
+  atomicJson(transactionPath, {
+    events,
+    id: randomUUID(),
+    writes: writes.map(({ target, value }) => ({ target, value })),
+  });
+  testCrash(options, "transition-journal");
+  const transaction = readJson(transactionPath, "invalid-transition-journal");
+  for (const write of transaction.writes) {
+    atomicJson(join(paths(root).directory, write.target), write.value);
+  }
+  testCrash(options, "transition-state");
+  replayTransition(root);
+  testCrash(options, "transition-history");
+}
+
 function readJson(path, missingReason) {
   try {
     return JSON.parse(readFileSync(path, "utf8"));
@@ -140,6 +201,53 @@ function safeReference(value, name) {
   return reference;
 }
 
+function existingReference(root, value, name) {
+  const reference = safeReference(value, name);
+  const [fileReference, fragment] = reference.split("#", 2);
+  const path = resolve(root, fileReference);
+  if (!path.startsWith(`${root}/`)) fail(`invalid-${name}`);
+  try {
+    if (!lstatSync(path).isFile()) fail(`invalid-${name}`);
+  } catch {
+    fail(`invalid-${name}`);
+  }
+  if (fragment !== undefined) {
+    if (!fileReference.endsWith(".md") || !fragment) fail(`invalid-${name}`);
+    const occurrences = new Map();
+    const anchors = new Set();
+    for (const line of readFileSync(path, "utf8").split(/\r?\n/)) {
+      const heading = line.match(/^#{1,6}\s+(.+?)\s*#*\s*$/)?.[1];
+      if (!heading) continue;
+      const base = heading
+        .replace(/<[^>]*>/g, "")
+        .replace(/[`*_~]/g, "")
+        .toLowerCase()
+        .replace(/[^\p{Letter}\p{Number}\s-]/gu, "")
+        .trim()
+        .replace(/\s+/g, "-");
+      if (!base) continue;
+      const occurrence = occurrences.get(base) ?? 0;
+      anchors.add(occurrence === 0 ? base : `${base}-${occurrence}`);
+      occurrences.set(base, occurrence + 1);
+    }
+    if (!anchors.has(fragment)) fail(`invalid-${name}`);
+  }
+  return reference;
+}
+
+function safeOwnedInput(value) {
+  const input = String(value ?? "");
+  if (
+    !/^[A-Za-z0-9._/-]{1,200}$/.test(input) ||
+    input.startsWith("/") ||
+    input.endsWith("/") ||
+    input.split("/").includes("..")
+  ) {
+    fail("invalid-owned-input");
+  }
+  return input;
+}
+
 function boundedNumber(value, name, { maximum = 100, minimum = 0 } = {}) {
   const number = Number(value);
   if (
@@ -151,6 +259,52 @@ function boundedNumber(value, name, { maximum = 100, minimum = 0 } = {}) {
     fail(`invalid-${name}`);
   }
   return number;
+}
+
+function authorityFromOptions(root, options) {
+  const researchStatus = String(options.researchStatus ?? "");
+  const last30daysStatus = String(options.last30daysStatus ?? "");
+  if (!researchStatuses.has(researchStatus) || !researchStatuses.has(last30daysStatus)) {
+    fail("research-preflight-required");
+  }
+  const externalCompletion = String(options.externalCompletion ?? "");
+  if (!new Set(["not-required", "required"]).has(externalCompletion)) {
+    fail("invalid-external-completion");
+  }
+  if (researchStatus === "not needed") safeReference(options.researchReason, "research-reason");
+  if (last30daysStatus === "not needed") {
+    safeReference(options.last30daysReason, "last30days-reason");
+  }
+  return {
+    branch: git(root, ["branch", "--show-current"]),
+    completionContractRef: existingReference(
+      root,
+      options.completionContractRef,
+      "completion-contract-ref",
+    ),
+    externalCompletion,
+    last30days: {
+      evidenceRef: existingReference(root, options.last30daysRef, "last30days-ref"),
+      reasonCode:
+        last30daysStatus === "not needed"
+          ? safeReference(options.last30daysReason, "last30days-reason")
+          : null,
+      status: last30daysStatus,
+    },
+    prohibitedActionsRef: existingReference(
+      root,
+      options.prohibitedActionsRef,
+      "prohibited-actions-ref",
+    ),
+    research: {
+      evidenceRef: existingReference(root, options.researchRef, "research-ref"),
+      reasonCode:
+        researchStatus === "not needed"
+          ? safeReference(options.researchReason, "research-reason")
+          : null,
+      status: researchStatus,
+    },
+  };
 }
 
 function manifest(root, inputs) {
@@ -198,10 +352,20 @@ function authorityHead(root) {
 
 function revision(root, goal) {
   const head = authorityHead(root);
+  const branch = git(root, ["branch", "--show-current"]);
   const worktree = realpathSync(root);
   const ownedManifest = manifest(root, goal.revision.ownedInputs);
+  const researchAuthority = hash(
+    JSON.stringify({
+      last30days: goal.authority.last30days,
+      research: goal.authority.research,
+    }),
+  );
   return {
-    fingerprint: hash(`${hash(worktree)}\0${head}\0${ownedManifest}`),
+    branch,
+    fingerprint: hash(
+      `${hash(worktree)}\0${branch}\0${head}\0${ownedManifest}\0${researchAuthority}`,
+    ),
     head,
     ownedManifest,
     ownedInputs: goal.revision.ownedInputs,
@@ -221,31 +385,35 @@ function dirtyConflicts(root) {
         path !== ".codex/goals/active.json" &&
         path !== ".codex/goals/history.jsonl" &&
         !path.startsWith(".codex/goals/.lease") &&
-        !path.startsWith(".codex/goals/.mutation") &&
         !path.startsWith(".codex/goals/.evidence") &&
         !path.startsWith(".codex/goals/.question-"),
     );
 }
 
+const productionRuntime = Object.freeze({
+  adoptPrelockPause() {},
+  crash() {},
+  now(options) {
+    if (options.now) fail("injected-time-forbidden");
+    return Date.now();
+  },
+  pause() {},
+  questionPrelockPause() {},
+});
+let runtimeHooks = productionRuntime;
+
 function nowFrom(options) {
-  const now = new Date(options.now ?? Date.now());
+  const now = new Date(runtimeHooks.now(options));
   if (Number.isNaN(now.valueOf())) fail("invalid-now");
   return now;
 }
 
 function testPause(options) {
-  if (process.env.SYMPHONY_CONTROLLER_TEST_MODE !== "1" || !options.testPauseMs) return;
-  const duration = boundedNumber(options.testPauseMs, "test-pause-ms", {
-    maximum: 5_000,
-    minimum: 1,
-  });
-  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, duration);
+  runtimeHooks.pause(options);
 }
 
 function testCrash(options, phase) {
-  if (process.env.SYMPHONY_CONTROLLER_TEST_MODE === "1" && options.testCrashAfter === phase) {
-    process.exit(86);
-  }
+  runtimeHooks.crash(options, phase);
 }
 
 function event(goal, now, type, details = {}) {
@@ -258,75 +426,78 @@ function event(goal, now, type, details = {}) {
   };
 }
 
-function processIdentity(pid) {
-  try {
-    const started = execFileSync("ps", ["-o", "lstart=", "-p", String(pid)], {
-      encoding: "utf8",
-    }).trim();
-    return started ? hash(`${pid}\0${started}`) : null;
-  } catch {
-    return null;
-  }
+function revisionRequiresReview(root, revisionFingerprint) {
+  if (!existsSync(paths(root).history)) return false;
+  return readFileSync(paths(root).history, "utf8")
+    .split("\n")
+    .filter(Boolean)
+    .some((line) => {
+      const recorded = JSON.parse(line);
+      return recorded.revision === revisionFingerprint && recorded.type === "run-started";
+    });
 }
 
-function withMutationLock(root, callback) {
-  const lock = join(paths(root).directory, ".mutation");
-  const selfIdentity = processIdentity(process.pid);
-  if (!selfIdentity) fail("process-identity-unavailable");
-  let token;
-  const acquire = () => {
+let mutationLockVerified = false;
+
+function delegateUnderMutationLock(root, action, options) {
+  const gitLock = git(root, ["rev-parse", "--git-path", "symphony-controller.lock"]);
+  const lockPath = resolve(root, gitLock);
+  if (options.mutationLockFd !== undefined) {
+    const descriptor = boundedNumber(options.mutationLockFd, "mutation-lock-fd", {
+      maximum: 1_024,
+      minimum: 3,
+    });
+    let descriptorMetadata;
+    let lockMetadata;
     try {
-      mkdirSync(lock, { mode: 0o700 });
-      token = randomUUID();
-      atomicJson(join(lock, "owner.json"), {
-        pid: process.pid,
-        processIdentity: selfIdentity,
-        token,
-      });
-      return true;
+      descriptorMetadata = fstatSync(descriptor);
+      lockMetadata = statSync(lockPath);
     } catch {
-      try {
-        const owner = JSON.parse(readFileSync(join(lock, "owner.json"), "utf8"));
-        if (!owner.processIdentity || processIdentity(owner.pid) !== owner.processIdentity) {
-          const stale = `${lock}.stale-${randomUUID()}`;
-          renameSync(lock, stale);
-          fsyncParent(lock);
-          rmSync(stale, { recursive: true });
-          return acquire();
-        }
-      } catch {
-        try {
-          if (Date.now() - statSync(lock).mtimeMs > 30_000) {
-            const stale = `${lock}.stale-${randomUUID()}`;
-            renameSync(lock, stale);
-            fsyncParent(lock);
-            rmSync(stale, { recursive: true });
-            return acquire();
-          }
-        } catch {
-          // A concurrent reconciler may already have recovered it.
-        }
-      }
-      return false;
+      fail("mutation-lock-not-held");
     }
-  };
-  if (!acquire()) return null;
-  try {
-    return callback();
-  } finally {
-    try {
-      const owner = JSON.parse(readFileSync(join(lock, "owner.json"), "utf8"));
-      if (owner.token === token) {
-        const released = `${lock}.released-${token}`;
-        renameSync(lock, released);
-        fsyncParent(lock);
-        rmSync(released, { recursive: true });
-        fsyncParent(released);
-      }
-    } catch {
-      // A recovered former owner must never remove a successor's lock.
+    if (
+      descriptorMetadata.dev !== lockMetadata.dev ||
+      descriptorMetadata.ino !== lockMetadata.ino
+    ) {
+      fail("mutation-lock-not-held");
     }
+    const verified = spawnSync(
+      "python3",
+      [join(import.meta.dirname, "mutation-lock.py"), "--verify", lockPath],
+      { stdio: ["ignore", "ignore", "ignore", descriptor] },
+    );
+    if (verified.status !== 0) fail("mutation-lock-not-held");
+    mutationLockVerified = true;
+    return;
   }
+  const result = spawnSync(
+    "python3",
+    [
+      join(import.meta.dirname, "mutation-lock.py"),
+      resolve(root, gitLock),
+      process.execPath,
+      ...process.argv.slice(1),
+    ],
+    { env: process.env, stdio: "inherit" },
+  );
+  if (result.status === 75 && new Set(["reconcile", "wake"]).has(action)) {
+    const goal = readJson(paths(root).active, "active-goal-missing");
+    process.stdout.write(
+      `${JSON.stringify({ action: "noop", reason: "mutation-contention", state: goal.state })}\n`,
+    );
+    process.exit(0);
+  }
+  if (result.status === 75) {
+    process.stderr.write("mutation-contention\n");
+    process.exit(1);
+  }
+  process.exit(result.status ?? 1);
+}
+
+function withMutationLock(_root, callback) {
+  if (!mutationLockVerified) fail("mutation-lock-not-held");
+  replayTransition(_root);
+  return callback();
 }
 
 function leaseExpiry(root, lease) {
@@ -341,7 +512,7 @@ function leaseExpiry(root, lease) {
   return lease.expiresAt;
 }
 
-function fenceLease(root, goal, now, reason) {
+function fenceLease(root, goal, now, reason, recordEvent = true) {
   const controllerPaths = paths(root);
   if (!existsSync(controllerPaths.lease)) return false;
   const fenced = `${controllerPaths.lease}.stale-${randomUUID()}`;
@@ -351,25 +522,25 @@ function fenceLease(root, goal, now, reason) {
   } catch {
     return false;
   }
-  appendEvent(controllerPaths.history, event(goal, now, "stale-lease-reconciled", { reason }));
+  if (recordEvent) {
+    appendEvent(controllerPaths.history, event(goal, now, "stale-lease-reconciled", { reason }));
+  }
   rmSync(fenced, { recursive: true });
   fsyncParent(fenced);
   return true;
 }
 
-function reconcile(root, goal, now) {
-  const locked = withMutationLock(root, () => reconcileLocked(root, goal, now));
-  return locked ?? { action: "noop", reason: "mutation-contention", state: goal.state };
+function reconcile(root, now, options = {}) {
+  const locked = withMutationLock(root, () =>
+    reconcileLocked(root, readJson(paths(root).active, "active-goal-missing"), now, options),
+  );
+  return locked;
 }
 
-function reconcileLocked(root, goal, now) {
+function reconcileLocked(root, goal, now, options) {
   const controllerPaths = paths(root);
   const residues = readdirSync(controllerPaths.directory).filter(
-    (name) =>
-      name.startsWith(".lease.stale-") ||
-      name.startsWith(".lease.released-") ||
-      name.startsWith(".mutation.stale-") ||
-      name.startsWith(".mutation.released-"),
+    (name) => name.startsWith(".lease.stale-") || name.startsWith(".lease.released-"),
   );
   for (const residue of residues)
     rmSync(join(controllerPaths.directory, residue), { recursive: true });
@@ -379,6 +550,24 @@ function reconcileLocked(root, goal, now) {
       event(goal, now, "lease-residue-reconciled", { count: residues.length }),
     );
   }
+  if (goal.authority?.branch && git(root, ["branch", "--show-current"]) !== goal.authority.branch) {
+    const fenced = fenceLease(root, goal, now, "authority-branch-mismatch", false);
+    goal.state = "blocked";
+    goal.reason = "authority-branch-mismatch";
+    goal.run = null;
+    commitTransition(
+      root,
+      [{ target: "active.json", value: goal }],
+      [
+        ...(fenced
+          ? [event(goal, now, "stale-lease-reconciled", { reason: "authority-branch-mismatch" })]
+          : []),
+        event(goal, now, "authority-branch-mismatch"),
+      ],
+      options,
+    );
+    return { action: "noop", reason: goal.reason, state: goal.state };
+  }
   if (existsSync(controllerPaths.lease)) reconcileCheckpointJournal(root, goal);
   if (existsSync(controllerPaths.lease)) {
     let lease;
@@ -386,43 +575,56 @@ function reconcileLocked(root, goal, now) {
       lease = JSON.parse(readFileSync(join(controllerPaths.lease, "owner.json"), "utf8"));
     } catch {
       const age = now.valueOf() - statSync(controllerPaths.lease).mtimeMs;
-      if (age > goal.policy.ttlMs) fenceLease(root, goal, now, "incomplete-lease");
-      else return { action: "noop", reason: "lease-initializing", state: goal.state };
+      if (age > goal.policy.ttlMs) {
+        fenceLease(root, goal, now, "incomplete-lease", false);
+        if (goal.state === "running") {
+          goal.state = "ready";
+          goal.run = null;
+        }
+        commitTransition(
+          root,
+          [{ target: "active.json", value: goal }],
+          [event(goal, now, "stale-lease-reconciled", { reason: "incomplete-lease" })],
+          options,
+        );
+      } else return { action: "noop", reason: "lease-initializing", state: goal.state };
     }
     if (lease) {
       const expired = Date.parse(leaseExpiry(root, lease)) <= now.valueOf();
       const timedOut = goal.run?.deadlineAt && Date.parse(goal.run.deadlineAt) <= now.valueOf();
       const foreign =
         lease.worktree !== realpathSync(root) ||
+        lease.branch !== goal.revision.branch ||
         lease.head !== git(root, ["rev-parse", "HEAD"]) ||
-        lease.manifest !== manifest(root, goal.revision.ownedInputs);
+        lease.manifest !== manifest(root, goal.revision.ownedInputs) ||
+        lease.revision !== goal.revision.fingerprint;
       const authorityLost =
         goal.state !== "running" ||
         lease.epoch !== goal.leaseEpoch ||
-        lease.ownerToken !== goal.run?.ownerToken;
+        hash(lease.ownerToken) !== goal.run?.ownerTokenHash;
       if (expired || timedOut || foreign || authorityLost) {
-        fenceLease(
-          root,
-          goal,
-          now,
-          timedOut
-            ? "time-budget-exhausted"
-            : expired
-              ? "ttl-expired"
-              : foreign
-                ? "revision-lost"
-                : "run-authority-lost",
-        );
+        const fenceReason = timedOut
+          ? "time-budget-exhausted"
+          : expired
+            ? "ttl-expired"
+            : foreign
+              ? "revision-lost"
+              : "run-authority-lost";
+        fenceLease(root, goal, now, fenceReason, false);
         if (timedOut) {
           goal.state = "failed";
           goal.reason = "time-budget-exhausted";
           goal.run = null;
-          atomicJson(controllerPaths.active, goal);
         } else if (goal.state === "running") {
           goal.state = "ready";
           goal.run = null;
-          atomicJson(controllerPaths.active, goal);
         }
+        commitTransition(
+          root,
+          [{ target: "active.json", value: goal }],
+          [event(goal, now, "stale-lease-reconciled", { reason: fenceReason })],
+          options,
+        );
       } else {
         return { action: "noop", reason: "lease-held", state: goal.state };
       }
@@ -431,24 +633,12 @@ function reconcileLocked(root, goal, now) {
     goal.state = "ready";
     goal.reason = "lease-missing-after-restart";
     goal.run = null;
-    atomicJson(controllerPaths.active, goal);
-    appendEvent(controllerPaths.history, event(goal, now, "missing-lease-reconciled"));
-  }
-
-  const current = revision(root, goal);
-  if (goal.revision.fingerprint !== current.fingerprint) {
-    const invalidated = goal.evidence.current.length;
-    goal.revision = current;
-    goal.evidence.current = [];
-    goal.question = null;
-    goal.run = null;
-    goal.state = "ready";
-    goal.reason = "revision-changed";
-    appendEvent(
-      controllerPaths.history,
-      event(goal, now, "evidence-invalidated", { count: invalidated }),
+    commitTransition(
+      root,
+      [{ target: "active.json", value: goal }],
+      [event(goal, now, "missing-lease-reconciled")],
+      options,
     );
-    atomicJson(controllerPaths.active, goal);
   }
 
   const conflicts = dirtyConflicts(root);
@@ -456,26 +646,105 @@ function reconcileLocked(root, goal, now) {
     goal.state = "blocked";
     goal.reason = "dirty-tree-conflict";
     goal.question = null;
-    atomicJson(controllerPaths.active, goal);
-    appendEvent(
-      controllerPaths.history,
-      event(goal, now, "dirty-tree-conflict", {
-        pathFingerprints: conflicts.map((path) => hash(path)).slice(0, 20),
-      }),
+    commitTransition(
+      root,
+      [{ target: "active.json", value: goal }],
+      [
+        event(goal, now, "dirty-tree-conflict", {
+          pathFingerprints: conflicts.map((path) => hash(path)).slice(0, 20),
+        }),
+      ],
+      options,
     );
     return { action: "noop", reason: goal.reason, state: goal.state };
+  }
+
+  const current = revision(root, goal);
+  if (goal.revision.fingerprint !== current.fingerprint) {
+    const finalReviewRecorded = goal.evidence.current.some(
+      (record) =>
+        record.reviewerVerdict === "PASS" && retrospectiveCodes.has(record.retrospectiveCode),
+    );
+    if (
+      goal.learning?.enforceFromRevision === goal.revision.fingerprint &&
+      revisionRequiresReview(root, goal.revision.fingerprint) &&
+      !goal.learning.completed.some(
+        (iteration) => iteration.revision === goal.revision.fingerprint,
+      ) &&
+      !finalReviewRecorded
+    ) {
+      goal.state = "blocked";
+      goal.reason = "iteration-review-required";
+      goal.question = null;
+      commitTransition(
+        root,
+        [{ target: "active.json", value: goal }],
+        [event(goal, now, "iteration-review-required")],
+        options,
+      );
+      return { action: "noop", reason: goal.reason, state: goal.state };
+    }
+    const invalidated = goal.evidence.current.length;
+    goal.revision = current;
+    if (goal.learning) goal.learning.enforceFromRevision = current.fingerprint;
+    goal.evidence.current = [];
+    goal.question = null;
+    goal.run = null;
+    goal.state = "ready";
+    goal.reason = "revision-changed";
+    commitTransition(
+      root,
+      [{ target: "active.json", value: goal }],
+      [event(goal, now, "evidence-invalidated", { count: invalidated })],
+      options,
+    );
   }
 
   return { action: "reconciled", reason: goal.reason ?? null, state: goal.state };
 }
 
-function acquire(root, goal, now, wakeToken) {
-  const locked = withMutationLock(root, () => acquireLocked(root, goal, now, wakeToken));
-  return locked ?? null;
+function acquire(root, _goal, now, wakeToken) {
+  const locked = withMutationLock(root, () =>
+    acquireLocked(root, readJson(paths(root).active, "active-goal-missing"), now, wakeToken),
+  );
+  return locked;
 }
 
 function acquireLocked(root, goal, now, wakeToken) {
   const controllerPaths = paths(root);
+  if (goal.lastWakeTokenHash === hash(wakeToken)) {
+    return { action: "noop", reason: "duplicate-wakeup", state: goal.state };
+  }
+  if (goal.state === "complete") {
+    return { action: "noop", reason: "goal-complete", state: goal.state };
+  }
+  if (goal.state === "blocked" || goal.state === "running") {
+    return { action: "noop", reason: goal.reason ?? "not-admissible", state: goal.state };
+  }
+  if (goal.state === "waiting" && goal.waiting?.dueAt) {
+    if (Date.parse(goal.waiting.dueAt) > now.valueOf()) {
+      return { action: "noop", reason: "waiting-not-due", state: goal.state };
+    }
+    goal.waiting = null;
+  }
+  if (goal.state === "failed") {
+    if (goal.reason === "unchanged-failure" || goal.reason === "repair-budget-exhausted") {
+      return { action: "noop", reason: goal.reason, state: goal.state };
+    }
+    if (goal.budgets.retriesUsed >= goal.policy.maxRetries) {
+      goal.reason = "retry-budget-exhausted";
+      commitTransition(
+        root,
+        [{ target: "active.json", value: goal }],
+        [event(goal, now, "retry-budget-exhausted")],
+      );
+      return { action: "noop", reason: goal.reason, state: goal.state };
+    }
+    if (goal.retryDueAt && Date.parse(goal.retryDueAt) > now.valueOf()) {
+      return { action: "noop", reason: "retry-not-due", state: goal.state };
+    }
+    goal.budgets.retriesUsed += 1;
+  }
   try {
     mkdirSync(controllerPaths.lease, { mode: 0o700 });
   } catch {
@@ -485,11 +754,13 @@ function acquireLocked(root, goal, now, wakeToken) {
   const epoch = goal.leaseEpoch + 1;
   const expiresAt = new Date(now.valueOf() + goal.policy.ttlMs).toISOString();
   const lease = {
+    branch: goal.revision.branch,
     epoch,
     expiresAt,
     head: git(root, ["rev-parse", "HEAD"]),
     manifest: goal.revision.ownedManifest,
     ownerToken,
+    revision: goal.revision.fingerprint,
     worktree: realpathSync(root),
   };
   try {
@@ -497,18 +768,18 @@ function acquireLocked(root, goal, now, wakeToken) {
     goal.leaseEpoch = epoch;
     goal.state = "running";
     goal.reason = null;
-    goal.lastWakeToken = wakeToken;
+    goal.lastWakeTokenHash = hash(wakeToken);
     goal.budgets.runsUsed += 1;
     goal.run = {
+      childClaims: [],
       deadlineAt: new Date(now.valueOf() + goal.policy.maxRuntimeMs).toISOString(),
-      directChildrenUsed: 0,
-      ownerToken,
+      ownerTokenHash: hash(ownerToken),
       startedAt: now.toISOString(),
     };
-    atomicJson(controllerPaths.active, goal);
-    appendEvent(
-      controllerPaths.history,
-      event(goal, now, "run-started", { epoch, wakeToken: hash(wakeToken) }),
+    commitTransition(
+      root,
+      [{ target: "active.json", value: goal }],
+      [event(goal, now, "run-started", { epoch, wakeToken: hash(wakeToken) })],
     );
     return { action: "run", ownerToken, state: goal.state };
   } catch (error) {
@@ -531,10 +802,15 @@ function assertLease(root, goal, ownerToken, now) {
     lease.epoch !== goal.leaseEpoch ||
     Date.parse(leaseExpiry(root, lease)) <= now.valueOf() ||
     lease.worktree !== realpathSync(root) ||
+    lease.branch !== current.branch ||
     lease.head !== git(root, ["rev-parse", "HEAD"]) ||
-    lease.manifest !== current.ownedManifest
+    lease.manifest !== current.ownedManifest ||
+    lease.revision !== current.fingerprint
   ) {
     fail("lease-lost");
+  }
+  if (!goal.run?.deadlineAt || Date.parse(goal.run.deadlineAt) <= now.valueOf()) {
+    fail("time-budget-exhausted");
   }
   return lease;
 }
@@ -587,9 +863,10 @@ function reconcileCheckpointJournal(root, goal) {
   return true;
 }
 
-function renew(root, goal, options, now) {
-  const locked = withMutationLock(root, () => renewLocked(root, goal, options, now));
-  if (!locked) fail("mutation-contention");
+function renew(root, _goal, options, now) {
+  const locked = withMutationLock(root, () =>
+    renewLocked(root, readJson(paths(root).active, "active-goal-missing"), options, now),
+  );
   return locked;
 }
 
@@ -604,10 +881,11 @@ function renewLocked(root, goal, options, now) {
     expiresAt: new Date(now.valueOf() + goal.policy.ttlMs).toISOString(),
     ownerToken: lease.ownerToken,
   };
-  atomicJson(join(paths(root).lease, "renewal.json"), renewed);
-  appendEvent(
-    paths(root).history,
-    event(goal, now, "lease-renewed", { epoch: lease.epoch, expiresAt: renewed.expiresAt }),
+  commitTransition(
+    root,
+    [{ target: ".lease/renewal.json", value: renewed }],
+    [event(goal, now, "lease-renewed", { epoch: lease.epoch, expiresAt: renewed.expiresAt })],
+    options,
   );
   return { action: "renewed", expiresAt: renewed.expiresAt, state: goal.state };
 }
@@ -616,7 +894,6 @@ function initialize(root, options, now) {
   const controllerPaths = paths(root);
   mkdirSync(controllerPaths.directory, { recursive: true });
   const locked = withMutationLock(root, () => initializeLocked(root, options, now));
-  if (!locked) fail("mutation-contention");
   return locked;
 }
 
@@ -625,28 +902,43 @@ function initializeLocked(root, options, now) {
   let previousGoal = null;
   if (existsSync(controllerPaths.active)) {
     previousGoal = readJson(controllerPaths.active, "active-goal-invalid");
-    if (options.replaceComplete !== "true" || previousGoal.state !== "complete") {
+    if (
+      options.replaceTerminal !== "true" ||
+      !new Set(["complete", "failed"]).has(previousGoal.state)
+    ) {
       fail("active-goal-already-exists");
     }
-    if (existsSync(controllerPaths.lease)) fail("completed-goal-lease-present");
+    if (
+      previousGoal.state === "failed" &&
+      !previousGoal.learning?.completed?.some(
+        (iteration) => iteration.revision === previousGoal.revision.fingerprint,
+      )
+    ) {
+      fail("failed-goal-iteration-required");
+    }
+    if (existsSync(controllerPaths.lease)) fail("terminal-goal-lease-present");
   }
   const ownedInputs = options.ownedInput ?? [];
   if (ownedInputs.length === 0) fail("owned-input-required");
   if (!/^[a-z0-9][a-z0-9-]{0,79}$/.test(options.goal ?? "")) fail("invalid-goal-id");
+  if (!String(options.objective ?? "").trim()) fail("objective-required");
   const objective = redact(options.objective);
+  const authority = authorityFromOptions(root, options);
   const goal = {
-    schemaVersion: 1,
+    schemaVersion: 2,
+    authority,
     goalId: options.goal,
     objectiveFingerprint: hash(objective),
-    objectiveRef: safeReference(options.objectiveRef ?? "delegated-goal", "objective-ref"),
+    objectiveRef: existingReference(root, options.objectiveRef, "objective-ref"),
     state: "ready",
     reason: null,
     revision: { ownedInputs },
     leaseEpoch: 0,
-    lastWakeToken: null,
+    lastWakeTokenHash: null,
     question: null,
     run: null,
     evidence: { current: [] },
+    learning: { completed: [], enforceFromRevision: null },
     budgets: {
       repairCyclesUsed: 0,
       retriesUsed: 0,
@@ -671,25 +963,80 @@ function initializeLocked(root, options, now) {
     },
   };
   goal.revision = revision(root, goal);
-  atomicJson(controllerPaths.active, goal);
+  goal.learning.enforceFromRevision = goal.revision.fingerprint;
+  const events = [];
   if (previousGoal) {
-    appendEvent(controllerPaths.history, {
+    events.push({
       at: now.toISOString(),
       goalId: goal.goalId,
       previousGoalId: previousGoal.goalId,
       previousRevision: previousGoal.revision.fingerprint,
+      previousState: previousGoal.state,
       revision: goal.revision.fingerprint,
-      type: "completed-goal-replaced",
+      type: "terminal-goal-replaced",
     });
   }
-  appendEvent(controllerPaths.history, event(goal, now, "goal-initialized"));
+  events.push(event(goal, now, "goal-initialized"));
+  commitTransition(root, [{ target: "active.json", value: goal }], events, options);
   return { action: "initialized", state: goal.state };
+}
+
+function adoptInput(root, goal, options, now) {
+  runtimeHooks.adoptPrelockPause();
+  return withMutationLock(root, () => {
+    goal = readJson(paths(root).active, "active-goal-missing");
+    if (goal.state !== "ready" || existsSync(paths(root).lease)) fail("goal-not-ready");
+    const input = safeOwnedInput(options.ownedInput);
+    if (goal.revision.ownedInputs.includes(input)) {
+      return { action: "noop", reason: "owned-input-already-adopted", state: goal.state };
+    }
+    const ownedInputs = [...goal.revision.ownedInputs, input];
+    manifest(root, ownedInputs);
+    goal.revision.ownedInputs = ownedInputs;
+    goal.revision = revision(root, goal);
+    goal.learning.enforceFromRevision = goal.revision.fingerprint;
+    goal.evidence.current = [];
+    commitTransition(
+      root,
+      [{ target: "active.json", value: goal }],
+      [event(goal, now, "owned-input-adopted", { input: hash(input) })],
+      options,
+    );
+    return { action: "owned-input-adopted", state: goal.state };
+  });
+}
+
+function bindResearch(root, goal, options, now) {
+  return withMutationLock(root, () => {
+    goal = readJson(paths(root).active, "active-goal-missing");
+    if (goal.state !== "ready" || existsSync(paths(root).lease)) fail("goal-not-ready");
+    goal.authority.research = {
+      evidenceRef: existingReference(root, options.researchRef, "research-ref"),
+      reasonCode: null,
+      status: "linked",
+    };
+    goal.authority.last30days = {
+      evidenceRef: existingReference(root, options.last30daysRef, "last30days-ref"),
+      reasonCode: null,
+      status: "linked",
+    };
+    goal.revision = revision(root, goal);
+    goal.learning.enforceFromRevision = goal.revision.fingerprint;
+    goal.evidence.current = [];
+    commitTransition(
+      root,
+      [{ target: "active.json", value: goal }],
+      [event(goal, now, "research-evidence-bound")],
+      options,
+    );
+    return { action: "research-evidence-bound", state: goal.state };
+  });
 }
 
 function wake(root, goal, options, now) {
   const wakeToken = options.wakeToken;
   if (!wakeToken) fail("wake-token-required");
-  const result = reconcile(root, goal, now);
+  const result = reconcile(root, now, options);
   goal = readJson(paths(root).active, "active-goal-missing");
   if (
     result.reason === "dirty-tree-conflict" ||
@@ -698,13 +1045,38 @@ function wake(root, goal, options, now) {
   ) {
     return result;
   }
-  if (goal.lastWakeToken === wakeToken) {
+  if (goal.lastWakeTokenHash === hash(wakeToken)) {
     return { action: "noop", reason: "duplicate-wakeup", state: goal.state };
   }
   if (goal.state === "complete")
     return { action: "noop", reason: "goal-complete", state: goal.state };
   if (goal.state === "blocked" && goal.question) {
     if (goal.question.emitted) {
+      if (now.valueOf() - Date.parse(goal.question.emittedAt) > goal.policy.ttlMs) {
+        const reset = withMutationLock(root, () => {
+          const current = readJson(paths(root).active, "active-goal-missing");
+          if (
+            current.state === "blocked" &&
+            current.question?.fingerprint === goal.question.fingerprint &&
+            current.question.emitted &&
+            now.valueOf() - Date.parse(current.question.emittedAt) > current.policy.ttlMs
+          ) {
+            current.question.emitted = false;
+            current.question.emittedAt = null;
+            commitTransition(
+              root,
+              [{ target: "active.json", value: current }],
+              [event(current, now, "operator-question-delivery-retried")],
+            );
+          }
+          return current;
+        });
+        if (!reset) return { action: "noop", reason: "mutation-contention", state: goal.state };
+        rmSync(join(questionDirectory(root, goal.question.fingerprint), "emission.json"), {
+          force: true,
+        });
+        return wake(root, reset, options, now);
+      }
       return {
         action: "noop",
         reason: "blocked-question-already-emitted",
@@ -746,33 +1118,38 @@ function wake(root, goal, options, now) {
       };
     }
     const runtimeQuestion = readJson(join(directory, "question.json"), "question-text-unavailable");
-    goal.question.emitted = true;
-    atomicJson(paths(root).active, goal);
-    return { action: "ask", question: runtimeQuestion.text, state: goal.state };
+    runtimeHooks.questionPrelockPause(directory);
+    const emission = withMutationLock(root, () => {
+      reconcileLocked(root, readJson(paths(root).active, "active-goal-missing"), now, options);
+      const current = readJson(paths(root).active, "active-goal-missing");
+      if (
+        current.state !== "blocked" ||
+        !current.question ||
+        current.question.fingerprint !== goal.question.fingerprint
+      ) {
+        return { action: "noop", reason: "question-invalidated", state: current.state };
+      }
+      if (current.question.emitted) {
+        return {
+          action: "noop",
+          reason: "blocked-question-already-emitted",
+          state: current.state,
+        };
+      }
+      current.question.emitted = true;
+      current.question.emittedAt = now.toISOString();
+      commitTransition(
+        root,
+        [{ target: "active.json", value: current }],
+        [event(current, now, "operator-question-delivered")],
+      );
+      return { action: "ask", question: runtimeQuestion.text, state: current.state };
+    });
+    if (emission.reason === "question-invalidated") rmSync(claim, { force: true });
+    return emission;
   }
   if (result.reason === "lease-held") return result;
-  if (goal.state === "waiting" && goal.waiting?.dueAt) {
-    if (Date.parse(goal.waiting.dueAt) > now.valueOf()) {
-      return { action: "noop", reason: "waiting-not-due", state: goal.state };
-    }
-    goal.waiting = null;
-  }
-  if (goal.state === "failed") {
-    if (goal.reason === "unchanged-failure") {
-      return { action: "noop", reason: goal.reason, state: goal.state };
-    }
-    if (goal.budgets.retriesUsed >= goal.policy.maxRetries) {
-      goal.reason = "retry-budget-exhausted";
-      atomicJson(paths(root).active, goal);
-      return { action: "noop", reason: goal.reason, state: goal.state };
-    }
-    if (goal.retryDueAt && Date.parse(goal.retryDueAt) > now.valueOf()) {
-      return { action: "noop", reason: "retry-not-due", state: goal.state };
-    }
-    goal.budgets.retriesUsed += 1;
-  }
-  const acquired = acquire(root, goal, now, wakeToken);
-  return acquired ?? { action: "noop", reason: "lease-contention", state: goal.state };
+  return acquire(root, goal, now, wakeToken);
 }
 
 function loadEvidenceRecord(root, recordPath, expected, goal, now) {
@@ -791,14 +1168,16 @@ function loadEvidenceRecord(root, recordPath, expected, goal, now) {
   if (
     record.kind !== expected.kind ||
     record[expected.field] !== expected.value ||
-    record.revision !== goal.revision.fingerprint
+    record.revision !== goal.revision.fingerprint ||
+    record.head !== git(root, ["rev-parse", "HEAD"])
   ) {
     fail("evidence-record-mismatch");
   }
   const completedAt = Date.parse(record.completedAt);
+  const evidenceStartedAt = Date.parse(goal.run?.startedAt ?? goal.question?.createdAt ?? 0);
   if (
     !Number.isFinite(completedAt) ||
-    completedAt < Date.parse(goal.run.startedAt) ||
+    completedAt < evidenceStartedAt ||
     completedAt > now.valueOf()
   ) {
     fail("stale-evidence-record");
@@ -806,9 +1185,223 @@ function loadEvidenceRecord(root, recordPath, expected, goal, now) {
   return { contentHash: hash(content), record };
 }
 
-function checkpoint(root, goal, options, now) {
-  const locked = withMutationLock(root, () => checkpointLocked(root, goal, options, now));
-  if (!locked) fail("mutation-contention");
+function loadAgentEvidenceRecord(root, recordPath, expected, goal, now) {
+  const evidence = loadEvidenceRecord(root, recordPath, expected, goal, now);
+  const { record } = evidence;
+  if (record.source !== "collaboration-agent-output" || !record.agentId || record.fresh !== true) {
+    fail("independent-verdicts-required");
+  }
+  const taskRef = safeReference(record.taskRef, "agent-task-ref");
+  const childClaim = goal.run?.childClaims?.find(
+    (claim) => claim.tokenHash === hash(String(record.childClaim ?? "")),
+  );
+  if (
+    childClaim?.status !== "completed" ||
+    childClaim.role !== expected.kind ||
+    childClaim.taskRefHash !== hash(taskRef) ||
+    childClaim.revision !== goal.revision.fingerprint ||
+    childClaim.epoch !== goal.leaseEpoch
+  ) {
+    fail("independent-child-claim-required");
+  }
+  const reportPath = resolve(root, String(record.reportPath ?? ""));
+  if (!reportPath.startsWith(`${root}/`)) fail("agent-report-outside-root");
+  let report;
+  try {
+    if (!lstatSync(reportPath).isFile()) fail("invalid-agent-report");
+    report = readFileSync(reportPath, "utf8");
+  } catch {
+    fail("invalid-agent-report");
+  }
+  if (
+    record.reportHash !== hash(report) ||
+    report.trimStart().split(/\r?\n/, 1)[0] !== expected.value
+  ) {
+    fail("agent-report-mismatch");
+  }
+  return evidence;
+}
+
+function recordIteration(root, options, now) {
+  const locked = withMutationLock(root, () => {
+    const goal = readJson(paths(root).active, "active-goal-missing");
+    assertLease(root, goal, options.ownerToken, now);
+    if (!retrospectiveCodes.has(options.retrospectiveCode)) fail("invalid-retrospective-code");
+    if (!new Set(["PASS", "FAIL"]).has(options.reviewVerdict)) fail("invalid-review-verdict");
+    const retrospective = loadEvidenceRecord(
+      root,
+      options.retrospectiveRecord,
+      { field: "outcome", kind: "retrospective", value: options.retrospectiveCode },
+      goal,
+      now,
+    );
+    existingReference(root, retrospective.record.evidenceRef, "retrospective-record");
+    if (options.retrospectiveCode === "no-new-lesson") {
+      safeReference(retrospective.record.reasonCode, "retrospective-record");
+    }
+    const reviewer = loadAgentEvidenceRecord(
+      root,
+      options.reviewerRecord,
+      { field: "verdict", kind: "standards-review", value: options.reviewVerdict },
+      goal,
+      now,
+    );
+    if (
+      goal.learning.completed.some((iteration) => iteration.revision === goal.revision.fingerprint)
+    ) {
+      return { action: "noop", reason: "iteration-already-recorded", state: goal.state };
+    }
+    const iteration = {
+      at: now.toISOString(),
+      retrospectiveCode: options.retrospectiveCode,
+      retrospectiveRecordHash: retrospective.contentHash,
+      reviewerAgent: hash(reviewer.record.agentId),
+      reviewerRecordHash: reviewer.contentHash,
+      reviewerVerdict: options.reviewVerdict,
+      revision: goal.revision.fingerprint,
+    };
+    goal.learning.completed.push(iteration);
+    commitTransition(
+      root,
+      [{ target: "active.json", value: goal }],
+      [event(goal, now, "iteration-recorded", iteration)],
+      options,
+    );
+    return { action: "iteration-recorded", state: goal.state };
+  });
+  return locked;
+}
+
+function claimChild(root, options, now) {
+  return withMutationLock(root, () => {
+    const goal = readJson(paths(root).active, "active-goal-missing");
+    const lease = assertLease(root, goal, options.ownerToken, now);
+    const taskRef = safeReference(options.taskRef, "child-task-ref");
+    if (!directChildRoles.has(options.role)) fail("invalid-child-role");
+    goal.run.childClaims ??= [];
+    const taskRefHash = hash(taskRef);
+    if (goal.run.childClaims.some((claim) => claim.taskRefHash === taskRefHash)) {
+      fail("duplicate-child-claim");
+    }
+    const activeClaims = goal.run.childClaims.filter((claim) => claim.status === "active");
+    if (activeClaims.length >= goal.policy.maxDirectChildren) {
+      fail("direct-child-budget-exhausted");
+    }
+    const childClaim = randomUUID();
+    const claim = {
+      epoch: lease.epoch,
+      head: lease.head,
+      manifest: lease.manifest,
+      revision: lease.revision,
+      role: options.role,
+      status: "active",
+      taskRefHash,
+      tokenHash: hash(childClaim),
+    };
+    goal.run.childClaims.push(claim);
+    commitTransition(
+      root,
+      [{ target: "active.json", value: goal }],
+      [
+        event(goal, now, "child-claimed", {
+          epoch: lease.epoch,
+          role: options.role,
+          taskRefHash,
+        }),
+      ],
+      options,
+    );
+    return {
+      action: "child-claimed",
+      childClaim,
+      leaseExpiresAt: leaseExpiry(root, lease),
+      state: goal.state,
+    };
+  });
+}
+
+function settleChild(root, options, now) {
+  return withMutationLock(root, () => {
+    const goal = readJson(paths(root).active, "active-goal-missing");
+    const lease = assertLease(root, goal, options.ownerToken, now);
+    if (!new Set(["completed", "cancelled"]).has(options.outcome)) {
+      fail("invalid-child-outcome");
+    }
+    const claim = goal.run.childClaims?.find(
+      (candidate) => candidate.tokenHash === hash(String(options.childClaim ?? "")),
+    );
+    if (
+      claim?.status !== "active" ||
+      claim.epoch !== lease.epoch ||
+      claim.revision !== lease.revision ||
+      claim.head !== lease.head ||
+      claim.manifest !== lease.manifest
+    ) {
+      fail("invalid-child-claim");
+    }
+    claim.status = options.outcome;
+    claim.settledAt = now.toISOString();
+    commitTransition(
+      root,
+      [{ target: "active.json", value: goal }],
+      [
+        event(goal, now, "child-settled", {
+          outcome: options.outcome,
+          taskRefHash: claim.taskRefHash,
+        }),
+      ],
+      options,
+    );
+    return { action: "child-settled", outcome: options.outcome, state: goal.state };
+  });
+}
+
+function resolveQuestion(root, options, now) {
+  const locked = withMutationLock(root, () => {
+    const goal = readJson(paths(root).active, "active-goal-missing");
+    if (
+      goal.state !== "blocked" ||
+      !goal.question ||
+      goal.question.fingerprint !== options.questionFingerprint
+    ) {
+      fail("question-resolution-mismatch");
+    }
+    const fingerprint = goal.question.fingerprint;
+    const resolution = loadEvidenceRecord(
+      root,
+      options.resolutionRecord,
+      { field: "status", kind: "operator-resolution", value: "ACCEPT" },
+      goal,
+      now,
+    );
+    if (resolution.record.questionFingerprint !== fingerprint) {
+      fail("question-resolution-mismatch");
+    }
+    existingReference(root, resolution.record.authorityRef, "operator-authority-ref");
+    goal.question = null;
+    goal.reason = "operator-input-received";
+    goal.state = "ready";
+    commitTransition(
+      root,
+      [{ target: "active.json", value: goal }],
+      [
+        event(goal, now, "operator-question-resolved", {
+          fingerprint,
+          resolutionRecordHash: resolution.contentHash,
+        }),
+      ],
+      options,
+    );
+    rmSync(questionDirectory(root, fingerprint), { recursive: true, force: true });
+    return { action: "question-resolved", state: goal.state };
+  });
+  return locked;
+}
+
+function checkpoint(root, _goal, options, now) {
+  const locked = withMutationLock(root, () =>
+    checkpointLocked(root, readJson(paths(root).active, "active-goal-missing"), options, now),
+  );
   return locked;
 }
 
@@ -818,23 +1411,46 @@ function checkpointLocked(root, goal, options, now) {
   }
   const lease = assertLease(root, goal, options.ownerToken, now);
   testPause(options);
-  const directChildren = boundedNumber(options.directChildren ?? 0, "direct-children");
-  if (directChildren > goal.policy.maxDirectChildren) fail("direct-child-budget-exhausted");
-  goal.run.directChildrenUsed = directChildren;
+  if (options.directChildren !== undefined) fail("caller-child-count-forbidden");
+  if (goal.run.childClaims?.some((claim) => claim.status === "active")) {
+    fail("active-child-claims");
+  }
   let reason = null;
   const details = { state: options.state };
   const extraEvents = [];
 
   if (options.state === "complete") {
-    if (options.retrospectiveCode !== "completed") fail("invalid-retrospective-code");
-    const verifier = loadEvidenceRecord(
+    if (!retrospectiveCodes.has(options.retrospectiveCode)) fail("invalid-retrospective-code");
+    const retrospective = loadEvidenceRecord(
+      root,
+      options.retrospectiveRecord,
+      { field: "outcome", kind: "retrospective", value: options.retrospectiveCode },
+      goal,
+      now,
+    );
+    try {
+      existingReference(root, retrospective.record.evidenceRef, "retrospective-record");
+      if (options.retrospectiveCode === "no-new-lesson") {
+        safeReference(retrospective.record.reasonCode, "retrospective-record");
+      }
+    } catch {
+      fail("invalid-retrospective-record");
+    }
+    const reviewer = loadAgentEvidenceRecord(
+      root,
+      options.reviewerRecord,
+      { field: "verdict", kind: "standards-review", value: "PASS" },
+      goal,
+      now,
+    );
+    const verifier = loadAgentEvidenceRecord(
       root,
       options.verifierRecord,
       { field: "verdict", kind: "verifier", value: "ACCEPT" },
       goal,
       now,
     );
-    const validator = loadEvidenceRecord(
+    const validator = loadAgentEvidenceRecord(
       root,
       options.validatorRecord,
       { field: "verdict", kind: "validator", value: "PASS" },
@@ -842,13 +1458,24 @@ function checkpointLocked(root, goal, options, now) {
       now,
     );
     if (
+      !reviewer.record.agentId ||
       !verifier.record.agentId ||
       !validator.record.agentId ||
-      verifier.record.agentId === validator.record.agentId ||
+      new Set([reviewer.record.agentId, verifier.record.agentId, validator.record.agentId]).size !==
+        3 ||
+      reviewer.record.fresh !== true ||
       verifier.record.fresh !== true ||
       validator.record.fresh !== true
     ) {
       fail("independent-verdicts-required");
+    }
+    if (
+      new Set([reviewer.record.childClaim, verifier.record.childClaim, validator.record.childClaim])
+        .size !== 3 ||
+      new Set([reviewer.record.taskRef, verifier.record.taskRef, validator.record.taskRef]).size !==
+        3
+    ) {
+      fail("distinct-child-claims-required");
     }
     const aggregate = loadEvidenceRecord(
       root,
@@ -864,11 +1491,40 @@ function checkpointLocked(root, goal, options, now) {
       goal,
       now,
     );
+    const completion = loadEvidenceRecord(
+      root,
+      options.completionRecord,
+      { field: "status", kind: "goal-completion", value: "PASS" },
+      goal,
+      now,
+    );
+    const expectedExternalState =
+      goal.authority.externalCompletion === "required" ? "complete" : "not-required";
+    existingReference(root, completion.record.zeroDebtEvidenceRef, "zero-debt-ref");
+    if (
+      completion.record.branch !== goal.authority.branch ||
+      completion.record.externalState !== expectedExternalState ||
+      completion.record.logicalCommit !== completion.record.head ||
+      completion.record.researchEvidenceRef !== goal.authority.research.evidenceRef ||
+      completion.record.last30daysEvidenceRef !== goal.authority.last30days.evidenceRef ||
+      completion.record.zeroDebt !== true
+    ) {
+      fail("completion-contract-mismatch");
+    }
+    if (goal.authority.externalCompletion === "required") {
+      existingReference(root, completion.record.externalEvidenceRef, "external-evidence-ref");
+    }
     const evidence = {
       aggregateRecordHash: aggregate.contentHash,
       at: now.toISOString(),
+      completionRecordHash: completion.contentHash,
       protectedArtifactRecordHash: protectedArtifacts.contentHash,
+      retrospectiveCode: options.retrospectiveCode,
+      retrospectiveRecordHash: retrospective.contentHash,
       revision: goal.revision.fingerprint,
+      reviewerAgent: hash(reviewer.record.agentId),
+      reviewerRecordHash: reviewer.contentHash,
+      reviewerVerdict: "PASS",
       validatorAgent: hash(validator.record.agentId),
       validatorRecordHash: validator.contentHash,
       validatorVerdict: "PASS",
@@ -877,7 +1533,20 @@ function checkpointLocked(root, goal, options, now) {
       verifierVerdict: "ACCEPT",
     };
     goal.evidence.current.push(evidence);
-    details.retrospectiveCode = "completed";
+    if (
+      !goal.learning.completed.some((iteration) => iteration.revision === goal.revision.fingerprint)
+    ) {
+      goal.learning.completed.push({
+        at: now.toISOString(),
+        retrospectiveCode: options.retrospectiveCode,
+        retrospectiveRecordHash: retrospective.contentHash,
+        reviewerAgent: hash(reviewer.record.agentId),
+        reviewerRecordHash: reviewer.contentHash,
+        reviewerVerdict: "PASS",
+        revision: goal.revision.fingerprint,
+      });
+    }
+    details.retrospectiveCode = options.retrospectiveCode;
     extraEvents.push(event(goal, now, "completion-evidence", evidence));
   }
 
@@ -889,7 +1558,12 @@ function checkpointLocked(root, goal, options, now) {
       const directory = questionDirectory(root, fingerprint);
       mkdirSync(directory, { mode: 0o700, recursive: true });
       atomicJson(join(directory, "question.json"), { fingerprint, text });
-      goal.question = { emitted: false, fingerprint };
+      goal.question = {
+        createdAt: now.toISOString(),
+        emitted: false,
+        emittedAt: null,
+        fingerprint,
+      };
       extraEvents.push(event(goal, now, "operator-question", { fingerprint }));
     }
   } else {
@@ -912,17 +1586,17 @@ function checkpointLocked(root, goal, options, now) {
 
   if (options.state === "failed") {
     if (!options.failureFingerprint) fail("failure-fingerprint-required");
+    if (options.repair !== undefined) fail("caller-repair-count-forbidden");
     const fingerprint = hash(redact(options.failureFingerprint));
     if (goal.failureFingerprint === fingerprint) {
       reason = "unchanged-failure";
       goal.retryDueAt = null;
     } else {
-      const repair = boundedNumber(options.repair ?? 0, "repair");
-      if (goal.budgets.repairCyclesUsed + repair > goal.policy.maxRepairCycles) {
+      if (goal.budgets.repairCyclesUsed + 1 > goal.policy.maxRepairCycles) {
         reason = "repair-budget-exhausted";
         goal.retryDueAt = null;
       } else {
-        goal.budgets.repairCyclesUsed += repair;
+        goal.budgets.repairCyclesUsed += 1;
         const backoffMs = Math.min(2 ** goal.budgets.retriesUsed * 1_000, 60_000);
         goal.retryDueAt = new Date(now.valueOf() + backoffMs).toISOString();
       }
@@ -953,29 +1627,49 @@ function checkpointLocked(root, goal, options, now) {
   return { action: "checkpointed", reason, state: goal.state };
 }
 
-try {
-  const { action, options } = parseArguments(process.argv.slice(2));
-  const root = realpathSync(resolve(options.root ?? "."));
-  const now = nowFrom(options);
+export function runController(hooks = productionRuntime) {
+  runtimeHooks = hooks;
+  try {
+    const { action, options } = parseArguments(process.argv.slice(2));
+    if (
+      hooks === productionRuntime &&
+      Object.keys(options).some((name) => name.startsWith("test"))
+    ) {
+      fail("test-control-forbidden");
+    }
+    const root = realpathSync(resolve(options.root ?? "."));
+    delegateUnderMutationLock(root, action, options);
+    const now = nowFrom(options);
 
-  let result;
-  if (action === "init") {
-    result = initialize(root, options, now);
-  } else {
-    const goal = readJson(paths(root).active, "active-goal-missing");
-    if (action === "reconcile") result = reconcile(root, goal, now);
-    else if (action === "wake") result = wake(root, goal, options, now);
-    else if (action === "renew") result = renew(root, goal, options, now);
-    else if (action === "checkpoint") result = checkpoint(root, goal, options, now);
-    else fail("unknown-action");
-  }
+    let result;
+    if (action === "init") {
+      result = initialize(root, options, now);
+    } else {
+      const goal = readJson(paths(root).active, "active-goal-missing");
+      if (action === "reconcile") result = reconcile(root, now, options);
+      else if (action === "wake") result = wake(root, goal, options, now);
+      else if (action === "renew") result = renew(root, goal, options, now);
+      else if (action === "checkpoint") result = checkpoint(root, goal, options, now);
+      else if (action === "adopt-input") result = adoptInput(root, goal, options, now);
+      else if (action === "bind-research") result = bindResearch(root, goal, options, now);
+      else if (action === "claim-child") result = claimChild(root, options, now);
+      else if (action === "settle-child") result = settleChild(root, options, now);
+      else if (action === "record-iteration") result = recordIteration(root, options, now);
+      else if (action === "resolve-question") result = resolveQuestion(root, options, now);
+      else fail("unknown-action");
+    }
 
-  process.stdout.write(`${JSON.stringify(result)}\n`);
-} catch (error) {
-  if (error instanceof ControllerError) {
-    process.stderr.write(`${error.message}\n`);
-    process.exitCode = 1;
-  } else {
-    throw error;
+    process.stdout.write(`${JSON.stringify(result)}\n`);
+  } catch (error) {
+    if (error instanceof ControllerError) {
+      process.stderr.write(`${error.message}\n`);
+      process.exitCode = 1;
+    } else {
+      throw error;
+    }
   }
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  runController();
 }

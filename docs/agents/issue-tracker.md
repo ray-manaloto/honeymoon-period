@@ -26,11 +26,47 @@ the repository.
 **PRs as a request surface: no.**
 
 External pull requests are welcome, but `/triage` does not treat them as
-feature-request issues. Review PRs separately and never merge them without the
-repository owner's approval.
+feature-request issues. Review PRs separately. The standing autonomous merge gate below
+applies only to root-authored pull requests whose active goal explicitly records that
+publication authority; it never turns external pull requests into an automatic surface.
 
 GitHub shares one number space across issues and pull requests. Resolve an
 ambiguous `#42` with `gh pr view 42`, then fall back to `gh issue view 42`.
+
+## Autonomous merge gate
+
+Source completion and publication are two distinct immutable phases. First, checkpoint
+the source candidate complete and commit that tracked goal state. Second, obtain fresh
+publication verifier and validator verdicts on that exact final commit, push it, and make
+no further source or tracked-goal mutation before the atomic merge command. The earlier
+controller-completion records remain source-candidate evidence; only the fresh second-phase
+verdicts authorize publication. A second-phase finding starts a replacement controlled goal
+instead of rewriting the completed record. This avoids a completion commit invalidating the
+head that the merge gate actually reviewed.
+
+The repository owner authorizes the root to merge one root-authored goal pull request
+without a separate confirmation only when all of these facts are freshly true:
+
+- the pull request is open, ready for review, mergeable, and targets the recorded base;
+- every required check succeeds and there are no unresolved review threads or change
+  requests;
+- fresh independent verifier `ACCEPT` and validator `PASS` records bind the exact remote
+  head and active-goal revision;
+- a final status read proves that the remote head did not change after those records;
+- the diff matches the governing specification, authority, protected-artifact audit, and
+  zero-debt gate; and
+- the configured merge method succeeds without bypassing branch protections.
+
+Bind the mutation itself to the reviewed SHA with
+`gh pr merge <number> --match-head-commit <reviewed-sha> <configured-method>`; a separate
+pre-merge read is not a concurrency guard.
+
+After merging, re-read the pull request, issue, base branch, and project state to prove
+the recorded postconditions. Any head drift, warning, pending or flaky check, unresolved
+feedback, scope mismatch, missing evidence, or protected side effect returns work to the
+autonomous learning loop. Only unresolved ambiguity reaches a human interview; credentials,
+consent, paid services, private data, signing, deployment, and other separately protected
+external effects remain outside this gate.
 
 ## Skill mappings
 

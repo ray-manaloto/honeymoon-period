@@ -2,7 +2,7 @@
 
 - **Status:** Candidate report; no configuration, installation, scheduler, or deployment change authorized.
 - **Research:** linked — this primary-source release and local-inventory candidate report.
-- **Last30Days:** reused — root-owned `.build/research/last30days/codex-autonomous-goal-workflows-session-continuation-hooks-subagents-ambiguity-escalation-raw-v3.md`; not rerun by this agent.
+- **Last30Days:** reused — [the retained focused Symphony/Codex report](../../.build/research/last30days/openai-symphony-codex-orchestration-release-adoption-reliability-limitations-raw.md); not rerun by this agent.
 - **Accessed / last verified:** 2026-07-19.
 - **Question:** Does the current Codex release and project-local inventory alter the proposed autonomous-goal orchestration approach?
 

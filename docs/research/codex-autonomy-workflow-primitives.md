@@ -4,7 +4,7 @@
 - **Status:** Candidate research complete; no implementation, schedule, configuration, Git, or external-system authorization granted.
 - **Accessed / last verified:** 2026-07-19.
 - **Research:** linked — this primary-source candidate report; it reuses and refines [Autonomous Codex goal continuation](codex-autonomous-goal-continuation.md).
-- **Last30Days:** reused — root-owned `.build/research/last30days/codex-autonomous-goal-workflows-session-continuation-hooks-subagents-ambiguity-escalation-raw-v3.md`; discovery is not authority.
+- **Last30Days:** reused — [the retained focused Symphony/Codex report](../../.build/research/last30days/openai-symphony-codex-orchestration-release-adoption-reliability-limitations-raw.md); discovery is not authority.
 - **Evidence boundary:** the three assigned OpenAI Cookbook sources only. **Verified** means directly stated/shown there; **inference** is a proposed repository design, not a supplied product contract.
 - **Companion-file audit:** [complete](codex-cookbook-companion-markdown-inventory.md) at `openai/openai-cookbook` commit `9fa55b8cecba8c9c543d11f2cf08339a29112be7`; filenames produced by the examples are generated artifacts unless the inventory identifies a committed source.
 

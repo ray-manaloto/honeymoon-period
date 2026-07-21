@@ -151,6 +151,10 @@ Run the first end-to-end capture on an iPhone. On macOS 26.5.2, Apple’s built-
 
 Some sites—especially Instagram—may block page metadata. The shortcut falls back to the website host. Rename the reminder during review; the source URL remains intact in the reminder note.
 
-Duplicate detection uses the normalized URL stored in the note. Different links pointing to the same venue can still appear separately; merge those manually during review.
+Duplicate detection uses the normalized URL stored in the note. Different links
+pointing to the same venue remain separate in this protected Shortcut baseline; do not
+silently merge or discard either capture. The future API-backed product may only show a
+user-confirmed proposal under the approved #21 evidence rule and must retain both
+source records and provenance.
 
 Duplicate lookup depends on the device’s Reminders/Spotlight index. During the first iPhone test, save one URL twice and confirm the second run reports an existing item. If it does not, continue the prototype without relying on automatic deduplication and merge duplicates during review.

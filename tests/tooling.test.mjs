@@ -15,11 +15,22 @@ function run(command, args) {
 const orchestrationPolicyPaths = [
   ".agents/skills/adaptive-orchestration/SKILL.md",
   ".codex/config.toml",
+  ".codex/goals/CONTINUATION.md",
   ".codex/hooks.json",
   "AGENTS.md",
   "docs/agents/adaptive-orchestration.md",
   "docs/agents/handoff-template.md",
+  "docs/agents/issue-tracker.md",
+  "docs/learning/README.md",
+  "docs/learning/TEMPLATE.md",
+  "docs/research/link-capture-enrichment.md",
+  "docs/research/native-ios-feasibility.md",
+  "docs/research/README.md",
   "docs/research/codex-context-lifecycle.md",
+  "docs/research/workflow-architecture-synthesis.md",
+  "scripts/symphony-controller.mjs",
+  "scripts/mutation-lock.py",
+  "tests/support/symphony-controller-harness.mjs",
 ];
 
 function createOrchestrationFixture() {
@@ -157,6 +168,97 @@ test("adaptive orchestration policy rejects the unstable fan-out feature", () =>
   });
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /enable_fanout must remain unset/);
+});
+
+test("adaptive orchestration policy rejects a broken self-learning autonomy loop", () => {
+  const cases = [
+    {
+      path: "docs/agents/adaptive-orchestration.md",
+      from: "## Autonomous learning loop",
+      message: /orchestration policy is missing Autonomous learning loop/,
+    },
+    {
+      path: "AGENTS.md",
+      from: "Only request a human interview",
+      message: /AGENTS.md must reserve human interviews for unresolved ambiguity/,
+    },
+    {
+      path: "docs/agents/issue-tracker.md",
+      from: "## Autonomous merge gate",
+      message: /issue tracker must define the autonomous merge gate/,
+    },
+    {
+      path: "docs/agents/issue-tracker.md",
+      from: "--match-head-commit",
+      message: /autonomous merge must atomically match the reviewed head/,
+    },
+    {
+      path: "docs/agents/issue-tracker.md",
+      from: "Source completion and publication are two distinct immutable phases.",
+      message: /publication policy must keep source completion before publication/,
+    },
+    {
+      path: "scripts/symphony-controller.mjs",
+      from: 'recorded.type === "run-started"',
+      message: /revision review gating must begin only after durable run admission/,
+    },
+    {
+      path: "AGENTS.md",
+      from: "Serialize heavyweight aggregate and mechanical validation suites",
+      message: /shared-worktree heavyweight validation must remain serialized/,
+    },
+    {
+      path: ".codex/goals/CONTINUATION.md",
+      from: "autonomous learning loop",
+      message: /continuation must route admitted runs through the autonomous learning loop/,
+    },
+    {
+      path: "docs/learning/README.md",
+      from: "Every material goal iteration",
+      message: /learning registry must cover every material goal iteration/,
+    },
+    {
+      path: "docs/learning/TEMPLATE.md",
+      from: "Iteration outcome: promoted | linked | no-new-lesson",
+      message: /learning template must enumerate every iteration outcome/,
+    },
+    {
+      path: "docs/research/link-capture-enrichment.md",
+      from: "authoritative provider IDs match exactly",
+      message: /venue merge policy must state the exact provider identity predicate/,
+    },
+    {
+      path: "docs/research/native-ios-feasibility.md",
+      from: "../product/requirements.md#approved-20-plan-and-calendar-boundaries",
+      message: /native feasibility must bind the July 20 Calendar V1 decision/,
+    },
+    {
+      path: "docs/research/README.md",
+      from: "Approved #21 identity boundary recorded; provider/API implementation research remains separately gated | 2026-07-20",
+      message: /research index must match link-capture decision metadata/,
+    },
+    {
+      path: "docs/research/README.md",
+      from: "[Approved Calendar V1 boundary](../product/requirements.md#approved-20-plan-and-calendar-boundaries)",
+      message: /research index must match native decision metadata/,
+    },
+    {
+      path: "docs/research/workflow-architecture-synthesis.md",
+      from: "Historical only — do not execute this roadmap.",
+      message: /historical workflow roadmap must be explicitly non-executable/,
+    },
+  ];
+  for (const fixture of cases) {
+    const directory = createOrchestrationFixture();
+    const path = join(directory, fixture.path);
+    writeFileSync(path, readFileSync(path, "utf8").replace(fixture.from, "REMOVED"));
+    const result = spawnSync("node", ["scripts/check-adaptive-orchestration.mjs", directory], {
+      cwd: root,
+      encoding: "utf8",
+    });
+    assert.notEqual(result.status, 0, fixture.path);
+    assert.match(result.stderr, fixture.message);
+  }
 });
 
 test("OpenAPI response audit rejects an operation with an undocumented emitted error", () => {

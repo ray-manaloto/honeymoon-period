@@ -106,13 +106,22 @@ authority.
 ## Parallel agents
 
 - Delegate only independent, bounded work when explicitly requested or required by a skill.
+- Standing goal authorization includes one fresh read-only standards/spec review after
+  material integration on every material iteration; preserve the separate final verifier
+  and validator slots.
 - Run at most three child agents concurrently; children do not recursively delegate.
 - For material integration, reserve two fresh direct-child slots for the final independent verifier and validator. Adapt optional review fan-out rather than consuming those slots.
 - Give writing agents exclusive, disjoint paths. The root owns shared files, integration, Git, publication, and final verification.
 - Prefer `explorer`/`researcher` for read-heavy work, `prototype`/`worker` for isolated writes, `ios-specialist` for difficult Apple work, and `reviewer` after integration.
 - Prefer `web-specialist` for React-admin/Vite/Browser/Playwright work after a ticket and owned path are explicit.
 - Keep the root on GPT-5.6 Sol. Prefer the lower-model `verifier` for independent acceptance/evidence checks and `validator` for reproducible mechanical checks; use both after material integration when their work is independent.
+- Serialize heavyweight aggregate and mechanical validation suites in the shared worktree: the root completes the aggregate first, then the fresh validator runs its independent mechanical pass. Standards and semantic reviewers inspect bound aggregate evidence and must not start duplicate full suites, E2E runs, fixed-port servers, or shared-state resets concurrently.
 - Verification agents must be fresh, independent from implementers and from each other, and must not edit source or documentation. Verifiers return `ACCEPT`/`REJECT`; validators return `PASS`/`FAIL`. Both report exact commands or inspected evidence, paths and lines, failures, residual risks, and unverified behavior.
+- Final agents evaluate the current running candidate revision; their reports are inputs to
+  the root's subsequent controller completion checkpoint. They must not reject solely
+  because the active goal is not already `complete` or their current report has not yet
+  been integrated. The root verifies report provenance from collaboration output; the
+  controller provides revision/integrity binding, not cryptographic process identity.
 - When either rejects or fails, give a bounded correction to a worker. Re-run the affected pass with a fresh agent; re-run both when the correction changes shared integration or evidence used by both passes.
 - Escalate to the Sol `ios-specialist` only for difficult Apple-platform behavior and to the Sol `reviewer` only for material security, privacy, data-loss, concurrency, architecture, disagreement, or persistent-failure risk. Keep routine implementation, source extraction, formatting, and mechanical validation on Terra unless Terra is unavailable or has failed to converge.
 - Require concise summaries with paths, commands, failures, evidence, and unresolved decisions.
@@ -120,9 +129,21 @@ authority.
 
 ## Learning loop
 
+- Run the autonomous learning loop until the active `/goal` reaches its completion
+  contract. A failed or exhausted attempt is not goal completion and must not manufacture
+  ambiguity. When exhaustion exposes genuine ambiguity after diagnosis, current research,
+  and bounded agents, checkpoint `blocked` with the controller's one deduplicated question.
 - Record durable, repository-specific lessons under `docs/learning/` using its template.
 - Every accepted lesson names the observed failure, evidence, correction, and the regression test or automated guard that now enforces it.
+- Before downstream state changes, record every material iteration as `promoted`,
+  `linked`, or `no-new-lesson`; routine green work should use a concrete
+  `no-new-lesson` reason instead of creating documentation sediment.
+- During a non-complete controller goal, source commits require the live-lease check
+  enforced by `.codex/hooks/pre_tool_policy.py`; reconcile and obtain a new run after
+  expiry. Only state-file commits may occur without a work lease.
 - Promote recurring stable lessons into `AGENTS.md`, conventions, skills, agent briefs, generators, or checks; retire entries when their guard or underlying constraint becomes obsolete.
+- Only request a human interview after local diagnosis, repository evidence, current
+  primary research, and bounded independent agents cannot resolve genuine ambiguity.
 - Never place prompts, private product data, credentials, Browser state, or raw relationship content in learning records.
 
 ## Agent skills

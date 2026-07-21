@@ -15,7 +15,17 @@ Each accepted entry must include:
   verification command; and
 - a retirement condition.
 
+Every material goal iteration records exactly one retrospective outcome in the append-only
+goal log before downstream state changes: `promoted`, `linked`, or `no-new-lesson`. Use
+`promoted` only when creating or strengthening a durable entry and its guard, `linked` when
+an existing accepted lesson already governs the finding, and `no-new-lesson` with a concrete
+reason for routine success or a non-recurring event.
+
 Use [TEMPLATE.md](TEMPLATE.md). Current entries:
 
 - [2026-07-16 web MVP semantic completion audit](2026-07-16-web-mvp-semantic-audit.md)
 - [2026-07-16 field-scoped PATCH updates](2026-07-16-field-scoped-patch-updates.md)
+- [2026-07-19 autonomous review-repair loop](2026-07-19-autonomous-review-repair-loop.md)
+- [2026-07-20 lease-valid source integration](2026-07-20-lease-valid-source-integration.md)
+- [2026-07-20 publication phases and validation ownership](2026-07-20-publication-phases-and-validation-ownership.md)
+- [2026-07-21 controller bootstrap admission](2026-07-21-controller-bootstrap-admission.md)

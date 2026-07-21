@@ -4,7 +4,13 @@
 from __future__ import annotations
 
 import json
+import hashlib
+from datetime import datetime, timezone
+import os
+from pathlib import Path
 import re
+import shlex
+import subprocess
 import sys
 from typing import Any
 
@@ -57,10 +63,149 @@ def command_from(payload: dict[str, Any]) -> str:
     return command if isinstance(command, str) else ""
 
 
-def denial_reason(command: str) -> str | None:
+def git_output(root: Path, *args: str) -> str:
+    return subprocess.check_output(
+        ["git", *args], cwd=root, text=True, stderr=subprocess.DEVNULL
+    ).strip()
+
+
+def commit_repository(command: str, cwd: Path) -> Path | None:
+    try:
+        tokens = shlex.split(command)
+    except ValueError:
+        return None
+    for git_index, token in enumerate(tokens):
+        if token != "git":
+            continue
+        target = cwd
+        index = git_index + 1
+        while index < len(tokens) and tokens[index] != "commit":
+            if tokens[index] == "-C" and index + 1 < len(tokens):
+                candidate = Path(tokens[index + 1])
+                target = candidate if candidate.is_absolute() else target / candidate
+                index += 2
+                continue
+            index += 1
+        if index < len(tokens) and tokens[index] == "commit":
+            try:
+                return Path(git_output(target, "rev-parse", "--show-toplevel")).resolve()
+            except (OSError, subprocess.CalledProcessError):
+                return None
+    return None
+
+
+def state_only_commit_form(command: str) -> bool:
+    if os.environ.get("GIT_INDEX_FILE"):
+        return False
+    try:
+        tokens = shlex.split(command)
+    except ValueError:
+        return False
+    if not tokens or tokens[0] != "git":
+        return False
+    try:
+        index = tokens.index("commit") + 1
+    except ValueError:
+        return False
+    while index < len(tokens):
+        token = tokens[index]
+        if token in {"-m", "--message"}:
+            index += 2
+            continue
+        if token.startswith("--message=") or (token.startswith("-m") and len(token) > 2):
+            index += 1
+            continue
+        if token in {"--allow-empty", "--allow-empty-message", "--no-verify", "-q", "--quiet"}:
+            index += 1
+            continue
+        return False
+    return True
+
+
+def active_goal_commit_denial(
+    command: str, root: Path, now: datetime | None = None
+) -> str | None:
+    if re.search(r"\bgit\b[^\n;&|]*\bcommit\b", command, re.IGNORECASE) is None:
+        return None
+    try:
+        staged = git_output(root, "diff", "--cached", "--name-only").splitlines()
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    try:
+        active = json.loads((root / ".codex/goals/active.json").read_text())
+    except (OSError, json.JSONDecodeError):
+        return "valid active goal state is required before committing source"
+    if not isinstance(active, dict) or active.get("state") not in {
+        "ready",
+        "running",
+        "waiting",
+        "blocked",
+        "failed",
+        "complete",
+    }:
+        return "valid active goal state is required before committing source"
+    state_paths = {".codex/goals/active.json", ".codex/goals/history.jsonl"}
+    if staged and set(staged) <= state_paths and state_only_commit_form(command):
+        return None
+    if active.get("state") == "complete":
+        return None
+    try:
+        owner = json.loads((root / ".codex/goals/.lease/owner.json").read_text())
+        if not isinstance(owner, dict):
+            raise TypeError("invalid lease owner")
+        renewal_path = root / ".codex/goals/.lease/renewal.json"
+        renewal = json.loads(renewal_path.read_text()) if renewal_path.exists() else None
+        if renewal is not None and not isinstance(renewal, dict):
+            raise TypeError("invalid lease renewal")
+        effective_expiry = owner["expiresAt"]
+        if renewal is not None:
+            if (
+                renewal.get("ownerToken") != owner.get("ownerToken")
+                or renewal.get("epoch") != owner.get("epoch")
+                or "expiresAt" not in renewal
+            ):
+                raise TypeError("invalid lease renewal")
+            effective_expiry = renewal["expiresAt"]
+        expires_at = datetime.fromisoformat(effective_expiry.replace("Z", "+00:00"))
+        current_time = now or datetime.now(timezone.utc)
+        run = active["run"]
+        if expires_at.tzinfo is None or current_time.tzinfo is None or not isinstance(run, dict):
+            raise TypeError("invalid lease timing or run")
+        valid = (
+            active.get("state") == "running"
+            and active.get("leaseEpoch") == owner.get("epoch")
+            and hashlib.sha256(owner["ownerToken"].encode()).hexdigest()
+            == run.get("ownerTokenHash")
+            and expires_at > current_time
+            and owner.get("branch") == git_output(root, "branch", "--show-current")
+            and owner.get("head") == git_output(root, "rev-parse", "HEAD")
+        )
+    except (
+        AttributeError,
+        KeyError,
+        OSError,
+        TypeError,
+        ValueError,
+        json.JSONDecodeError,
+        subprocess.CalledProcessError,
+    ):
+        valid = False
+    if valid:
+        return None
+    return (
+        "a live Symphony goal lease is required before committing source; "
+        "reconcile and obtain a new controller run first"
+    )
+
+
+def denial_reason(command: str, root: Path | None = None) -> str | None:
     for pattern, reason in POLICIES:
         if pattern.search(command):
             return reason
+    if root is not None:
+        repository = commit_repository(command, root)
+        if repository is not None:
+            return active_goal_commit_denial(command, repository)
     return None
 
 
@@ -73,7 +218,7 @@ def main() -> int:
     if not isinstance(payload, dict) or payload.get("tool_name") != "Bash":
         return 0
 
-    reason = denial_reason(command_from(payload))
+    reason = denial_reason(command_from(payload), Path.cwd())
     if reason is None:
         return 0
 

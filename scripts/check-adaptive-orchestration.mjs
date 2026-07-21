@@ -67,6 +67,16 @@ requireMatch(
   /adaptive-orchestration/,
   "AGENTS.md must route long goals to adaptive-orchestration",
 );
+requireMatch(
+  agents,
+  /Only request a human interview/,
+  "AGENTS.md must reserve human interviews for unresolved ambiguity",
+);
+requireMatch(
+  agents,
+  /Serialize heavyweight aggregate and mechanical validation suites/,
+  "shared-worktree heavyweight validation must remain serialized",
+);
 
 const policy = read("docs/agents/adaptive-orchestration.md");
 for (const heading of [
@@ -74,6 +84,7 @@ for (const heading of [
   "Evidence and dependency gate",
   "Context and task selection",
   "Agent allocation",
+  "Autonomous learning loop",
   "Tracker ceremony",
   "Goal change log",
 ]) {
@@ -87,6 +98,159 @@ requireMatch(
   policy,
   /append-only/,
   "orchestration policy must require an append-only goal history",
+);
+for (const outcome of ["promoted", "linked", "no-new-lesson"]) {
+  requireMatch(
+    policy,
+    new RegExp(`\\b${outcome}\\b`),
+    `orchestration policy must define the ${outcome} retrospective outcome`,
+  );
+}
+
+const continuation = read(".codex/goals/CONTINUATION.md");
+requireMatch(
+  continuation,
+  /autonomous learning loop/,
+  "continuation must route admitted runs through the autonomous learning loop",
+);
+
+const issueTracker = read("docs/agents/issue-tracker.md");
+requireMatch(
+  issueTracker,
+  /^## Autonomous merge gate$/m,
+  "issue tracker must define the autonomous merge gate",
+);
+requireMatch(
+  issueTracker,
+  /exact remote\s+head/i,
+  "autonomous merge gate must bind verdicts to the exact remote head",
+);
+requireMatch(
+  issueTracker,
+  /--match-head-commit/,
+  "autonomous merge must atomically match the reviewed head",
+);
+requireMatch(
+  issueTracker,
+  /Source completion and publication are two distinct immutable phases\./,
+  "publication policy must keep source completion before publication",
+);
+
+const controller = read("scripts/symphony-controller.mjs");
+const mutationLock = read("scripts/mutation-lock.py");
+const controllerHarness = read("tests/support/symphony-controller-harness.mjs");
+requireMatch(
+  controller,
+  /kind: "standards-review"/,
+  "controller completion must require a standards-review record",
+);
+for (const invariant of [
+  ["schemaVersion: 2", "controller must use the versioned authority schema"],
+  ["record-iteration", "controller must persist every material iteration review"],
+  ['kind: "goal-completion"', "controller must require goal-specific completion evidence"],
+  ["mutation-lock.py", "controller must use the OS-backed mutation lock"],
+  ["replayTransition", "controller must replay state/history transitions"],
+  ["resolve-question", "controller must support explicit ambiguity resolution"],
+  ["claim-child", "controller must issue direct-child claims"],
+  ["settle-child", "controller must settle direct-child claims"],
+  ["replaceTerminal", "controller must support explicit terminal-goal replacement"],
+  [
+    "failed-goal-iteration-required",
+    "failed-goal replacement must require an exact-revision iteration record",
+  ],
+  ["distinct-child-claims-required", "final agent roles must use distinct child claims"],
+  ["caller-child-count-forbidden", "controller must reject caller-authored child counts"],
+  ["caller-repair-count-forbidden", "controller must reject caller-authored repair counts"],
+]) {
+  requireMatch(controller, new RegExp(invariant[0]), invariant[1]);
+}
+requireMatch(
+  controller,
+  /recorded\.revision === revisionFingerprint && recorded\.type === "run-started"/,
+  "revision review gating must begin only after durable run admission",
+);
+requireMatch(
+  mutationLock,
+  /os\.execvpe/,
+  "OS mutex ownership must be inherited by the mutating controller process",
+);
+requireMatch(
+  mutationLock,
+  /def verify\(/,
+  "OS mutex inheritance must be verified rather than trusted from ambient state",
+);
+requireMatch(
+  controller,
+  /independent-child-claim-required/,
+  "independent agent evidence must bind a completed controller claim",
+);
+if (/SYMPHONY_CONTROLLER_TEST/.test(controller)) {
+  failures.push("production controller must not trust ambient test-mode flags");
+}
+requireMatch(
+  controllerHarness,
+  /runController/,
+  "deterministic controller faults must use the test-only harness",
+);
+for (const outcome of ["promoted", "linked", "no-new-lesson"]) {
+  requireMatch(
+    controller,
+    new RegExp(`"${outcome}"`),
+    `controller must accept the ${outcome} retrospective outcome`,
+  );
+}
+
+const learningRegistry = read("docs/learning/README.md");
+requireMatch(
+  learningRegistry,
+  /Every material goal iteration/,
+  "learning registry must cover every material goal iteration",
+);
+const learningTemplate = read("docs/learning/TEMPLATE.md");
+requireMatch(
+  learningTemplate,
+  /Iteration outcome: promoted \| linked \| no-new-lesson/,
+  "learning template must enumerate every iteration outcome",
+);
+requireMatch(
+  learningTemplate,
+  /Enforcing guard/,
+  "learning template must require an enforcing guard",
+);
+
+const linkCaptureResearch = read("docs/research/link-capture-enrichment.md");
+requireMatch(
+  linkCaptureResearch,
+  /authoritative provider IDs match exactly/,
+  "venue merge policy must state the exact provider identity predicate",
+);
+requireMatch(
+  linkCaptureResearch,
+  /Every merge\s+requires explicit user confirmation and must retain every source record and provenance/,
+  "venue merge policy must preserve confirmation and provenance",
+);
+const nativeFeasibility = read("docs/research/native-ios-feasibility.md");
+requireMatch(
+  nativeFeasibility,
+  /Last verified: 2026-07-20[\s\S]*approved Calendar V1 boundary\]\(\.\.\/product\/requirements\.md#approved-20-plan-and-calendar-boundaries\)/,
+  "native feasibility must bind the July 20 Calendar V1 decision",
+);
+const workflowSynthesis = read("docs/research/workflow-architecture-synthesis.md");
+requireMatch(
+  workflowSynthesis,
+  /Historical only — do not execute this roadmap\./,
+  "historical workflow roadmap must be explicitly non-executable",
+);
+const researchIndex = read("docs/research/README.md");
+requireMatch(
+  researchIndex,
+  /Approved #21 identity boundary recorded; provider\/API implementation research remains separately gated \| 2026-07-20/,
+  "research index must match link-capture decision metadata",
+);
+requireMatch(
+  researchIndex,
+  /Native destination accepted; Calendar V1 boundary recorded; implementation waits for a stable web API \| 2026-07-20 \| \[Approved Calendar V1 boundary\]\(\.\.\/product\/requirements\.md#approved-20-plan-and-calendar-boundaries\)/,
+  "research index must match native decision metadata",
 );
 
 const handoff = read("docs/agents/handoff-template.md");
