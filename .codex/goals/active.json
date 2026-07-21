@@ -19,7 +19,7 @@
   "goalId": "lost-work-source-completion-final",
   "objectiveFingerprint": "945b684c2199ef27bd1594a5e51880bdee05ec2ae3b45fc262bf971cefbb2468",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "ready",
+  "state": "complete",
   "reason": null,
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
@@ -67,21 +67,50 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 0,
-  "lastWakeTokenHash": null,
+  "leaseEpoch": 1,
+  "lastWakeTokenHash": "3c51176aabb3e9eb142b67863c0d53ba9b0f1a32193ce601d7d7af0d0799fd4a",
   "question": null,
   "run": null,
   "evidence": {
-    "current": []
+    "current": [
+      {
+        "aggregateRecordHash": "1e4cb1084239a518aea90929f4cbcb7f3e946cdebe0a6a214439df7f6cbcf868",
+        "at": "2026-07-21T00:40:08.822Z",
+        "completionRecordHash": "ceb2f64e677f6ad4a29ea8d3eb1ae6663505366b17c65c5872ca5ba801ea4fd1",
+        "protectedArtifactRecordHash": "aea447ad04e1407ce1fb3958ecaef5d5493f078a563a0ef425502bac12a6b6e1",
+        "retrospectiveCode": "no-new-lesson",
+        "retrospectiveRecordHash": "6249895bbc54dfab0b615bf208cde209b723f615d6d5dead24d5c07dda1f68e1",
+        "revision": "82e74e4afe56180cef23542f5251e80a798e62d10d0ec97c1ee10cb9f4d6a103",
+        "reviewerAgent": "3f9405c25998df3541e0e33f069b4a60cc77ea5a39074ffa21d13ec2b8801702",
+        "reviewerRecordHash": "f84a029ab5a722059d4e31748f58a5cd4ebb8c6e7951d7f6f2e26f0978f6bd61",
+        "reviewerVerdict": "PASS",
+        "validatorAgent": "ade016c2c9c7bf7d2b117d25a983db9b2694e7f55787ad0153219df1cc164b38",
+        "validatorRecordHash": "61830519a937a5bcfb9f6efcacf651836003746e2061242a4e438ec12aeb587f",
+        "validatorVerdict": "PASS",
+        "verifierAgent": "30f0182a0f08a9a848ac662ac2f069896e1625438ee808209d4b5994e08115a4",
+        "verifierRecordHash": "f46e8796000f843850fd56fe9e770f6d9d37210e384f488f17c2e116fef0a823",
+        "verifierVerdict": "ACCEPT"
+      }
+    ]
   },
   "learning": {
-    "completed": [],
+    "completed": [
+      {
+        "at": "2026-07-21T00:40:08.822Z",
+        "retrospectiveCode": "no-new-lesson",
+        "retrospectiveRecordHash": "6249895bbc54dfab0b615bf208cde209b723f615d6d5dead24d5c07dda1f68e1",
+        "reviewerAgent": "3f9405c25998df3541e0e33f069b4a60cc77ea5a39074ffa21d13ec2b8801702",
+        "reviewerRecordHash": "f84a029ab5a722059d4e31748f58a5cd4ebb8c6e7951d7f6f2e26f0978f6bd61",
+        "reviewerVerdict": "PASS",
+        "revision": "82e74e4afe56180cef23542f5251e80a798e62d10d0ec97c1ee10cb9f4d6a103"
+      }
+    ],
     "enforceFromRevision": "82e74e4afe56180cef23542f5251e80a798e62d10d0ec97c1ee10cb9f4d6a103"
   },
   "budgets": {
     "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 0
+    "runsUsed": 1
   },
   "policy": {
     "maxDirectChildren": 3,
@@ -89,5 +118,7 @@
     "maxRetries": 3,
     "maxRuntimeMs": 3600000,
     "ttlMs": 300000
-  }
+  },
+  "waiting": null,
+  "lastCheckpointId": "b40b93b9-94eb-4275-b84c-32899a126d90"
 }
