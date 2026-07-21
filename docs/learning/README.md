@@ -28,3 +28,4 @@ Use [TEMPLATE.md](TEMPLATE.md). Current entries:
 - [2026-07-19 autonomous review-repair loop](2026-07-19-autonomous-review-repair-loop.md)
 - [2026-07-20 lease-valid source integration](2026-07-20-lease-valid-source-integration.md)
 - [2026-07-20 publication phases and validation ownership](2026-07-20-publication-phases-and-validation-ownership.md)
+- [2026-07-21 controller bootstrap admission](2026-07-21-controller-bootstrap-admission.md)
