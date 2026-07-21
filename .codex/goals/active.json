@@ -19,12 +19,12 @@
   "goalId": "pr30-documentation-repair",
   "objectiveFingerprint": "b1f6967634f2ae52a3cfe6ecde73dbd956ec4756f7642f744c917c33f3ee37b5",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "blocked",
-  "reason": "dirty-tree-conflict",
+  "state": "ready",
+  "reason": "bootstrap-rebound",
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
-    "fingerprint": "5e4355cf461e6b7a28d065aa30db683817cbe75938f4e9e9a2adf7d3a8d46a7c",
-    "head": "880c9f3850ec185d44147e54cb1edff1c544bfee",
+    "fingerprint": "7f36e8bfc97e6565d0007c3bf62d1fa396ede200d6059edd0e04848ba52e561c",
+    "head": "19e54860d58f725d7af550008cf6c04561610615",
     "ownedManifest": "a34c0670ad08a03fa8041d382ef8c1d4408153f96ffe0d3425228e58ace7f922",
     "ownedInputs": [
       "docs/agents/adaptive-orchestration.md",
@@ -46,7 +46,7 @@
   },
   "learning": {
     "completed": [],
-    "enforceFromRevision": "5e4355cf461e6b7a28d065aa30db683817cbe75938f4e9e9a2adf7d3a8d46a7c"
+    "enforceFromRevision": "7f36e8bfc97e6565d0007c3bf62d1fa396ede200d6059edd0e04848ba52e561c"
   },
   "budgets": {
     "repairCyclesUsed": 0,
