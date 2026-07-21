@@ -16,61 +16,48 @@
       "status": "not needed"
     }
   },
-  "goalId": "pr30-documentation-repair",
-  "objectiveFingerprint": "b1f6967634f2ae52a3cfe6ecde73dbd956ec4756f7642f744c917c33f3ee37b5",
+  "goalId": "pr30-publication-repair-final",
+  "objectiveFingerprint": "31f132823368dfeb8b9d519058e5cdcaffc96240b357abecac65d6947ab165ed",
   "objectiveRef": "docs/agents/adaptive-orchestration.md#goal-change-log",
-  "state": "failed",
+  "state": "ready",
   "reason": null,
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
-    "fingerprint": "5b578027469c0e72bb309287240891605d5b94d7b0db624e5c245bd9e1c3ef76",
-    "head": "f9cb03c9d15e68bc78c9db8181ed15a10b87db68",
-    "ownedManifest": "1e09c87322e39cc509b83a320086eaeb46323d822a343df5fd9b2562efec2cd9",
+    "fingerprint": "2b2173de20152fc1da0ccec8d232202270efd1e4bc22251a53a43c11655e97ae",
+    "head": "78749af34b472f1ea4bdf973024e43af21cd9018",
+    "ownedManifest": "5a0bbb592dcf444917a6b79769a93a0d82668557a18e31815a01fa660ba08827",
     "ownedInputs": [
+      ".codex/goals/CONTINUATION.md",
       "docs/agents/adaptive-orchestration.md",
+      "docs/learning/README.md",
+      "docs/learning/2026-07-21-controller-bootstrap-admission.md",
       "docs/learning/TEMPLATE.md",
+      "docs/research/README.md",
       "docs/research/link-capture-enrichment.md",
       "docs/research/native-ios-feasibility.md",
       "docs/research/workflow-architecture-synthesis.md",
       "scripts/check-adaptive-orchestration.mjs",
+      "scripts/symphony-controller.mjs",
+      "tests/symphony-controller.test.mjs",
       "tests/tooling.test.mjs"
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 2,
-  "lastWakeTokenHash": "5b1e30d12e3ccdc259e4faa393fbb2a2ec73305446588c197753a6bbd6a33ad4",
+  "leaseEpoch": 0,
+  "lastWakeTokenHash": null,
   "question": null,
   "run": null,
   "evidence": {
     "current": []
   },
   "learning": {
-    "completed": [
-      {
-        "at": "2026-07-21T01:02:00.000Z",
-        "retrospectiveCode": "promoted",
-        "retrospectiveRecordHash": "dd2b81aff9b3df32615162880272e5ac97b79d1fbd0504c01e49e9c6ad8b9b1b",
-        "reviewerAgent": "4d4d40e46a6a6c9241e1852b8e25e43d091ff5c625ee2e5edb0be77201ef14fd",
-        "reviewerRecordHash": "7817b611f86bfb47e54c6519687169a925d795e8ac2547edec68958abfd30c3b",
-        "reviewerVerdict": "FAIL",
-        "revision": "7f36e8bfc97e6565d0007c3bf62d1fa396ede200d6059edd0e04848ba52e561c"
-      },
-      {
-        "at": "2026-07-21T01:09:45.647Z",
-        "retrospectiveCode": "promoted",
-        "retrospectiveRecordHash": "6932b2e261c5edebae33d82989663cb98a07e7373772ac7961bace4e77c83742",
-        "reviewerAgent": "63c16dc722f3d283e2d5e5df7e8ac493b26d1da095b6f457bafe3dc6bfa2e107",
-        "reviewerRecordHash": "be9fed2c7a0aee2819e594ef254b29d6ed3b30583e14fb51ec6f81986c2f7420",
-        "reviewerVerdict": "FAIL",
-        "revision": "5b578027469c0e72bb309287240891605d5b94d7b0db624e5c245bd9e1c3ef76"
-      }
-    ],
-    "enforceFromRevision": "5b578027469c0e72bb309287240891605d5b94d7b0db624e5c245bd9e1c3ef76"
+    "completed": [],
+    "enforceFromRevision": "2b2173de20152fc1da0ccec8d232202270efd1e4bc22251a53a43c11655e97ae"
   },
   "budgets": {
-    "repairCyclesUsed": 1,
+    "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 2
+    "runsUsed": 0
   },
   "policy": {
     "maxDirectChildren": 3,
@@ -78,9 +65,5 @@
     "maxRetries": 3,
     "maxRuntimeMs": 3600000,
     "ttlMs": 300000
-  },
-  "waiting": null,
-  "retryDueAt": "2026-07-21T01:09:47.694Z",
-  "failureFingerprint": "d33c99dfb967e767b20b7df13cb35290c034b8c922f3015c369f04bd91b489d6",
-  "lastCheckpointId": "43fcb9b9-0249-4b2c-b2b9-d2a4f06a01b5"
+  }
 }
