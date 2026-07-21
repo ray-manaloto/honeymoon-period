@@ -229,7 +229,7 @@ test("adaptive orchestration policy rejects a broken self-learning autonomy loop
     },
     {
       path: "docs/research/native-ios-feasibility.md",
-      from: "Last verified: 2026-07-20",
+      from: "../product/requirements.md#approved-20-plan-and-calendar-boundaries",
       message: /native feasibility must bind the July 20 Calendar V1 decision/,
     },
     {
@@ -239,7 +239,7 @@ test("adaptive orchestration policy rejects a broken self-learning autonomy loop
     },
     {
       path: "docs/research/README.md",
-      from: "Native destination accepted; Calendar V1 boundary recorded; implementation waits for a stable web API | 2026-07-20",
+      from: "[Approved Calendar V1 boundary](../product/requirements.md#approved-20-plan-and-calendar-boundaries)",
       message: /research index must match native decision metadata/,
     },
     {

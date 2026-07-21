@@ -23,9 +23,9 @@
   "reason": null,
   "revision": {
     "branch": "codex/self-learning-autonomy-loop",
-    "fingerprint": "2b2173de20152fc1da0ccec8d232202270efd1e4bc22251a53a43c11655e97ae",
-    "head": "78749af34b472f1ea4bdf973024e43af21cd9018",
-    "ownedManifest": "5a0bbb592dcf444917a6b79769a93a0d82668557a18e31815a01fa660ba08827",
+    "fingerprint": "d8d95ee28be29330b9214d10e77cab99736c2a65a9d2dc755e14fead866ff493",
+    "head": "9e2de25af4c73de864550f554ee187e6e83f9090",
+    "ownedManifest": "c56be6f313e5897ef0948c6edd57b6b4b5a6fc4f736bb9d383cd96fd5f2e3dcb",
     "ownedInputs": [
       ".codex/goals/CONTINUATION.md",
       "docs/agents/adaptive-orchestration.md",
@@ -43,26 +43,78 @@
     ],
     "worktreeFingerprint": "174817d5b4cbf64e8c3c60903a9637e72f3bf25ce246e0922b3cba1f513e3e08"
   },
-  "leaseEpoch": 1,
-  "lastWakeTokenHash": "2ca981637039079958d6bf97faf46d0ba96c0bf385070f531de050806afd386a",
+  "leaseEpoch": 2,
+  "lastWakeTokenHash": "d340ebb95e9a72b39a879925b3f3027c8e3474d3b0f761b52c73a3bd541d75f1",
   "question": null,
   "run": {
-    "childClaims": [],
-    "deadlineAt": "2026-07-21T02:11:48.289Z",
-    "ownerTokenHash": "ae83862cef1a6b07691c0d5a0b19bce43b024df4468f579e89ac7e86c1183203",
-    "startedAt": "2026-07-21T01:11:48.289Z"
+    "childClaims": [
+      {
+        "epoch": 2,
+        "head": "9e2de25af4c73de864550f554ee187e6e83f9090",
+        "manifest": "c56be6f313e5897ef0948c6edd57b6b4b5a6fc4f736bb9d383cd96fd5f2e3dcb",
+        "revision": "d8d95ee28be29330b9214d10e77cab99736c2a65a9d2dc755e14fead866ff493",
+        "role": "standards-review",
+        "status": "completed",
+        "taskRefHash": "0e3363b66b465c258fcb325c35edc76be7f2ea661147f921a83224a0d5ec7dcc",
+        "tokenHash": "d774817641aba6b2b49ff05caae88ad10fbf27e8c771eaddd2be380edb0c07b8",
+        "settledAt": "2026-07-21T01:29:32.343Z"
+      },
+      {
+        "epoch": 2,
+        "head": "9e2de25af4c73de864550f554ee187e6e83f9090",
+        "manifest": "c56be6f313e5897ef0948c6edd57b6b4b5a6fc4f736bb9d383cd96fd5f2e3dcb",
+        "revision": "d8d95ee28be29330b9214d10e77cab99736c2a65a9d2dc755e14fead866ff493",
+        "role": "verifier",
+        "status": "completed",
+        "taskRefHash": "5ebb24ad77ce6ec78a0a9d5727ba69581bf6b5c69235b9a3fdf418563e0c7ec8",
+        "tokenHash": "3e501dd441e4580234d19864d81a3844d1590028b8d8cc8ec80d12a2808d654b",
+        "settledAt": "2026-07-21T01:26:07.571Z"
+      },
+      {
+        "epoch": 2,
+        "head": "9e2de25af4c73de864550f554ee187e6e83f9090",
+        "manifest": "c56be6f313e5897ef0948c6edd57b6b4b5a6fc4f736bb9d383cd96fd5f2e3dcb",
+        "revision": "d8d95ee28be29330b9214d10e77cab99736c2a65a9d2dc755e14fead866ff493",
+        "role": "validator",
+        "status": "active",
+        "taskRefHash": "85b0141522886439178a5d21417cffc94486e36b6ae35a3dad9d58ac95e3baf2",
+        "tokenHash": "96b7deb943e4462d6824756acb062a263710c4f3b5c889a101fc21ca35833369"
+      }
+    ],
+    "deadlineAt": "2026-07-21T02:17:27.542Z",
+    "ownerTokenHash": "0ceb31c5868b4e41f16c76812aa9059e94a0c908f09eff6c37f32d476dbf2657",
+    "startedAt": "2026-07-21T01:17:27.542Z"
   },
   "evidence": {
     "current": []
   },
   "learning": {
-    "completed": [],
-    "enforceFromRevision": "2b2173de20152fc1da0ccec8d232202270efd1e4bc22251a53a43c11655e97ae"
+    "completed": [
+      {
+        "at": "2026-07-21T01:18:00.000Z",
+        "retrospectiveCode": "promoted",
+        "retrospectiveRecordHash": "5eacfda4ea30cf6be51fc5dbe451dd994fa6d295933b5c9d967e74224f40c5c0",
+        "reviewerAgent": "ad2ae23c2c8f6ac5e7bcc3c772f6a67c4a86acc0237ce3b590e83730ebec7f06",
+        "reviewerRecordHash": "4c1bcf43c16d7ae93d9d8d9071f39dc2c41ea384e819ad554d2f8551859f52a0",
+        "reviewerVerdict": "FAIL",
+        "revision": "2b2173de20152fc1da0ccec8d232202270efd1e4bc22251a53a43c11655e97ae"
+      },
+      {
+        "at": "2026-07-21T01:30:30.543Z",
+        "retrospectiveCode": "linked",
+        "retrospectiveRecordHash": "b0c9c943b73af37d15e602f1c18a6fc0a8ac68735fe9445caa7871b0bcb7c56f",
+        "reviewerAgent": "c51cd95e64d3d13aedf5daa5dce0ac60339ea6043e7845a8d85563d920bae1a9",
+        "reviewerRecordHash": "7f444ddfcbd2788664ef3ae198b4771b78412be1e681fb3eca24fbf4b7ed85da",
+        "reviewerVerdict": "FAIL",
+        "revision": "d8d95ee28be29330b9214d10e77cab99736c2a65a9d2dc755e14fead866ff493"
+      }
+    ],
+    "enforceFromRevision": "d8d95ee28be29330b9214d10e77cab99736c2a65a9d2dc755e14fead866ff493"
   },
   "budgets": {
     "repairCyclesUsed": 0,
     "retriesUsed": 0,
-    "runsUsed": 1
+    "runsUsed": 2
   },
   "policy": {
     "maxDirectChildren": 3,

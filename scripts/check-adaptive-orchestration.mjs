@@ -232,7 +232,7 @@ requireMatch(
 const nativeFeasibility = read("docs/research/native-ios-feasibility.md");
 requireMatch(
   nativeFeasibility,
-  /Last verified: 2026-07-20[\s\S]*approved Calendar V1 boundary/,
+  /Last verified: 2026-07-20[\s\S]*approved Calendar V1 boundary\]\(\.\.\/product\/requirements\.md#approved-20-plan-and-calendar-boundaries\)/,
   "native feasibility must bind the July 20 Calendar V1 decision",
 );
 const workflowSynthesis = read("docs/research/workflow-architecture-synthesis.md");
@@ -249,7 +249,7 @@ requireMatch(
 );
 requireMatch(
   researchIndex,
-  /Native destination accepted; Calendar V1 boundary recorded; implementation waits for a stable web API \| 2026-07-20/,
+  /Native destination accepted; Calendar V1 boundary recorded; implementation waits for a stable web API \| 2026-07-20 \| \[Approved Calendar V1 boundary\]\(\.\.\/product\/requirements\.md#approved-20-plan-and-calendar-boundaries\)/,
   "research index must match native decision metadata",
 );
 
