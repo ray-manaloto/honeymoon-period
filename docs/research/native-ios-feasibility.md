@@ -1,7 +1,8 @@
 # Native iOS feasibility
 
 - Status: primary-source findings retained; native SwiftUI destination accepted and implementation deferred until the web/API contract stabilizes
-- Last verified: 2026-07-15
+- Last verified: 2026-07-20
+- Decision evidence: [approved Calendar V1 boundary](../product/requirements.md#calendar-and-shared-plan-boundary)
 
 ## Sources reviewed
 

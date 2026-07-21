@@ -3,7 +3,7 @@
 - Status: proposed | accepted | retired
 - Scope:
 - Evidence type: reproduced failure | control-flow risk | workflow friction
-- Iteration outcome: promoted
+- Iteration outcome: promoted | linked | no-new-lesson
 - Goal/revision evidence:
 
 ## Observation

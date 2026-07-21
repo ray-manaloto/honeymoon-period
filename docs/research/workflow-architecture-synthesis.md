@@ -108,6 +108,11 @@ signing/import/run, or Apple account/device inspection.
 
 ## Historical next-task roadmap (completed or superseded)
 
+> **Historical only — do not execute this roadmap.** The text below preserves the
+> former plan as completed context, including its original imperative wording. Follow
+> the current implementation order in
+> [`docs/product/web-mvp-plan.md`](../product/web-mvp-plan.md) instead.
+
 ### Phase 0 — one batched reconciliation decision
 
 Before selecting the next implementation task, review and decide:

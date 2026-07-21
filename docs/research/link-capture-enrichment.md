@@ -2,7 +2,8 @@
 
 - Status: current Shortcut baseline documented; #21 product boundary approved;
   provider/API implementation research remains separately gated
-- Last verified: 2026-07-15
+- Last verified: 2026-07-20
+- Decision evidence: [approved #21 venue and source identity boundary](../product/requirements.md#approved-21-venue-and-source-identity-boundary)
 
 ## Current behavior
 
@@ -31,6 +32,8 @@ Canonical implementation: [`shortcut/Save honeymoon-period.cherri`](../../shortc
 
 Enrichment failure must never block capture. Store provenance and explain uncertain metadata so users can correct it.
 
-Venue identity must never auto-merge. A future implementation may only propose a
-user-confirmed merge under the approved #21 evidence rule and must retain every source
-record and provenance.
+Venue identity must never auto-merge. A future implementation may propose a merge only
+when authoritative provider IDs match exactly, or when normalized name, full postal
+address, locality, and country all match with no conflicting provider IDs. Every merge
+requires explicit user confirmation and must retain every source record and provenance;
+coordinates may corroborate identity but cannot establish it.

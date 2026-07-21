@@ -23,9 +23,13 @@ const orchestrationPolicyPaths = [
   "docs/agents/issue-tracker.md",
   "docs/learning/README.md",
   "docs/learning/TEMPLATE.md",
+  "docs/research/link-capture-enrichment.md",
+  "docs/research/native-ios-feasibility.md",
   "docs/research/codex-context-lifecycle.md",
+  "docs/research/workflow-architecture-synthesis.md",
   "scripts/symphony-controller.mjs",
   "scripts/mutation-lock.py",
+  "tests/support/symphony-controller-harness.mjs",
 ];
 
 function createOrchestrationFixture() {
@@ -206,6 +210,26 @@ test("adaptive orchestration policy rejects a broken self-learning autonomy loop
       path: "docs/learning/README.md",
       from: "Every material goal iteration",
       message: /learning registry must cover every material goal iteration/,
+    },
+    {
+      path: "docs/learning/TEMPLATE.md",
+      from: "Iteration outcome: promoted | linked | no-new-lesson",
+      message: /learning template must enumerate every iteration outcome/,
+    },
+    {
+      path: "docs/research/link-capture-enrichment.md",
+      from: "authoritative provider IDs match exactly",
+      message: /venue merge policy must state the exact provider identity predicate/,
+    },
+    {
+      path: "docs/research/native-ios-feasibility.md",
+      from: "Last verified: 2026-07-20",
+      message: /native feasibility must bind the July 20 Calendar V1 decision/,
+    },
+    {
+      path: "docs/research/workflow-architecture-synthesis.md",
+      from: "Historical only — do not execute this roadmap.",
+      message: /historical workflow roadmap must be explicitly non-executable/,
     },
   ];
   for (const fixture of cases) {

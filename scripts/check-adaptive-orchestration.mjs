@@ -204,13 +204,37 @@ requireMatch(
 const learningTemplate = read("docs/learning/TEMPLATE.md");
 requireMatch(
   learningTemplate,
-  /Iteration outcome: promoted/,
-  "learning template must record a promoted iteration outcome",
+  /Iteration outcome: promoted \| linked \| no-new-lesson/,
+  "learning template must enumerate every iteration outcome",
 );
 requireMatch(
   learningTemplate,
   /Enforcing guard/,
   "learning template must require an enforcing guard",
+);
+
+const linkCaptureResearch = read("docs/research/link-capture-enrichment.md");
+requireMatch(
+  linkCaptureResearch,
+  /authoritative provider IDs match exactly/,
+  "venue merge policy must state the exact provider identity predicate",
+);
+requireMatch(
+  linkCaptureResearch,
+  /Every merge\s+requires explicit user confirmation and must retain every source record and provenance/,
+  "venue merge policy must preserve confirmation and provenance",
+);
+const nativeFeasibility = read("docs/research/native-ios-feasibility.md");
+requireMatch(
+  nativeFeasibility,
+  /Last verified: 2026-07-20[\s\S]*approved Calendar V1 boundary/,
+  "native feasibility must bind the July 20 Calendar V1 decision",
+);
+const workflowSynthesis = read("docs/research/workflow-architecture-synthesis.md");
+requireMatch(
+  workflowSynthesis,
+  /Historical only — do not execute this roadmap\./,
+  "historical workflow roadmap must be explicitly non-executable",
 );
 
 const handoff = read("docs/agents/handoff-template.md");
