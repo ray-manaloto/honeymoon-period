@@ -1,6 +1,6 @@
 # 2026-07-21: Controller bootstrap admission
 
-- Status: proposed
+- Status: accepted
 - Scope: controlled-goal initialization and revision review
 - Evidence type: reproduced failure
 - Iteration outcome: promoted
@@ -24,27 +24,29 @@ run-started-only rule recorded by goal-log entry 40.
 
 ## Correction
 
-Pending in the owning goal: make learning review mandatory only for revisions that received
-a durable `run-started` admission. Let an unadmitted bootstrap commit reconcile atomically
+Make learning review mandatory only for revisions that received a durable `run-started`
+admission. Let an unadmitted bootstrap commit reconcile atomically
 to the committed revision through the ordinary controller transition; never hand-author
 active goal state or append synthetic controller events as a supported workflow.
 
 ## Enforcing guard
 
-Pending: add a controller regression that initializes against a dirty owned bootstrap file,
+The controller regression initializes against a dirty owned bootstrap file,
 commits it before admission, and proves reconciliation advances to `ready` without an
 iteration-review deadlock. Retain the existing regression proving a revision admitted by
-`run-started` cannot advance without review.
+`run-started` cannot advance without review. The orchestration checker and negative tooling
+fixture require the run-started-only predicate.
 
 ## Promoted instructions
 
-Pending promotion to the controller, its tests, adaptive-orchestration checker, and
-continuation guidance.
+Promoted to the controller, its tests, adaptive-orchestration checker, and continuation
+guidance.
 
 ## Residual risk
 
-Until the pending guard is green, another replacement-goal bootstrap can require the same
-unsupported manual recovery.
+The repository guard cannot prevent an operator from manually editing controller state.
+Append-only history therefore retains the unsupported recovery as evidence, while current
+guidance explicitly prohibits treating it as a supported path.
 
 ## Retirement condition
 

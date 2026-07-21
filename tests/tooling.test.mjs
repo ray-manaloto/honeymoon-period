@@ -25,6 +25,7 @@ const orchestrationPolicyPaths = [
   "docs/learning/TEMPLATE.md",
   "docs/research/link-capture-enrichment.md",
   "docs/research/native-ios-feasibility.md",
+  "docs/research/README.md",
   "docs/research/codex-context-lifecycle.md",
   "docs/research/workflow-architecture-synthesis.md",
   "scripts/symphony-controller.mjs",
@@ -197,6 +198,11 @@ test("adaptive orchestration policy rejects a broken self-learning autonomy loop
       message: /publication policy must keep source completion before publication/,
     },
     {
+      path: "scripts/symphony-controller.mjs",
+      from: 'recorded.type === "run-started"',
+      message: /revision review gating must begin only after durable run admission/,
+    },
+    {
       path: "AGENTS.md",
       from: "Serialize heavyweight aggregate and mechanical validation suites",
       message: /shared-worktree heavyweight validation must remain serialized/,
@@ -225,6 +231,16 @@ test("adaptive orchestration policy rejects a broken self-learning autonomy loop
       path: "docs/research/native-ios-feasibility.md",
       from: "Last verified: 2026-07-20",
       message: /native feasibility must bind the July 20 Calendar V1 decision/,
+    },
+    {
+      path: "docs/research/README.md",
+      from: "Approved #21 identity boundary recorded; provider/API implementation research remains separately gated | 2026-07-20",
+      message: /research index must match link-capture decision metadata/,
+    },
+    {
+      path: "docs/research/README.md",
+      from: "Native destination accepted; Calendar V1 boundary recorded; implementation waits for a stable web API | 2026-07-20",
+      message: /research index must match native decision metadata/,
     },
     {
       path: "docs/research/workflow-architecture-synthesis.md",

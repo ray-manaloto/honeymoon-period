@@ -16,6 +16,10 @@ On each wake:
    repair with a guard, and fresh revision-bound subagent gates. Before changing a
    reviewed revision, persist its standards review and retrospective with
    `record-iteration`; an unrecorded material revision is not admissible.
+   Initialize a successor goal only from a clean tree after its append-only goal-log and
+   bootstrap authority documents are committed. Initialization and input adoption do not
+   count as execution admission; only a durable `run-started` event starts the mandatory
+   revision-review baseline.
    Before spawning any direct child, call `claim-child` with the owner token, stable
    task reference, and exact role; give the returned claim only to that child brief, then call
    `settle-child` after it finishes. The controller derives live delegation usage from

@@ -165,6 +165,11 @@ for (const invariant of [
   requireMatch(controller, new RegExp(invariant[0]), invariant[1]);
 }
 requireMatch(
+  controller,
+  /recorded\.revision === revisionFingerprint && recorded\.type === "run-started"/,
+  "revision review gating must begin only after durable run admission",
+);
+requireMatch(
   mutationLock,
   /os\.execvpe/,
   "OS mutex ownership must be inherited by the mutating controller process",
@@ -235,6 +240,17 @@ requireMatch(
   workflowSynthesis,
   /Historical only — do not execute this roadmap\./,
   "historical workflow roadmap must be explicitly non-executable",
+);
+const researchIndex = read("docs/research/README.md");
+requireMatch(
+  researchIndex,
+  /Approved #21 identity boundary recorded; provider\/API implementation research remains separately gated \| 2026-07-20/,
+  "research index must match link-capture decision metadata",
+);
+requireMatch(
+  researchIndex,
+  /Native destination accepted; Calendar V1 boundary recorded; implementation waits for a stable web API \| 2026-07-20/,
+  "research index must match native decision metadata",
 );
 
 const handoff = read("docs/agents/handoff-template.md");

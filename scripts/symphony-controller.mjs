@@ -433,10 +433,7 @@ function revisionRequiresReview(root, revisionFingerprint) {
     .filter(Boolean)
     .some((line) => {
       const recorded = JSON.parse(line);
-      return (
-        recorded.revision === revisionFingerprint &&
-        new Set(["goal-initialized", "owned-input-adopted", "run-started"]).has(recorded.type)
-      );
+      return recorded.revision === revisionFingerprint && recorded.type === "run-started";
     });
 }
 

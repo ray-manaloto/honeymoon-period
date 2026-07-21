@@ -1346,11 +1346,35 @@ test("owned-input adoption advances the mandatory iteration-review baseline", ()
   assert.ok(active(root).revision.ownedInputs.includes(".agents/lesson.md"));
   git(root, "add", ".agents/lesson.md");
   git(root, "commit", "-qm", "track lesson");
+  const lease = run(root, "wake", {
+    wakeToken: "adopted-baseline",
+    now: "2026-07-19T10:00:00.100Z",
+  });
+  run(root, "checkpoint", {
+    dueAt: "2026-07-19T10:00:00.300Z",
+    ownerToken: lease.ownerToken,
+    state: "waiting",
+    now: "2026-07-19T10:00:00.200Z",
+  });
   writeFileSync(join(root, ".agents/lesson.md"), "changed lesson\n");
   git(root, "add", ".agents/lesson.md");
   git(root, "commit", "-qm", "change lesson");
   const reconciled = run(root, "reconcile", { now: "2026-07-19T10:00:01.000Z" });
   assert.equal(reconciled.reason, "iteration-review-required");
+});
+
+test("an unadmitted dirty bootstrap reconciles after its owned input is committed", () => {
+  const root = createFixture();
+  const initialRevision = active(root).revision.fingerprint;
+  writeFileSync(join(root, "owned/input.txt"), "bootstrap revision\n");
+  const dirty = run(root, "reconcile", { now: "2026-07-19T10:00:00.000Z" });
+  assert.equal(dirty.reason, "dirty-tree-conflict");
+  git(root, "add", "owned/input.txt");
+  git(root, "commit", "-qm", "finish bootstrap");
+  const reconciled = run(root, "reconcile", { now: "2026-07-19T10:00:01.000Z" });
+  assert.equal(reconciled.reason, "revision-changed");
+  assert.equal(active(root).state, "ready");
+  assert.notEqual(active(root).revision.fingerprint, initialRevision);
 });
 
 test("research evidence uses repository vocabulary and can bind completed lanes", () => {
