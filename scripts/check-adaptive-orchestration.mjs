@@ -154,6 +154,10 @@ for (const invariant of [
   ["claim-child", "controller must issue direct-child claims"],
   ["settle-child", "controller must settle direct-child claims"],
   ["replaceTerminal", "controller must support explicit terminal-goal replacement"],
+  [
+    "failed-goal-iteration-required",
+    "failed-goal replacement must require an exact-revision iteration record",
+  ],
   ["distinct-child-claims-required", "final agent roles must use distinct child claims"],
   ["caller-child-count-forbidden", "controller must reject caller-authored child counts"],
   ["caller-repair-count-forbidden", "controller must reject caller-authored repair counts"],

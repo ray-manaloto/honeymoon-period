@@ -1230,8 +1230,32 @@ test("an explicit terminal transition replaces a completed goal and preserves hi
 });
 
 test("an explicit terminal transition can replace a failed goal without erasing history", () => {
+  const unreviewedRoot = createFixture();
+  const unreviewedLease = run(unreviewedRoot, "wake", {
+    wakeToken: "one",
+    now: "2026-07-19T10:00:00.000Z",
+  });
+  run(unreviewedRoot, "checkpoint", {
+    failureFingerprint: "invalid-publication-phase-authority",
+    ownerToken: unreviewedLease.ownerToken,
+    state: "failed",
+    now: "2026-07-19T10:00:00.100Z",
+  });
+  const unreviewed = command(unreviewedRoot, "init", {
+    ...authorityOptions,
+    goal: "unreviewed-source-goal",
+    objective: "Reject an unreviewed failed predecessor",
+    objectiveRef: "docs/goal.md",
+    ownedInput: "owned/input.txt",
+    replaceTerminal: true,
+    now: "2026-07-19T10:00:01.000Z",
+  });
+  assert.notEqual(unreviewed.status, 0);
+  assert.match(unreviewed.stderr, /failed-goal-iteration-required/);
+
   const root = createFixture();
   const lease = run(root, "wake", { wakeToken: "one", now: "2026-07-19T10:00:00.000Z" });
+  recordGreenIteration(root, lease.ownerToken, "2026-07-19T10:00:00.050Z");
   run(root, "checkpoint", {
     failureFingerprint: "invalid-publication-phase-authority",
     ownerToken: lease.ownerToken,

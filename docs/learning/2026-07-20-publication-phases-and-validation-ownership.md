@@ -24,13 +24,15 @@ had previously passed.
 ## Correction
 
 Treat source completion and publication as distinct immutable phases. A misconfigured
-goal checkpoints `failed`; an explicit terminal transition creates a corrected successor
-without rewriting history. Treat the shared worktree as a single-owner resource for
-heavyweight validation: the root aggregate finishes before the fresh validator starts.
+goal records its exact-revision review and retrospective before checkpointing `failed`;
+only then may an explicit terminal transition create a corrected successor without
+rewriting history. Treat the shared worktree as a single-owner resource for heavyweight
+validation: the root aggregate finishes before the fresh validator starts.
 
 ## Enforcing guard
 
-Controller tests require explicit replacement of both completed and failed terminal goals.
+Controller tests require explicit replacement of completed goals, reject unreviewed failed
+goals, and allow a failed predecessor only after its exact revision has a durable iteration.
 The orchestration checker requires the source-first publication contract and serialized
 heavyweight validation instruction. Tooling tests remove each marker and require failure.
 

@@ -65,7 +65,8 @@ does not claim full Symphony conformance, run Symphony, require Linear, create
 an HTTP surface, or replace repository Git/publication ownership.
 
 A failed goal remains immutable evidence. When its authority or phase contract is itself
-invalid, record the failed iteration, checkpoint `failed`, and use only the explicit
-`--replace-terminal true` initialization transition for the corrected successor goal.
+invalid, record the exact-revision review and retrospective before checkpointing `failed`,
+then use only the explicit `--replace-terminal true` initialization transition for the
+corrected successor goal. An unreviewed failed revision cannot be replaced.
 Source completion and publication remain separate goals when publication would otherwise
 make source completion depend on its own downstream external result.

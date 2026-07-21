@@ -911,7 +911,15 @@ function initializeLocked(root, options, now) {
     ) {
       fail("active-goal-already-exists");
     }
-    if (existsSync(controllerPaths.lease)) fail("completed-goal-lease-present");
+    if (
+      previousGoal.state === "failed" &&
+      !previousGoal.learning?.completed?.some(
+        (iteration) => iteration.revision === previousGoal.revision.fingerprint,
+      )
+    ) {
+      fail("failed-goal-iteration-required");
+    }
+    if (existsSync(controllerPaths.lease)) fail("terminal-goal-lease-present");
   }
   const ownedInputs = options.ownedInput ?? [];
   if (ownedInputs.length === 0) fail("owned-input-required");
