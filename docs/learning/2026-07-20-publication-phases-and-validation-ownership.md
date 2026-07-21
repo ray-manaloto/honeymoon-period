@@ -4,7 +4,7 @@
 - Scope: controlled goals, publication, and shared-worktree validation
 - Evidence type: reproduced failure and control-flow risk
 - Iteration outcome: promoted
-- Goal/revision evidence: adaptive-orchestration goal-log entry 67
+- Goal/revision evidence: adaptive-orchestration goal-log entries 67–69
 
 ## Observation
 
@@ -13,6 +13,11 @@ exist after source completion. In the same iteration, the root and independent a
 duplicate heavyweight suites concurrently in one worktree, producing an aggregate
 `mutation-contention` failure and preventing an independent validator verdict.
 
+The first terminal-replacement repair then allowed a failed goal to be replaced without
+an exact-revision review and retrospective. The guard was added only after the first
+successor had already been created through that invalid transition, so that successor's
+lineage also had to be failed and recreated through the guarded path.
+
 ## Evidence
 
 The publication standards gate traced the circular dependency from
@@ -20,6 +25,11 @@ The publication standards gate traced the circular dependency from
 source-first publication contract. The root aggregate reproduced the differing-input
 adoption contention failure while three controller suites overlapped; the isolated suite
 had previously passed.
+
+The next standards gate traced the missing iteration check directly to terminal
+initialization, and the semantic verifier compared the failed predecessor revision with
+its only iteration record to prove they differed. Append-only goal-log entries 68 and 69
+retain both the guard repair and the corrective successor transition.
 
 ## Correction
 
